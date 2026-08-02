@@ -15,7 +15,21 @@ cp .env.example .env
 - `APP_URL` / `NEXT_PUBLIC_APP_URL`: The frontend application URL.
 - `API_URL` / `NEXT_PUBLIC_API_URL`: The backend api endpoint (default: `http://localhost:8000`).
 
+## Tailwind CSS & Design System Configuration
+
+This project uses **Tailwind CSS v4** which organizes theme configurations directly inside CSS. 
+
+We have configured a CSS variable-based design system in [`app/globals.css`](file:///Users/jonecoder/Projects/iilp_web/app/globals.css).
+
+### How to Modify:
+- **Colors**: Edit the CSS custom properties under `:root` (e.g. `--color-primary-500`, `--bg-app`) and their dark mode overrides (`@media (prefers-color-scheme: dark)` or `html.dark`).
+- **Fonts**: Update `--font-sans-family` or `--font-mono-family` to switch system or next/font configurations.
+- **Radii**: Modify `--radius-md` etc. to instantly adjust component border-radii across the entire site.
+
+All variables are automatically linked to Tailwind utilities under the `@theme` block, allowing you to use standard utility classes (e.g., `bg-primary-500`, `text-text-muted`, `border-border-default`, `rounded-md`).
+
 ## Getting Started
+
 
 First, run the development server:
 
