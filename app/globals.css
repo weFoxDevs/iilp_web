@@ -21,31 +21,31 @@
 
   /* ---------------- Color Palettes (Scale: 50-950) ---------------- */
   
-  /* Primary Brand Color (Indigo/Blue-based by default) */
-  --color-primary-50: #f0f9ff;
-  --color-primary-100: #e0f2fe;
-  --color-primary-200: #bae6fd;
-  --color-primary-300: #7dd3fc;
-  --color-primary-400: #38bdf8;
-  --color-primary-500: #0ea5e9;
-  --color-primary-600: #0284c7;
-  --color-primary-700: #0369a1;
-  --color-primary-800: #075985;
-  --color-primary-900: #0c4a6e;
-  --color-primary-950: #082f49;
+  /* Primary Brand Color (Deep Sky Blue-based by default) */
+  --color-primary-50: #f0faff;
+  --color-primary-100: #e0f5ff;
+  --color-primary-200: #bae8ff;
+  --color-primary-300: #7dd9ff;
+  --color-primary-400: #38c4ff;
+  --color-primary-500: #00BFFF;
+  --color-primary-600: #00a2d6;
+  --color-primary-700: #007fa8;
+  --color-primary-800: #005d7a;
+  --color-primary-900: #00485e;
+  --color-primary-950: #003040;
 
-  /* Secondary Brand Color (Slate/Zinc-based by default) */
-  --color-secondary-50: #f8fafc;
-  --color-secondary-100: #f1f5f9;
-  --color-secondary-200: #e2e8f0;
-  --color-secondary-300: #cbd5e1;
-  --color-secondary-400: #94a3b8;
-  --color-secondary-500: #64748b;
-  --color-secondary-600: #475569;
-  --color-secondary-700: #334155;
-  --color-secondary-800: #1e293b;
-  --color-secondary-900: #0f172a;
-  --color-secondary-950: #020617;
+  /* Secondary Brand Color (Deep Navy Blue-based by default) */
+  --color-secondary-50: #f4f4fa;
+  --color-secondary-100: #e8e8f5;
+  --color-secondary-200: #d5d5ed;
+  --color-secondary-300: #b7b7e0;
+  --color-secondary-400: #8f8fd0;
+  --color-secondary-500: #6262bf;
+  --color-secondary-600: #4242a8;
+  --color-secondary-700: #2a2a8e;
+  --color-secondary-800: #171775;
+  --color-secondary-900: #000080;
+  --color-secondary-950: #000052;
 
   /* Accent Color (Teal/Emerald-based by default) */
   --color-accent-50: #f0fdf4;
@@ -62,57 +62,57 @@
 
   /* ---------------- UI Semantic Colors (Light Mode) ---------------- */
   --bg-app: #ffffff;
-  --bg-surface: #f8fafc;
+  --bg-surface: #f4f7fa;
   --bg-card: #ffffff;
   
-  --text-main: #0f172a;
-  --text-muted: #64748b;
+  --text-main: #000040;
+  --text-muted: #6262bf;
   --text-inverse: #ffffff;
 
-  --border-default: #e2e8f0;
-  --border-muted: #f1f5f9;
+  --border-default: #d5d5ed;
+  --border-muted: #f4f4fa;
   
   /* Next.js default compatibility */
   --background: #ffffff;
-  --foreground: #0f172a;
+  --foreground: #000040;
 }
 
 /* ---------------- UI Semantic Colors (Dark Mode Override) ---------------- */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-app: #0f172a;
-    --bg-surface: #1e293b;
-    --bg-card: #1e293b;
+    --bg-app: #000022;
+    --bg-surface: #00003b;
+    --bg-card: #00003b;
 
-    --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --text-inverse: #020617;
+    --text-main: #ffffff;
+    --text-muted: #8f8fd0;
+    --text-inverse: #000022;
 
-    --border-default: #334155;
-    --border-muted: #1e293b;
+    --border-default: #171775;
+    --border-muted: #00003b;
     
     /* Next.js default compatibility */
-    --background: #0f172a;
-    --foreground: #f8fafc;
+    --background: #000022;
+    --foreground: #ffffff;
   }
 }
 
 /* Optional class-based dark mode override for manual theme switching */
 html.dark {
-  --bg-app: #0f172a;
-  --bg-surface: #1e293b;
-  --bg-card: #1e293b;
+  --bg-app: #000022;
+  --bg-surface: #00003b;
+  --bg-card: #00003b;
 
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-inverse: #020617;
+  --text-main: #ffffff;
+  --text-muted: #8f8fd0;
+  --text-inverse: #000022;
 
-  --border-default: #334155;
-  --border-muted: #1e293b;
+  --border-default: #171775;
+  --border-muted: #00003b;
   
   /* Next.js default compatibility */
-  --background: #0f172a;
-  --foreground: #f8fafc;
+  --background: #000022;
+  --foreground: #ffffff;
 }
 
 /* -------------------------------------------------------------
