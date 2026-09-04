@@ -3,17 +3,17 @@ import Image from 'next/image';
 
 export function FounderMessage() {
   return (
-    <section className="bg-[#E6F9FF] py-24 lg:py-32 relative overflow-hidden">
+    <section className="bg-primary-50 py-24 lg:py-32 relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-6 flex flex-col items-center gap-16 lg:gap-20">
         
         {/* Header */}
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="inline-block border border-[#00698C] rounded-full px-3 py-1.5">
-            <span className="text-[#0A0D12] text-sm font-semibold uppercase tracking-wide">
+          <div className="inline-block border border-primary-800 rounded-full px-3 py-1.5">
+            <span className="text-gray-950 text-sm font-semibold uppercase tracking-wide font-inter">
               From the Founder
             </span>
           </div>
-          <h2 className="font-serif font-medium text-4xl lg:text-[44px] text-[#0A0D12] tracking-tight">
+          <h2 className="font-playfair font-medium text-4xl lg:text-[44px] text-gray-950 tracking-tight">
             Founder&apos;s Message
           </h2>
         </div>
@@ -50,13 +50,13 @@ export function FounderMessage() {
                 className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm"
                 style={{ background: "linear-gradient(135deg, rgb(0, 0, 128) 0%, rgb(0, 191, 255) 100%)" }}
               >
-                <span className="font-serif font-bold text-white tracking-wider">MS</span>
+                <span className="font-playfair font-bold text-white tracking-wider">MS</span>
               </div>
               <div className="flex flex-col">
-                <h3 className="font-serif font-bold text-2xl text-[#000080]">
+                <h3 className="font-playfair font-bold text-2xl text-secondary-500">
                   Mohammed Siraj
                 </h3>
-                <p className="text-sm text-[#6A7282]">
+                <p className="text-sm text-gray-500 font-inter">
                   Founder & President, IILP
                 </p>
               </div>
@@ -67,20 +67,20 @@ export function FounderMessage() {
           <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left gap-6 pt-0 lg:pt-12 relative z-10">
             {/* Large Decorative Quote */}
             <div className="flex w-full justify-center lg:justify-start">
-              <span className="font-serif text-[80px] leading-[60px] text-[#000080] opacity-20">
+              <span className="font-playfair text-[80px] leading-[60px] text-secondary-500 opacity-20">
                 &quot;
               </span>
             </div>
             
             {/* Quote Paragraph */}
-            <p className="font-serif font-bold text-2xl md:text-[28px] leading-snug text-[#000080]">
+            <p className="font-playfair font-bold text-2xl md:text-[28px] leading-snug text-secondary-500">
               IILP was established upon a straightforward yet ambitious principle: knowledge must serve humanity. Knowledge is power, and that power cannot be siloed within academia or confined to intellectual discussions alone.
             </p>
 
             {/* Link */}
             <Link 
               href="/founder" 
-              className="inline-flex items-center gap-2 mt-4 text-[#00BFFF] font-semibold text-sm hover:text-[#00a3d9] transition-colors"
+              className="inline-flex items-center gap-2 mt-4 text-primary-500 font-semibold text-sm hover:text-primary-600 transition-colors font-inter"
             >
               Read Full Founder&apos;s Message 
               <span>&rarr;</span>

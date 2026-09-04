@@ -24,19 +24,19 @@ export function AcademicPrograms() {
   ];
 
   return (
-    <section className="bg-[#E6F9FF] py-20 lg:py-[140px] px-4 md:px-12 lg:px-[240px] flex flex-col items-center gap-[80px]">
+    <section className="bg-primary-50 py-20 lg:py-[140px] px-4 md:px-12 lg:px-[240px] flex flex-col items-center gap-[80px]">
       
       {/* Header */}
       <div className="flex flex-col items-center max-w-[680px] text-center gap-4">
-        <div className="border border-[#00698c] rounded-full px-3 py-2">
-          <span className="text-[#0a0d12] text-base font-semibold uppercase tracking-wide">
+        <div className="border border-primary-800 rounded-full px-3 py-2">
+          <span className="text-gray-950 text-base font-semibold uppercase tracking-wide font-inter">
             Academic Programs
           </span>
         </div>
-        <h2 className="font-serif font-medium text-[36px] leading-[44px] text-[#0a0d12] tracking-[-0.72px]">
+        <h2 className="font-playfair font-medium text-[36px] leading-[44px] text-gray-950 tracking-[-0.72px]">
           Six Academic Departments
         </h2>
-        <p className="font-sans text-[20px] leading-[30px] text-[#0a0d12]">
+        <p className="font-inter text-[20px] leading-[30px] text-gray-950">
           Interdisciplinary programs advancing law, governance, human rights, and development through rigorous research and scholarship.
         </p>
       </div>
@@ -58,17 +58,17 @@ export function AcademicPrograms() {
               </div>
               
               {/* Number Badge */}
-              <div className={`absolute top-[20px] left-[20px] w-[91px] h-[92px] flex items-center justify-center font-semibold text-[32px] transition-colors duration-300 z-10
+              <div className={`absolute top-[20px] left-[20px] w-[91px] h-[92px] flex items-center justify-center font-semibold text-[32px] font-inter transition-colors duration-300 z-10
                 ${dept.isActive 
-                  ? 'bg-[#00BFFF] text-white' 
-                  : 'bg-[#E6F9FF] text-[#00BFFF] group-hover:bg-[#00BFFF] group-hover:text-white'
+                  ? 'bg-primary-500 text-white' 
+                  : 'bg-primary-50 text-primary-500 group-hover:bg-primary-500 group-hover:text-white'
                 }`}
               >
                 {dept.number}
               </div>
 
               {/* Arrow Button (Active/Hover State) */}
-              <div className={`absolute right-0 bottom-[15px] translate-x-1/2 w-12 h-12 bg-[#F9FAFB] border border-[#E5E7EB] rounded-full flex items-center justify-center shadow-sm z-20 transition-opacity duration-300
+              <div className={`absolute right-0 bottom-[15px] translate-x-1/2 w-12 h-12 bg-gray-50 border border-gray-200 rounded-full flex items-center justify-center shadow-sm z-20 transition-opacity duration-300
                 ${dept.isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
               >
                 <Image 
@@ -81,12 +81,12 @@ export function AcademicPrograms() {
             </div>
             
             <div className="flex flex-col gap-[10px] items-start justify-center w-full">
-              <h3 className={`font-serif font-bold text-[24px] leading-[32px] transition-colors duration-300
-                ${dept.isActive ? 'text-[#00BFFF]' : 'text-[#111] group-hover:text-[#00BFFF]'}`}
+              <h3 className={`font-playfair font-bold text-[24px] leading-[32px] transition-colors duration-300
+                ${dept.isActive ? 'text-primary-500' : 'text-gray-950 group-hover:text-primary-500'}`}
               >
                 {dept.title}
               </h3>
-              <p className="font-sans text-[18px] text-[#666] leading-[28px]">
+              <p className="font-inter text-[18px] text-gray-600 leading-[28px]">
                 {dept.description}
               </p>
             </div>
@@ -96,8 +96,8 @@ export function AcademicPrograms() {
       </div>
 
       {/* Explore Button */}
-      <Link href="/academics" className="inline-flex items-center justify-center rounded-full bg-[#00BFFF] px-6 py-3.5 shadow-sm hover:bg-[#00a3d9] transition-colors">
-        <span className="font-sans font-semibold text-white text-[16px] leading-[24px]">
+      <Link href="/academics" className="inline-flex items-center justify-center rounded-full bg-primary-500 px-6 py-3.5 shadow-sm hover:bg-primary-600 transition-colors">
+        <span className="font-inter font-semibold text-white text-[16px] leading-[24px]">
           Explore All Departments
         </span>
       </Link>

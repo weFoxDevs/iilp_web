@@ -56,7 +56,7 @@ export function Testimonial() {
           
           {/* Left Column: Heading */}
           <div className="w-full lg:w-5/12 flex items-center shrink-0 lg:pr-10">
-            <h2 className="font-serif font-medium text-4xl lg:text-[36px] leading-[44px] text-white tracking-[-0.72px]">
+            <h2 className="font-playfair font-medium text-4xl lg:text-[36px] leading-[44px] text-white tracking-[-0.72px]">
               Happy students sharing experiences
             </h2>
           </div>
@@ -67,12 +67,12 @@ export function Testimonial() {
             {/* Active Testimonial Slide */}
             <div className="flex flex-col gap-6 w-full animate-slide-in" key={currentTestimonial.id}>
               {/* Tagline */}
-              <p className="text-white/70 font-sans text-lg font-medium tracking-wide">
+              <p className="text-white/70 font-inter text-lg font-medium tracking-wide">
                 {currentTestimonial.tagline}
               </p>
               
               {/* Quote */}
-              <p className="text-white font-sans text-2xl md:text-[24px] leading-[33.6px] tracking-[-0.5px] font-medium min-h-[140px]">
+              <p className="text-white font-inter text-2xl md:text-[24px] leading-[33.6px] tracking-[-0.5px] font-medium min-h-[140px]">
                 &ldquo;{currentTestimonial.quote}&rdquo;
               </p>
 

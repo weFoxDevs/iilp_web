@@ -12,11 +12,11 @@ export function Stats() {
         <div className="flex flex-wrap items-center justify-between gap-8 md:gap-12">
           {stats.map((stat, index) => (
             <div key={index} className="flex flex-col items-center justify-center gap-1 flex-1 min-w-[150px]">
-              <div className="text-4xl md:text-5xl lg:text-6xl font-semibold text-[#00506B] flex items-baseline">
+              <div className="text-4xl md:text-5xl lg:text-6xl font-semibold text-primary-900 flex items-baseline font-inter">
                 {stat.value}
-                <span className="text-[#00506B] ml-1">{stat.suffix}</span>
+                <span className="text-primary-900 ml-1">{stat.suffix}</span>
               </div>
-              <div className="text-base lg:text-lg text-[#0A0D12] text-center max-w-[150px] leading-tight">
+              <div className="text-base lg:text-lg text-gray-950 text-center max-w-[150px] leading-tight font-inter">
                 {stat.label}
               </div>
             </div>

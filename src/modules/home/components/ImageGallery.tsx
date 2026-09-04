@@ -12,7 +12,7 @@ export function ImageGallery() {
   const marqueeImages = [...images, ...images, ...images];
 
   return (
-    <section className="bg-[#E6F9FF] py-16 lg:py-[140px] relative overflow-hidden">
+    <section className="bg-primary-50 py-16 lg:py-[140px] relative overflow-hidden">
       <div className="relative w-full h-[300px] sm:h-[400px] lg:h-[650px] flex items-center">
         
         {/* Infinite Scroll Container */}

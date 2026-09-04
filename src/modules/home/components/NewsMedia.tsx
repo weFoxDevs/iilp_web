@@ -41,28 +41,28 @@ export function NewsMedia() {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 w-full">
           {/* Text Content */}
           <div className="flex flex-col items-start gap-4 max-w-2xl">
-            <div className="inline-block border border-[#00698C] rounded-full px-3 py-1.5">
-              <span className="text-[#0A0D12] text-sm font-semibold uppercase tracking-wide">
+            <div className="inline-block border border-primary-800 rounded-full px-3 py-1.5">
+              <span className="text-gray-950 text-sm font-semibold uppercase tracking-wide font-inter">
                 Stay Updated
               </span>
             </div>
-            <h2 className="font-serif font-medium text-4xl lg:text-5xl text-[#0A0D12] tracking-tight">
+            <h2 className="font-playfair font-medium text-4xl lg:text-5xl text-gray-950 tracking-tight">
               News & Media Center
             </h2>
-            <p className="text-lg md:text-xl text-[#0A0D12]/80 leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-950/80 leading-relaxed font-inter">
               Interdisciplinary programs advancing law, governance, human rights, and development through rigorous research and scholarship.
             </p>
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex items-center gap-1 bg-[#E6F9FF] border border-[#E6F9FF] rounded-full p-1 self-start lg:self-end">
-            <button className="bg-[#1E2939] text-white font-semibold text-sm px-5 py-2.5 rounded-full shadow-sm transition-colors">
+          <div className="flex items-center gap-1 bg-primary-50 border border-primary-50 rounded-full p-1 self-start lg:self-end font-inter">
+            <button className="bg-gray-800 text-white font-semibold text-sm px-5 py-2.5 rounded-full shadow-sm transition-colors">
               Programs
             </button>
-            <button className="bg-white text-[#4A5565] border border-[#E5E7EB] font-semibold text-sm px-5 py-2.5 rounded-full shadow-sm hover:bg-gray-50 transition-colors">
+            <button className="bg-white text-gray-600 border border-gray-200 font-semibold text-sm px-5 py-2.5 rounded-full shadow-sm hover:bg-gray-50 transition-colors">
               News
             </button>
-            <button className="bg-white text-[#4A5565] border border-[#E5E7EB] font-semibold text-sm px-5 py-2.5 rounded-full shadow-sm hover:bg-gray-50 transition-colors">
+            <button className="bg-white text-gray-600 border border-gray-200 font-semibold text-sm px-5 py-2.5 rounded-full shadow-sm hover:bg-gray-50 transition-colors">
               Events
             </button>
           </div>
@@ -84,14 +84,14 @@ export function NewsMedia() {
             </div>
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
-                <span className="bg-[#E6F9FF] text-[#000036] text-sm font-medium px-3.5 py-1 rounded-full">
+                <span className="bg-primary-50 text-secondary-900 text-sm font-medium px-3.5 py-1 rounded-full font-inter">
                   News
                 </span>
-                <span className="text-[#160D03] text-sm font-medium">
+                <span className="text-gray-950 text-sm font-medium font-inter">
                   May 20, 2025
                 </span>
               </div>
-              <h3 className="font-serif text-2xl lg:text-[28px] leading-tight text-[#0A0D12] group-hover:text-[#00698C] transition-colors">
+              <h3 className="font-playfair text-2xl lg:text-[28px] leading-tight text-gray-950 group-hover:text-primary-800 transition-colors">
                 Technological Advancements
               </h3>
             </div>
@@ -112,14 +112,14 @@ export function NewsMedia() {
                 </div>
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="bg-[#E6F9FF] text-[#000036] text-sm font-medium px-3.5 py-1 rounded-full">
+                    <span className="bg-primary-50 text-secondary-900 text-sm font-medium px-3.5 py-1 rounded-full font-inter">
                       {item.category}
                     </span>
-                    <span className="text-[#160D03] text-sm font-medium">
+                    <span className="text-gray-950 text-sm font-medium font-inter">
                       {item.date}
                     </span>
                   </div>
-                  <h3 className="font-serif text-xl lg:text-2xl leading-tight text-[#0A0D12] group-hover:text-[#00698C] transition-colors">
+                  <h3 className="font-playfair text-xl lg:text-2xl leading-tight text-gray-950 group-hover:text-primary-800 transition-colors">
                     {item.title}
                   </h3>
                 </div>

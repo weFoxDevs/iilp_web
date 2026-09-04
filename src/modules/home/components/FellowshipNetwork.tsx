@@ -29,15 +29,15 @@ export function FellowshipNetwork() {
           <div className="flex flex-col gap-10 w-full lg:w-1/2 max-w-2xl">
             {/* Header section */}
             <div className="flex flex-col gap-6 items-start">
-              <div className="inline-block border border-[#00698C] rounded-full px-3 py-1.5">
-                <span className="text-[#0A0D12] text-sm font-semibold uppercase tracking-wide">
+              <div className="inline-block border border-primary-800 rounded-full px-3 py-1.5">
+                <span className="text-gray-950 text-sm font-semibold uppercase tracking-wide font-inter">
                   Global Fellowship Network
                 </span>
               </div>
-              <h2 className="font-serif font-medium text-4xl md:text-[44px] leading-tight text-[#0A0D12] tracking-[-0.72px]">
+              <h2 className="font-playfair font-medium text-4xl md:text-[44px] leading-tight text-gray-950 tracking-[-0.72px]">
                 Join the IILP Fellowship Network
               </h2>
-              <p className="text-xl text-[#0A0D12]/70 leading-[30px]">
+              <p className="text-xl text-gray-950/70 leading-[30px] font-inter">
                 Join the IILP Global Fellowship Network — connecting researchers, professionals, and emerging leaders around the world. Applications are open for Research Fellows, Junior Fellows, and Honorary Fellows.
               </p>
             </div>
@@ -47,32 +47,32 @@ export function FellowshipNetwork() {
               {fellowships.map((item) => (
                 <div key={item.id} className="flex flex-col gap-6">
                   <div className="flex flex-col gap-2">
-                    <h3 className="font-serif font-bold text-2xl text-[#000080]">
+                    <h3 className="font-playfair font-bold text-2xl text-secondary-500">
                       {item.title}
                     </h3>
-                    <p className="text-[#000036]/70 text-lg leading-7">
+                    <p className="text-secondary-900/70 text-lg leading-7 font-inter">
                       {item.description}
                     </p>
                   </div>
                   {/* Decorative Underline */}
-                  <div className="flex h-0.5 w-[243px] bg-[#00BFFF]">
-                    <div className="h-full w-[141px] bg-[#000080]" />
+                  <div className="flex h-0.5 w-[243px] bg-primary-500">
+                    <div className="h-full w-[141px] bg-secondary-500" />
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 font-inter">
               <Link 
                 href="/fellowships/apply" 
-                className="inline-flex items-center justify-center bg-[#00BFFF] hover:bg-[#00a3d9] text-white font-semibold text-base px-6 py-3.5 rounded-full shadow-sm transition-colors w-full sm:w-auto"
+                className="inline-flex items-center justify-center bg-primary-500 hover:bg-primary-600 text-white font-semibold text-base px-6 py-3.5 rounded-full shadow-sm transition-colors w-full sm:w-auto"
               >
                 Apply for Fellowship
               </Link>
               <Link 
                 href="/fellowships" 
-                className="inline-flex items-center justify-center bg-[#F9FAFB] hover:bg-gray-100 border border-[#E5E7EB] text-[#4A5565] font-semibold text-base px-6 py-3.5 rounded-full shadow-sm transition-colors w-full sm:w-auto"
+                className="inline-flex items-center justify-center bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 font-semibold text-base px-6 py-3.5 rounded-full shadow-sm transition-colors w-full sm:w-auto"
               >
                 Learn More
               </Link>

@@ -27,16 +27,16 @@ export function MissionVision() {
                 </div>
               </div>
             </div>
-            <div className="w-full lg:w-1/2 flex flex-col items-start">
-              <div className="inline-block border border-[#00698C] rounded-full px-4 py-1.5 mb-6">
-                <span className="text-[#0A0D12] text-sm font-semibold uppercase tracking-wide">
+            <div className="w-full lg:w-1/2 flex flex-col items-start font-inter">
+              <div className="inline-block border border-primary-800 rounded-full px-4 py-1.5 mb-6">
+                <span className="text-gray-950 text-sm font-semibold uppercase tracking-wide">
                   Our Mission
                 </span>
               </div>
-              <h2 className="text-4xl lg:text-5xl font-medium font-serif text-[#0A0D12] mb-6 leading-tight">
+              <h2 className="text-4xl lg:text-5xl font-medium font-playfair text-gray-950 mb-6 leading-tight">
                 Advancing Interdisciplinary Scholarship
               </h2>
-              <p className="text-xl text-[#0A0D12]/70 leading-relaxed">
+              <p className="text-xl text-gray-950/70 leading-relaxed font-source">
                 The mission of the International Institute for Law and Politics is to advance interdisciplinary scholarship, strengthen evidence-based policymaking, foster ethical leadership, and contribute to the development of informed and resilient institutions capable of addressing contemporary global challenges.
               </p>
             </div>
@@ -68,16 +68,16 @@ export function MissionVision() {
                 </div>
               </div>
             </div>
-            <div className="w-full lg:w-1/2 flex flex-col items-start">
-              <div className="inline-block border border-[#00698C] rounded-full px-4 py-1.5 mb-6">
-                <span className="text-[#0A0D12] text-sm font-semibold uppercase tracking-wide">
+            <div className="w-full lg:w-1/2 flex flex-col items-start font-inter">
+              <div className="inline-block border border-primary-800 rounded-full px-4 py-1.5 mb-6">
+                <span className="text-gray-950 text-sm font-semibold uppercase tracking-wide">
                   Our Vision
                 </span>
               </div>
-              <h2 className="text-4xl lg:text-5xl font-medium font-serif text-[#0A0D12] mb-6 leading-tight">
+              <h2 className="text-4xl lg:text-5xl font-medium font-playfair text-gray-950 mb-6 leading-tight">
                 A Globally Respected Centre of Excellence
               </h2>
-              <p className="text-xl text-[#0A0D12]/70 leading-relaxed">
+              <p className="text-xl text-gray-950/70 leading-relaxed font-source">
                 To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace.
               </p>
             </div>

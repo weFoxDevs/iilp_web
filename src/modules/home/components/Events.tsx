@@ -27,20 +27,20 @@ export function Events() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
           <div className="flex flex-col gap-4 max-w-2xl">
-            <div className="inline-block border border-[#00698C] rounded-full px-4 py-1.5 w-fit">
-              <span className="text-[#0A0D12] text-sm font-semibold uppercase tracking-wide">
+            <div className="inline-block border border-primary-800 rounded-full px-4 py-1.5 w-fit">
+              <span className="text-gray-950 text-sm font-semibold uppercase tracking-wide font-inter">
                 Stay Updated
               </span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-medium font-serif text-[#0A0D12]">
+            <h2 className="text-4xl md:text-5xl font-medium font-playfair text-gray-950">
               Upcoming Events & Activities
             </h2>
-            <p className="text-lg md:text-xl text-[#0A0D12]/70 leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-950/70 leading-relaxed font-inter">
               Interdisciplinary programs advancing law, governance, human rights, and development through rigorous research and scholarship.
             </p>
           </div>
           
-          <Link href="/events" className="inline-flex items-center justify-center rounded-full bg-[#00BFFF] px-8 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-[#00a3d9] transition-colors shrink-0 mb-2">
+          <Link href="/events" className="inline-flex items-center justify-center rounded-full bg-primary-500 px-8 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-primary-600 transition-colors shrink-0 mb-2 font-inter">
             View All Events
           </Link>
         </div>
@@ -59,10 +59,10 @@ export function Events() {
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-[#4A4949]">
+                <span className="text-sm font-medium text-[#4A4949] font-inter">
                   {event.date}
                 </span>
-                <h3 className="text-2xl font-serif text-[#160D03] group-hover:text-[#00BFFF] transition-colors">
+                <h3 className="text-2xl font-playfair text-[#160D03] group-hover:text-primary-500 transition-colors">
                   {event.title}
                 </h3>
               </div>
