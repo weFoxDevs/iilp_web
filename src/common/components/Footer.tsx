@@ -1,9 +1,16 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { CallToAction } from './CallToAction';
 
-export function Footer() {
+interface FooterProps {
+  withCta?: boolean;
+}
+
+export function Footer({ withCta = true }: FooterProps = {}) {
   return (
-    <footer className="relative bg-secondary-900 text-white pt-24 pb-16 overflow-hidden">
+    <>
+      {withCta && <CallToAction />}
+      <footer className="relative bg-secondary-900 text-white pt-24 pb-16 overflow-hidden">
       {/* Background Watermark Image */}
       <div className="absolute inset-0 z-0 opacity-5 pointer-events-none flex items-center justify-center">
         <Image 
@@ -79,10 +86,10 @@ export function Footer() {
             <div className="flex flex-col gap-6">
               <h3 className="font-playfair font-semibold text-[18px] text-white">Research & Programs</h3>
               <ul className="flex flex-col gap-4 text-[16px] text-gray-300 font-inter">
-                <li><Link href="#" className="hover:text-primary-500 transition-colors">Research & Publications</Link></li>
-                <li><Link href="#" className="hover:text-primary-500 transition-colors">Global Fellowship Network</Link></li>
-                <li><Link href="#" className="hover:text-primary-500 transition-colors">Partnerships</Link></li>
-                <li><Link href="#" className="hover:text-primary-500 transition-colors">News & Media Center</Link></li>
+                <li><Link href="/research-publications" className="hover:text-primary-500 transition-colors">Research & Publications</Link></li>
+                <li><Link href="/fellowships" className="hover:text-primary-500 transition-colors">Global Fellowship Network</Link></li>
+                <li><Link href="/partnership-framework" className="hover:text-primary-500 transition-colors">Partnerships</Link></li>
+                <li><Link href="/news-media" className="hover:text-primary-500 transition-colors">News & Media Center</Link></li>
                 <li><Link href="#" className="hover:text-primary-500 transition-colors">Events & Conferences</Link></li>
                 <li><Link href="#" className="hover:text-primary-500 transition-colors">Blog</Link></li>
               </ul>
@@ -157,5 +164,6 @@ export function Footer() {
 
       </div>
     </footer>
+    </>
   );
 }

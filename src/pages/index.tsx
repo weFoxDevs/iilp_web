@@ -10,7 +10,6 @@ import { ImageGallery } from "@/modules/home/components/ImageGallery";
 import { FellowshipNetwork } from "@/modules/home/components/FellowshipNetwork";
 import { FounderMessage } from "@/modules/home/components/FounderMessage";
 import { NewsMedia } from "@/modules/home/components/NewsMedia";
-import { CallToAction } from "@/modules/home/components/CallToAction";
 
 export default function Home() {
   return (
@@ -28,7 +27,6 @@ export default function Home() {
         <FellowshipNetwork />
         <FounderMessage />
         <NewsMedia />
-        <CallToAction />
       </main>
       
       <Footer />

@@ -1,0 +1,46 @@
+import React from "react";
+import Image from "next/image";
+
+export default function FellowshipHero() {
+  return (
+    <section className="relative w-full min-h-[640px] lg:min-h-[720px] overflow-hidden flex flex-col items-center justify-center pt-[160px] lg:pt-[200px] pb-[200px] lg:pb-[260px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] text-center isolate">
+      {/* Background Image with Dark & Gradient Overlays */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <Image
+          src="/assets/fellowship-hero-bg.png"
+          alt="IILP Global Fellowship Network"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        {/* Dark linear gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/40 to-black/20" />
+        {/* Soft bottom blend to white */}
+        <div className="absolute bottom-0 left-0 right-0 h-[140px] bg-gradient-to-b from-transparent to-white" />
+      </div>
+
+      {/* Content Container */}
+      <div className="max-w-[1440px] mx-auto flex flex-col items-center gap-4 sm:gap-6 relative z-10">
+        {/* Pill Badge */}
+        <div className="inline-flex items-center border border-[#e6f9ff] rounded-full px-3.5 py-1.5 sm:py-2 backdrop-blur-xs bg-black/15">
+          <span className="text-xs sm:text-sm md:text-[16px] font-sans font-semibold tracking-wider text-[#fdfdfd] uppercase leading-[17.6px]">
+            Global Fellowship Network
+          </span>
+        </div>
+
+        {/* Main Heading */}
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-serif font-semibold text-white tracking-[-0.96px] leading-tight sm:leading-[1.2] lg:leading-[60px] max-w-[856px]">
+          Connecting Scholars &amp; Leaders Worldwide
+        </h1>
+
+        {/* Supporting Description */}
+        <p className="text-white/95 text-base sm:text-lg lg:text-[20px] font-sans font-normal leading-relaxed lg:leading-[30px] max-w-[978px] drop-shadow-xs">
+          Join the IILP Global Fellowship Network — connecting researchers,
+          professionals, and emerging leaders around the world committed to
+          advancing justice, governance, and human rights.
+        </p>
+      </div>
+    </section>
+  );
+}
