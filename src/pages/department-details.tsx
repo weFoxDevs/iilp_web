@@ -16,7 +16,6 @@ export default function DepartmentDetailsPage() {
         <DepartmentOverview />
         <DepartmentFaculty />
         <DepartmentAcademicPrograms />
-        <CallToAction />
       </main>
       <Footer />
     </div>

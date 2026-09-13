@@ -14,7 +14,6 @@ export default function PublicationDetailsPage() {
         <PublicationDetailsHero />
         <PublicationDetailsOverview />
         <ReadMoreResearch />
-        <CallToAction />
       </main>
       <Footer />
     </div>

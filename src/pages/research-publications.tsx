@@ -14,7 +14,6 @@ export default function ResearchPublicationsPage() {
         <ResearchPublicationsHero />
         <ResearchRepository />
         <SubmitResearchBanner />
-        <CallToAction />
       </main>
       <Footer />
     </div>
