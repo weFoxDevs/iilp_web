@@ -45,6 +45,16 @@ const othersGroups: DropdownGroup[] = [
     category: "Media & Partnerships",
     items: [
       {
+        name: "Events & Conferences",
+        href: "/events",
+        description: "Conferences, seminars, workshops & webinars",
+      },
+      {
+        name: "Event Details",
+        href: "/event-details",
+        description: "Symposium agenda, highlights & registration",
+      },
+      {
         name: "News & Media Center",
         href: "/news-media",
         description: "Press releases, events & photo gallery",

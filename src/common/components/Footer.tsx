@@ -98,12 +98,12 @@ export function Footer({ withCta = true }: FooterProps = {}) {
             <div className="flex flex-col gap-6">
               <h3 className="font-playfair font-semibold text-[18px] text-white">Support & Connect</h3>
               <ul className="flex flex-col gap-4 text-[16px] text-gray-300 font-inter">
-                <li><Link href="#" className="hover:text-primary-500 transition-colors">Contact Us</Link></li>
-                <li><Link href="#" className="hover:text-primary-500 transition-colors">Donate / Support IILP</Link></li>
-                <li><Link href="#" className="hover:text-primary-500 transition-colors">Careers / Work With Us</Link></li>
+                <li><Link href="/contact" className="hover:text-primary-500 transition-colors">Contact Us</Link></li>
+                <li><Link href="/donate" className="hover:text-primary-500 transition-colors">Donate / Support IILP</Link></li>
+                <li><Link href="/careers" className="hover:text-primary-500 transition-colors">Careers / Work With Us</Link></li>
                 <li><Link href="#" className="hover:text-primary-500 transition-colors">FAQ</Link></li>
-                <li><Link href="#" className="hover:text-primary-500 transition-colors">Privacy Policy</Link></li>
-                <li><Link href="#" className="hover:text-primary-500 transition-colors">Terms of Use</Link></li>
+                <li><Link href="/privacy-policy" className="hover:text-primary-500 transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms-of-use" className="hover:text-primary-500 transition-colors">Terms of Use</Link></li>
               </ul>
             </div>
           </div>
@@ -154,9 +154,9 @@ export function Footer({ withCta = true }: FooterProps = {}) {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-6 border-t border-white/10">
             <p>© 2026 International Institute for Law and Politics (IILP). All rights reserved.</p>
             <div className="flex items-center gap-6">
-              <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
-              <Link href="#" className="hover:text-white transition-colors">Terms of Use</Link>
-              <Link href="#" className="hover:text-white transition-colors">Contact</Link>
+              <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link href="/terms-of-use" className="hover:text-white transition-colors">Terms of Use</Link>
+              <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
             </div>
           </div>
 
