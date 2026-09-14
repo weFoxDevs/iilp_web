@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export function CallToAction() {
   return (
-    <section className="relative w-full overflow-hidden flex flex-col items-center justify-start min-h-[580px] lg:min-h-[800px] xl:min-h-[839px] pt-[70px] md:pt-[100px] pb-[280px] md:pb-[340px] lg:pb-[380px]">
+    <section className="relative w-full overflow-hidden flex flex-col items-center justify-start min-h-[580px] lg:min-h-[800px] xl:min-h-[839px] pt-[70px] md:pt-[100px] pb-[280px] md:pb-[340px] lg:pb-[380px] bg-[#000036]">
       {/* Background Image - 1920x839 in Figma */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image 
@@ -11,6 +11,7 @@ export function CallToAction() {
           alt="Join the IILP Community Today" 
           fill
           priority
+          unoptimized
           className="object-cover object-bottom"
           sizes="100vw"
         />
