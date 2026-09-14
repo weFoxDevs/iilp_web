@@ -50,38 +50,38 @@ export function Testimonial() {
   const currentTestimonial = testimonials[activeIndex];
 
   return (
-    <section className="bg-white py-16 lg:py-24 overflow-hidden">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="bg-[#160D03] rounded-[8px] p-10 md:p-16 lg:p-[60px] relative flex flex-col lg:flex-row gap-12 lg:gap-24 overflow-hidden shadow-2xl">
+    <section className="w-full bg-white pb-16 lg:pb-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto">
+        <div className="bg-[#160d03] rounded-[8px] p-8 md:p-12 lg:pl-[64px] lg:pr-[76px] lg:pt-[61px] lg:pb-[69px] relative flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10 lg:gap-16 overflow-hidden">
           
           {/* Left Column: Heading */}
-          <div className="w-full lg:w-5/12 flex items-center shrink-0 lg:pr-10">
-            <h2 className="font-playfair font-medium text-4xl lg:text-[36px] leading-[44px] text-white tracking-[-0.72px]">
+          <div className="w-full lg:w-[451px] shrink-0">
+            <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] text-white tracking-[-0.72px] max-w-[451px]">
               Happy students sharing experiences
             </h2>
           </div>
 
           {/* Right Column: Testimonial Carousel */}
-          <div className="w-full lg:w-7/12 flex flex-col relative min-h-[300px] justify-center lg:pl-10 lg:border-l lg:border-white/10">
+          <div className="w-full lg:w-[594px] flex flex-col relative min-h-[290px] justify-between">
             
             {/* Active Testimonial Slide */}
-            <div className="flex flex-col gap-6 w-full animate-slide-in" key={currentTestimonial.id}>
+            <div className="flex flex-col gap-[24px] w-full animate-slide-in" key={currentTestimonial.id}>
               {/* Tagline */}
-              <p className="text-white/70 font-inter text-lg font-medium tracking-wide">
+              <p className="font-satoshi font-medium text-base md:text-[18px] leading-[30.6px] text-white/70">
                 {currentTestimonial.tagline}
               </p>
               
               {/* Quote */}
-              <p className="text-white font-inter text-2xl md:text-[24px] leading-[33.6px] tracking-[-0.5px] font-medium min-h-[140px]">
+              <p className="font-inter font-medium text-xl md:text-[24px] leading-[1.4] md:leading-[33.6px] tracking-[-0.5px] text-white">
                 &ldquo;{currentTestimonial.quote}&rdquo;
               </p>
 
               {/* Author & Controls Container */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-8 mt-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pt-2">
                 
                 {/* Author Info */}
-                <div className="flex items-center gap-4">
-                  <div className="relative w-16 h-16 rounded-full overflow-hidden shrink-0">
+                <div className="flex items-center gap-[16px]">
+                  <div className="relative w-[63px] h-[63px] rounded-full overflow-hidden shrink-0">
                     <Image 
                       src={currentTestimonial.avatar} 
                       alt={currentTestimonial.author} 
@@ -89,11 +89,11 @@ export function Testimonial() {
                       className="object-cover"
                     />
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-white text-lg font-medium leading-[30.6px]">
+                  <div className="flex flex-col">
+                    <p className="font-satoshi font-medium text-[18px] leading-[30.6px] text-white">
                       {currentTestimonial.author}
                     </p>
-                    <p className="text-white/80 text-sm leading-[23.8px]">
+                    <p className="font-satoshi font-medium text-[14px] leading-[23.8px] text-white/80">
                       {currentTestimonial.role}
                     </p>
                   </div>
@@ -104,27 +104,27 @@ export function Testimonial() {
                   <button 
                     aria-label="Previous Testimonial"
                     onClick={handlePrev}
-                    className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+                    className="w-[44px] h-[44px] rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
                   >
                     <Image 
                       src="/assets/testimonial-back-arrow.svg" 
                       alt="Previous" 
-                      width={40} 
-                      height={40}
-                      className="w-10 h-10"
+                      width={20} 
+                      height={20}
+                      className="w-5 h-5"
                     />
                   </button>
                   <button 
                     aria-label="Next Testimonial"
                     onClick={handleNext}
-                    className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+                    className="w-[44px] h-[44px] rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
                   >
                     <Image 
                       src="/assets/testimonial-next-arrow.svg" 
                       alt="Next" 
-                      width={40} 
-                      height={40}
-                      className="w-10 h-10"
+                      width={20} 
+                      height={20}
+                      className="w-5 h-5"
                     />
                   </button>
                 </div>

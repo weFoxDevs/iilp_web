@@ -2,7 +2,6 @@ import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
 import { Hero } from "@/modules/home/components/Hero";
 import { MissionVision } from "@/modules/home/components/MissionVision";
-import { Stats } from "@/modules/home/components/Stats";
 import { AcademicPrograms } from "@/modules/home/components/AcademicPrograms";
 import { Events } from "@/modules/home/components/Events";
 import { Testimonial } from "@/modules/home/components/Testimonial";
@@ -19,7 +18,6 @@ export default function Home() {
       <main className="flex-grow">
         <Hero />
         <MissionVision />
-        <Stats />
         <AcademicPrograms />
         <Events />
         <Testimonial />
