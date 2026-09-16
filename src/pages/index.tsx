@@ -9,22 +9,25 @@ import { ImageGallery } from "@/modules/home/components/ImageGallery";
 import { FellowshipNetwork } from "@/modules/home/components/FellowshipNetwork";
 import { FounderMessage } from "@/modules/home/components/FounderMessage";
 import { NewsMedia } from "@/modules/home/components/NewsMedia";
+import { usePageContent } from "@/common/hooks/usePageContent";
 
 export default function Home() {
+  const { getSection } = usePageContent("home");
+
   return (
-    <div className="flex flex-col min-h-screen bg-white font-sans">
+    <div className="flex flex-col min-h-screen bg-white font-sans overflow-x-hidden">
       <Header />
       
-      <main className="flex-grow">
-        <Hero />
-        <MissionVision />
-        <AcademicPrograms />
-        <Events />
+      <main className="flex-grow overflow-x-hidden">
+        <Hero data={getSection("hero")} />
+        <MissionVision data={getSection("mission_vision")} />
+        <AcademicPrograms data={getSection("academic_programs")} />
+        <Events data={getSection("events")} />
         <Testimonial />
-        <ImageGallery />
-        <FellowshipNetwork />
-        <FounderMessage />
-        <NewsMedia />
+        <ImageGallery data={getSection("image_gallery")} />
+        <FellowshipNetwork data={getSection("fellowship_network")} />
+        <FounderMessage data={getSection("founder_message")} />
+        <NewsMedia data={getSection("news_media")} />
       </main>
       
       <Footer />

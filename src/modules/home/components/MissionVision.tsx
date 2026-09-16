@@ -1,12 +1,55 @@
 import Image from "next/image";
+import { PageSectionData } from "@/common/services/cms.service";
 
-export function MissionVision() {
-  const stats = [
-    { number: "6+", label: "Academic Departments", progress: "58%" },
-    { number: "18+", label: "Leadership Positions", progress: "58%" },
-    { number: "3+", label: "Fellowship Types", progress: "58%" },
-    { number: "5+", label: "Partnership Tracks", progress: "58%" },
-  ];
+interface StatItem {
+  number: string;
+  label: string;
+  progress: string;
+}
+
+const defaultStats: StatItem[] = [
+  { number: "6+", label: "Academic Departments", progress: "58%" },
+  { number: "18+", label: "Leadership Positions", progress: "58%" },
+  { number: "3+", label: "Fellowship Types", progress: "58%" },
+  { number: "5+", label: "Partnership Tracks", progress: "58%" },
+];
+
+interface MissionVisionProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function MissionVision({ data }: MissionVisionProps) {
+  const section = {
+    badge: data?.badge ?? "Our Mission",
+    title: data?.title ?? "Advancing Interdisciplinary Scholarship",
+    subtitle:
+      data?.subtitle ??
+      "The mission of the International Institute for Law and Politics is to advance interdisciplinary scholarship, strengthen evidence-based policymaking, foster ethical leadership, and contribute to the development of informed and resilient institutions capable of addressing contemporary global challenges.",
+    metadata: data?.metadata ?? {
+      visionBadge: "Our Vision",
+      visionTitle: "A Globally Respected Centre of Excellence",
+      visionSubtitle:
+        "To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace.",
+      missionImage: "/assets/about-vision-students.png",
+      visionImage: "/assets/about-mission-student.png",
+      studentRatingsCount: "5000",
+      studentRatingsLabel: "Student ratings",
+      stats: defaultStats,
+    },
+  };
+
+  const meta = (section.metadata || {}) as {
+    visionBadge?: string;
+    visionTitle?: string;
+    visionSubtitle?: string;
+    missionImage?: string;
+    visionImage?: string;
+    studentRatingsCount?: string;
+    studentRatingsLabel?: string;
+    stats?: StatItem[];
+  };
+
+  const stats = meta.stats || defaultStats;
 
   return (
     <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">
@@ -20,7 +63,7 @@ export function MissionVision() {
             {/* Top: Image with Overlapping Badges */}
             <div className="relative w-full aspect-[540/600] overflow-hidden">
               <Image
-                src="/assets/about-vision-students.png"
+                src={meta.missionImage || "/assets/about-vision-students.png"}
                 alt="IILP Students on campus"
                 fill
                 sizes="(max-width: 1024px) 100vw, 540px"
@@ -58,18 +101,20 @@ export function MissionVision() {
 
             {/* Bottom: Our Mission Content */}
             <div className="flex flex-col gap-[30px] items-start">
-              <div className="inline-flex items-center border border-[#00698c] rounded-[1000px] px-[12px] py-[8px]">
-                <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
-                  Our Mission
-                </span>
-              </div>
+              {section.badge && (
+                <div className="inline-flex items-center border border-[#00698c] rounded-[1000px] px-[12px] py-[8px]">
+                  <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
+                    {section.badge}
+                  </span>
+                </div>
+              )}
 
               <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] tracking-[-0.72px] text-[#0a0d12]">
-                Advancing Interdisciplinary Scholarship
+                {section.title}
               </h2>
 
               <p className="font-source font-normal text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12]/70">
-                The mission of the International Institute for Law and Politics is to advance interdisciplinary scholarship, strengthen evidence-based policymaking, foster ethical leadership, and contribute to the development of informed and resilient institutions capable of addressing contemporary global challenges.
+                {section.subtitle}
               </p>
             </div>
           </div>
@@ -78,25 +123,28 @@ export function MissionVision() {
           <div className="flex flex-col gap-12 lg:gap-[120px] self-stretch justify-between">
             {/* Top: Our Vision Content */}
             <div className="flex flex-col gap-[30px] items-start">
-              <div className="inline-flex items-center border border-[#00698c] rounded-[1000px] px-[12px] py-[8px]">
-                <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
-                  Our Vision
-                </span>
-              </div>
+              {meta.visionBadge && (
+                <div className="inline-flex items-center border border-[#00698c] rounded-[1000px] px-[12px] py-[8px]">
+                  <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
+                    {meta.visionBadge}
+                  </span>
+                </div>
+              )}
 
               <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] tracking-[-0.72px] text-[#0a0d12]">
-                A Globally Respected Centre of Excellence
+                {meta.visionTitle || "A Globally Respected Centre of Excellence"}
               </h2>
 
               <p className="font-source font-normal text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12]/70">
-                To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace.
+                {meta.visionSubtitle ||
+                  "To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace."}
               </p>
             </div>
 
             {/* Bottom: Image with Student Ratings Card */}
             <div className="relative w-full aspect-[540/600] lg:aspect-[580/690] overflow-hidden">
               <Image
-                src="/assets/about-mission-student.png"
+                src={meta.visionImage || "/assets/about-mission-student.png"}
                 alt="Student with laptop and phone"
                 fill
                 sizes="(max-width: 1024px) 100vw, 580px"
@@ -136,8 +184,12 @@ export function MissionVision() {
 
                 {/* Rating details */}
                 <div className="flex flex-col font-inter text-white">
-                  <span className="font-normal text-[16px] leading-[16px]">5000</span>
-                  <span className="font-normal text-[16px] leading-[16px] text-white/90 mt-[5px]">Student ratings</span>
+                  <span className="font-normal text-[16px] leading-[16px]">
+                    {meta.studentRatingsCount || "5000"}
+                  </span>
+                  <span className="font-normal text-[16px] leading-[16px] text-white/90 mt-[5px]">
+                    {meta.studentRatingsLabel || "Student ratings"}
+                  </span>
                 </div>
               </div>
             </div>

@@ -1,27 +1,59 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { PageSectionData } from '@/common/services/cms.service';
 
-export function AcademicPrograms() {
-  const departments = [
-    {
-      number: "01",
-      title: "Law & International Legal Studies",
-      description: "Advancing legal scholarship, international law, and justice systems in a changing global order.",
-      isActive: false
+interface DepartmentItem {
+  number: string;
+  title: string;
+  description: string;
+  image?: string;
+  isActive: boolean;
+}
+
+const defaultDepartments: DepartmentItem[] = [
+  {
+    number: "01",
+    title: "Law & International Legal Studies",
+    description: "Advancing legal scholarship, international law, and justice systems in a changing global order.",
+    image: "/assets/academic-thumbnail-1.png",
+    isActive: false,
+  },
+  {
+    number: "02",
+    title: "Political Science & Governance",
+    description: "Examining governance frameworks, democratic institutions, and political systems worldwide.",
+    image: "/assets/academic-thumbnail-1.png",
+    isActive: true,
+  },
+  {
+    number: "03",
+    title: "Human Rights & Humanitarian Studies",
+    description: "Promoting human dignity, rights-based approaches, and humanitarian action globally.",
+    image: "/assets/academic-thumbnail-1.png",
+    isActive: false,
+  },
+];
+
+interface AcademicProgramsProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function AcademicPrograms({ data }: AcademicProgramsProps) {
+  const section = {
+    badge: data?.badge ?? 'Academic Programs',
+    title: data?.title ?? 'Six Academic Departments',
+    subtitle:
+      data?.subtitle ??
+      'Interdisciplinary programs advancing law, governance, human rights, and development through rigorous research and scholarship.',
+    actionText: data?.actionText || 'Explore All Departments',
+    actionUrl: data?.actionUrl || '/academics',
+    metadata: data?.metadata ?? {
+      departments: defaultDepartments,
     },
-    {
-      number: "02",
-      title: "Political Science & Governance",
-      description: "Examining governance frameworks, democratic institutions, and political systems worldwide.",
-      isActive: true
-    },
-    {
-      number: "03",
-      title: "Human Rights & Humanitarian Studies",
-      description: "Promoting human dignity, rights-based approaches, and humanitarian action globally.",
-      isActive: false
-    }
-  ];
+  };
+
+  const departments =
+    ((section.metadata || {}).departments as DepartmentItem[]) || defaultDepartments;
 
   return (
     <section className="w-full bg-[#e6f9ff] py-16 lg:py-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">
@@ -29,18 +61,20 @@ export function AcademicPrograms() {
         
         {/* Header */}
         <div className="flex flex-col items-center max-w-[680px] text-center gap-4">
-          <div className="border border-[#00698c] rounded-full px-[12px] py-[8px]">
-            <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
-              Academic Programs
-            </span>
-          </div>
+          {section.badge && (
+            <div className="border border-[#00698c] rounded-full px-[12px] py-[8px]">
+              <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
+                {section.badge}
+              </span>
+            </div>
+          )}
 
           <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] tracking-[-0.72px] text-[#0a0d12] max-w-[580px]">
-            Six Academic Departments
+            {section.title}
           </h2>
 
           <p className="font-inter font-normal text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12]">
-            Interdisciplinary programs advancing law, governance, human rights, and development through rigorous research and scholarship.
+            {section.subtitle}
           </p>
         </div>
 
@@ -49,13 +83,13 @@ export function AcademicPrograms() {
           {departments.map((dept, index) => (
             <Link 
               key={index} 
-              href="/academics" 
+              href={section.actionUrl || "/academics"} 
               className="flex flex-col gap-[30px] items-center w-full group cursor-pointer"
             >
               <div className="relative w-full aspect-[413/390] overflow-visible">
                 <div className="absolute inset-0 overflow-hidden">
                   <Image 
-                    src="/assets/academic-thumbnail-1.png" 
+                    src={dept.image || "/assets/academic-thumbnail-1.png"} 
                     alt={dept.title} 
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
@@ -101,14 +135,16 @@ export function AcademicPrograms() {
         </div>
 
         {/* Explore Button */}
-        <Link 
-          href="/academics" 
-          className="inline-flex items-center justify-center rounded-full bg-[#00bfff] hover:bg-[#00a2d6] px-[24px] py-[14px] shadow-sm transition-colors"
-        >
-          <span className="font-source font-semibold text-white text-[16px] leading-[24px]">
-            Explore All Departments
-          </span>
-        </Link>
+        {section.actionText && (
+          <Link 
+            href={section.actionUrl || "/academics"} 
+            className="inline-flex items-center justify-center rounded-full bg-[#00bfff] hover:bg-[#00a2d6] px-[24px] py-[14px] shadow-sm transition-colors"
+          >
+            <span className="font-source font-semibold text-white text-[16px] leading-[24px]">
+              {section.actionText}
+            </span>
+          </Link>
+        )}
 
       </div>
     </section>

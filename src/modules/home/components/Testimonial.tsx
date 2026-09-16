@@ -1,53 +1,80 @@
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { fetchSiteTestimonials } from '@/common/services/cms.service';
 
-const testimonials = [
+const defaultTestimonials = [
   {
-    id: 1,
-    tagline: "Empowering Dreams, Transforming Futures.",
-    quote: "The Business Administration curriculum at Edukate provided me with a solid foundation in strategic thinking and leadership. I feel equipped to tackle real-world challenges in my career.",
-    author: "Sophia Lee",
-    role: "BBA in Finance, Class of 2022",
-    avatar: "/assets/testimonial-avatar.png"
+    id: '1',
+    tagline: 'Empowering Dreams, Transforming Futures.',
+    quote:
+      'The Business Administration curriculum at Edukate provided me with a solid foundation in strategic thinking and leadership. I feel equipped to tackle real-world challenges in my career.',
+    author: 'Sophia Lee',
+    role: 'BBA in Finance, Class of 2022',
+    avatar: '/assets/testimonial-avatar.png',
   },
   {
-    id: 2,
-    tagline: "Creative Minds, Lasting Impact.",
-    quote: "Studying Graphic Design at Edukate enabled me to explore my creativity and develop a unique artistic voice. The collaborative environment inspired me to push my boundaries.",
-    author: "Lucas Johnson",
-    role: "BA in Graphic Design, Class of 2021",
-    avatar: "/assets/lucas-johnson.png"
+    id: '2',
+    tagline: 'Creative Minds, Lasting Impact.',
+    quote:
+      'Studying Graphic Design at Edukate enabled me to explore my creativity and develop a unique artistic voice. The collaborative environment inspired me to push my boundaries.',
+    author: 'Lucas Johnson',
+    role: 'BA in Graphic Design, Class of 2021',
+    avatar: '/assets/lucas-johnson.png',
   },
   {
-    id: 3,
-    tagline: "Innovative Solutions, Bright Horizons.",
-    quote: "Edukate’s Engineering program taught me to approach problems analytically and creatively. I graduated with the skills needed to innovate in the tech industry.",
-    author: "Maya Patel",
-    role: "BSc in Engineering, Class of 2024",
-    avatar: "/assets/maya-patel.png"
+    id: '3',
+    tagline: 'Innovative Solutions, Bright Horizons.',
+    quote:
+      'Edukate’s Engineering program taught me to approach problems analytically and creatively. I graduated with the skills needed to innovate in the tech industry.',
+    author: 'Maya Patel',
+    role: 'BSc in Engineering, Class of 2024',
+    avatar: '/assets/maya-patel.png',
   },
   {
-    id: 4,
-    tagline: "Inspired Journeys, Honest Reflections.",
-    quote: "Edukate's Computer Science program challenged me to think critically and innovate. The hands-on projects and supportive faculty prepared me for a successful career in tech.",
-    author: "Ahmed Khan",
-    role: "BBA in Marketing, Class of 2023",
-    avatar: "/assets/ahmed-khan.png"
-  }
+    id: '4',
+    tagline: 'Inspired Journeys, Honest Reflections.',
+    quote:
+      "Edukate's Computer Science program challenged me to think critically and innovate. The hands-on projects and supportive faculty prepared me for a successful career in tech.",
+    author: 'Ahmed Khan',
+    role: 'BBA in Marketing, Class of 2023',
+    avatar: '/assets/ahmed-khan.png',
+  },
 ];
 
 export function Testimonial() {
+  const [items, setItems] = useState(defaultTestimonials);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  useEffect(() => {
+    async function loadTestimonials() {
+      const data = await fetchSiteTestimonials();
+      if (data && data.length > 0) {
+        setItems(
+          data.map((t) => ({
+            id: t.id,
+            tagline: 'Scholars & Fellows Sharing Experiences',
+            quote: t.quote,
+            author: t.authorName,
+            role: t.institution
+              ? `${t.authorTitle} • ${t.institution}`
+              : t.authorTitle,
+            avatar: t.avatarUrl || '/assets/testimonial-avatar.png',
+          }))
+        );
+      }
+    }
+    loadTestimonials();
+  }, []);
+
   const handleNext = () => {
-    setActiveIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
+    setActiveIndex((prev) => (prev === items.length - 1 ? 0 : prev + 1));
   };
 
   const handlePrev = () => {
-    setActiveIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1));
+    setActiveIndex((prev) => (prev === 0 ? items.length - 1 : prev - 1));
   };
 
-  const currentTestimonial = testimonials[activeIndex];
+  const currentTestimonial = items[activeIndex] || defaultTestimonials[0];
 
   return (
     <section className="w-full bg-white pb-16 lg:pb-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">

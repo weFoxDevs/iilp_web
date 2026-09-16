@@ -1,48 +1,84 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { PageSectionData } from '@/common/services/cms.service';
 
-export function FellowshipNetwork() {
-  const fellowships = [
-    {
-      id: 1,
-      title: 'Research Fellows',
-      description: "For established researchers and academics advancing IILP's scholarly agenda.",
+interface FellowshipItem {
+  id: number | string;
+  title: string;
+  description: string;
+}
+
+const defaultFellowships: FellowshipItem[] = [
+  {
+    id: 1,
+    title: 'Research Fellows',
+    description: "For established researchers and academics advancing IILP's scholarly agenda.",
+  },
+  {
+    id: 2,
+    title: 'Junior Fellows',
+    description: 'For emerging scholars and early-career professionals committed to impactful research.',
+  },
+  {
+    id: 3,
+    title: 'Honorary Fellows',
+    description: 'Recognizing distinguished individuals who have made exceptional contributions.',
+  },
+];
+
+interface FellowshipNetworkProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function FellowshipNetwork({ data }: FellowshipNetworkProps) {
+  const section = {
+    badge: data?.badge ?? 'Global Fellowship Network',
+    title: data?.title ?? 'Join the IILP Fellowship Network',
+    subtitle:
+      data?.subtitle ??
+      'Join the IILP Global Fellowship Network — connecting researchers, professionals, and emerging leaders around the world. Applications are open for Research Fellows, Junior Fellows, and Honorary Fellows.',
+    actionText: data?.actionText || 'Apply for Fellowship',
+    actionUrl: data?.actionUrl || '/fellowships/apply',
+    metadata: data?.metadata ?? {
+      secondaryActionText: 'Learn More',
+      secondaryActionUrl: '/fellowships',
+      fellowships: defaultFellowships,
     },
-    {
-      id: 2,
-      title: 'Junior Fellows',
-      description: 'For emerging scholars and early-career professionals committed to impactful research.',
-    },
-    {
-      id: 3,
-      title: 'Honorary Fellows',
-      description: 'Recognizing distinguished individuals who have made exceptional contributions.',
-    },
-  ];
+  };
+
+  const meta = (section.metadata || {}) as {
+    secondaryActionText?: string;
+    secondaryActionUrl?: string;
+    fellowships?: FellowshipItem[];
+  };
+
+  const fellowships = meta.fellowships || defaultFellowships;
 
   return (
-    <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">
+    <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-12 xl:px-16 2xl:px-[240px] overflow-hidden">
       <div className="max-w-[1440px] mx-auto">
-        <div className="flex flex-col lg:flex-row gap-12 lg:gap-[80px] items-center lg:items-start justify-between">
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 xl:gap-[80px] items-center lg:items-start justify-between">
           
           {/* Left Column (Content) */}
-          <div className="flex flex-col gap-[60px] lg:gap-[80px] w-full lg:flex-1 max-w-[650px]">
+          <div className="flex flex-col gap-[40px] lg:gap-[60px] w-full lg:flex-1 max-w-[650px]">
             {/* Header section */}
-            <div className="flex flex-col gap-[30px] items-start w-full">
+            <div className="flex flex-col gap-[24px] sm:gap-[30px] items-start w-full">
               <div className="flex flex-col gap-[16px] items-start w-full">
-                <div className="border border-[#00698c] rounded-full px-[12px] py-[8px]">
-                  <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
-                    Global Fellowship Network
-                  </span>
-                </div>
+                {section.badge && (
+                  <div className="border border-[#00698c] rounded-full px-[12px] py-[8px]">
+                    <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
+                      {section.badge}
+                    </span>
+                  </div>
+                )}
 
                 <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] text-[#0a0d12] tracking-[-0.72px]">
-                  Join the IILP Fellowship Network
+                  {section.title}
                 </h2>
               </div>
 
               <p className="font-inter font-normal text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12]/70">
-                Join the IILP Global Fellowship Network — connecting researchers, professionals, and emerging leaders around the world. Applications are open for Research Fellows, Junior Fellows, and Honorary Fellows.
+                {section.subtitle}
               </p>
 
               {/* Fellowship List */}
@@ -69,49 +105,51 @@ export function FellowshipNetwork() {
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-[12px] items-start">
+              {section.actionText && (
+                <Link 
+                  href={section.actionUrl || "/fellowships/apply"} 
+                  className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#00a2d6] text-white font-source font-semibold text-[16px] leading-[24px] px-[24px] py-[14px] rounded-full shadow-sm transition-colors w-full sm:w-auto"
+                >
+                  {section.actionText}
+                </Link>
+              )}
               <Link 
-                href="/fellowships/apply" 
-                className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#00a2d6] text-white font-source font-semibold text-[16px] leading-[24px] px-[24px] py-[14px] rounded-full shadow-sm transition-colors w-full sm:w-auto"
-              >
-                Apply for Fellowship
-              </Link>
-              <Link 
-                href="/fellowships" 
+                href={meta.secondaryActionUrl || "/fellowships"} 
                 className="inline-flex items-center justify-center bg-[#f9fafb] hover:bg-gray-100 border border-[#e5e7eb] text-[#4a5565] font-source font-semibold text-[16px] leading-[24px] px-[24px] py-[14px] rounded-full shadow-sm transition-colors w-full sm:w-auto"
               >
-                Learn More
+                {meta.secondaryActionText || "Learn More"}
               </Link>
             </div>
           </div>
 
-          {/* Right Column (Images) */}
-          <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0">
-            <div className="relative w-full max-w-[590px] h-[480px] sm:h-[600px]">
+          {/* Right Column (Responsive Collage Images) */}
+          <div className="w-full lg:flex-1 flex justify-center lg:justify-end">
+            <div className="relative w-full max-w-[420px] sm:max-w-[480px] lg:max-w-[500px] xl:max-w-[590px] aspect-[590/600]">
               
-              {/* Image 1 (Top Left) - 348x448 px */}
-              <div className="absolute top-0 left-0 w-[270px] sm:w-[348px] h-[348px] sm:h-[448px] overflow-hidden">
+              {/* Image 1 (Top Left) */}
+              <div className="absolute top-0 left-0 w-[59%] h-[74.5%] overflow-hidden rounded-xs shadow-xs">
                 <Image 
                   src="/assets/fellowship-1.png" 
                   alt="Fellowship Collaboration" 
                   fill
                   className="object-cover"
-                  sizes="(max-width: 640px) 270px, 348px"
+                  sizes="(max-width: 1024px) 50vw, 348px"
                 />
               </div>
 
-              {/* Image 2 (Bottom Right) - 348x358 px */}
-              <div className="absolute bottom-0 right-0 sm:top-[242px] sm:left-[242px] w-[260px] sm:w-[348px] h-[270px] sm:h-[358px] border-[4px] border-white overflow-hidden shadow-md z-10">
+              {/* Image 2 (Bottom Right) */}
+              <div className="absolute top-[40.3%] left-[41%] w-[59%] h-[59.7%] border-[3px] sm:border-[4px] border-white overflow-hidden shadow-xl z-10 rounded-xs">
                 <Image 
                   src="/assets/fellowship-2.png" 
                   alt="Fellowship Professional" 
                   fill
                   className="object-cover"
-                  sizes="(max-width: 640px) 260px, 348px"
+                  sizes="(max-width: 1024px) 50vw, 348px"
                 />
               </div>
 
-              {/* Circular Badge - 120x120 px */}
-              <div className="absolute top-[30px] right-[20px] sm:top-[60px] sm:left-[410px] w-[95px] sm:w-[120px] h-[95px] sm:h-[120px] bg-white rounded-full border border-[#641320] flex items-center justify-center shadow-md z-20">
+              {/* Circular Badge */}
+              <div className="absolute top-[10%] left-[69.5%] w-[20.3%] aspect-square bg-white rounded-full border border-[#641320] flex items-center justify-center shadow-lg z-20">
                 <div className="relative w-[85%] h-[85%]">
                   <Image 
                     src="/assets/fellowship-badge.png" 

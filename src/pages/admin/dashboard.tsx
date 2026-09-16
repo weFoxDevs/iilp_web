@@ -1,9 +1,12 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/common/components/AuthContext";
 import Toast, { ToastType } from "@/common/components/Toast";
+import { PageContentManager } from "@/modules/admin/components/PageContentManager";
+import { SiteMetricsManager } from "@/modules/admin/components/SiteMetricsManager";
+import { TestimonialsManager } from "@/modules/admin/components/TestimonialsManager";
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -45,7 +48,7 @@ interface RoleItem {
   id: number;
   name: string;
   permissions?: PermissionItem[];
-  users?: any[];
+  users?: unknown[];
 }
 
 interface AdminUserItem {
@@ -61,15 +64,107 @@ interface AdminUserItem {
   } | null;
 }
 
-type TabType = "overview" | "admin-manage" | "role-manage";
+const VALID_TABS = [
+  "overview",
+  "admin-manage",
+  "role-manage",
+  "page-content",
+  "site-metrics",
+  "testimonials",
+] as const;
+
+type TabType = (typeof VALID_TABS)[number];
+
+const isTabType = (val: unknown): val is TabType => {
+  return typeof val === "string" && (VALID_TABS as readonly string[]).includes(val);
+};
+
+const getInitialTab = (): TabType => {
+  if (typeof window !== "undefined") {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlTab = searchParams.get("tab");
+      if (isTabType(urlTab)) return urlTab;
+
+      const savedTab = localStorage.getItem("admin_active_tab");
+      if (isTabType(savedTab)) return savedTab;
+    } catch {
+      // ignore window or localStorage issues
+    }
+  }
+  return "overview";
+};
+
+function AdminRoleSubNav({
+  active,
+  onSelect,
+  adminCount,
+  roleCount,
+}: {
+  active: "admin-manage" | "role-manage";
+  onSelect: (tab: "admin-manage" | "role-manage") => void;
+  adminCount: number;
+  roleCount: number;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 p-1.5 bg-white border border-[#b0ebff] rounded-2xl w-fit shadow-xs">
+      <button
+        onClick={() => onSelect("admin-manage")}
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          active === "admin-manage"
+            ? "bg-[#000080] text-white shadow-xs"
+            : "text-[#00698c] hover:bg-[#f4faff] hover:text-[#000080]"
+        }`}
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+        <span>Administrator Accounts</span>
+        <span
+          className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+            active === "admin-manage"
+              ? "bg-white/20 text-white"
+              : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+          }`}
+        >
+          {adminCount}
+        </span>
+      </button>
+
+      <button
+        onClick={() => onSelect("role-manage")}
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          active === "role-manage"
+            ? "bg-[#000080] text-white shadow-xs"
+            : "text-[#00698c] hover:bg-[#f4faff] hover:text-[#000080]"
+        }`}
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <span>Roles &amp; Permissions</span>
+        <span
+          className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+            active === "role-manage"
+              ? "bg-white/20 text-white"
+              : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+          }`}
+        >
+          {roleCount}
+        </span>
+      </button>
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const { user, token, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
 
-  // Navigation state
-  const [activeTab, setActiveTab] = useState<TabType>("overview");
+  // Navigation state (restores tab from URL query or localStorage on initial render)
+  const [activeTab, setActiveTab] = useState<TabType>(getInitialTab);
   const [adminMenuOpen, setAdminMenuOpen] = useState(true);
+  const [cmsMenuOpen, setCmsMenuOpen] = useState(true);
 
   // Data states
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
@@ -113,8 +208,6 @@ export default function AdminDashboard() {
   // Fetch all dashboard data
   const fetchDashboardData = useCallback(async () => {
     if (!token) return;
-    setIsDataLoading(true);
-    setFetchError(null);
 
     try {
       // 1. Fetch Dashboard Summary
@@ -170,8 +263,9 @@ export default function AdminDashboard() {
         const permsJson = await permsRes.json();
         setPermissions(Array.isArray(permsJson) ? permsJson : []);
       }
-    } catch (err: any) {
-      setFetchError(err.message || "Failed to connect to backend server.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to connect to backend server.";
+      setFetchError(msg);
     } finally {
       setIsDataLoading(false);
     }
@@ -185,9 +279,92 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (isAuthenticated && token) {
-      fetchDashboardData();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void fetchDashboardData();
     }
   }, [isAuthenticated, token, fetchDashboardData]);
+
+  // Handle tab change with shallow URL update and localStorage persistence
+  const handleTabChange = useCallback(
+    (newTab: TabType) => {
+      setActiveTab(newTab);
+      try {
+        localStorage.setItem("admin_active_tab", newTab);
+      } catch {
+        // ignore storage errors
+      }
+
+      if (newTab === "admin-manage" || newTab === "role-manage") {
+        setAdminMenuOpen(true);
+      } else if (
+        newTab === "page-content" ||
+        newTab === "site-metrics" ||
+        newTab === "testimonials"
+      ) {
+        setCmsMenuOpen(true);
+      }
+
+      // Shallow route update to preserve tab across page reloads without re-triggering remount
+      if (router.isReady) {
+        void router.replace(
+          {
+            pathname: router.pathname,
+            query: { ...router.query, tab: newTab },
+          },
+          undefined,
+          { shallow: true }
+        );
+      }
+    },
+    [router]
+  );
+
+  // Synchronize active tab when browser back/forward or navigation events occur
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      try {
+        const urlObj = new URL(url, window.location.origin);
+        const queryTab = urlObj.searchParams.get("tab");
+        if (isTabType(queryTab)) {
+          setActiveTab(queryTab);
+          localStorage.setItem("admin_active_tab", queryTab);
+          if (queryTab === "admin-manage" || queryTab === "role-manage") {
+            setAdminMenuOpen(true);
+          } else if (
+            queryTab === "page-content" ||
+            queryTab === "site-metrics" ||
+            queryTab === "testimonials"
+          ) {
+            setCmsMenuOpen(true);
+          }
+        }
+      } catch {
+        // ignore url parsing error
+      }
+    };
+
+    router.events.on("routeChangeComplete", handleRouteChange);
+    return () => {
+      router.events.off("routeChangeComplete", handleRouteChange);
+    };
+  }, [router.events]);
+
+  // Keep URL query in sync if user navigates to /admin/dashboard directly without ?tab=
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    if (!router.query.tab) {
+      const currentTab = getInitialTab();
+      void router.replace(
+        {
+          pathname: router.pathname,
+          query: { ...router.query, tab: currentTab },
+        },
+        undefined,
+        { shallow: true }
+      );
+    }
+  }, [router.isReady, router.query.tab, router.pathname, router]);
 
   // Uptime formatter
   const formatUptime = (seconds: number) => {
@@ -242,8 +419,9 @@ export default function AdminDashboard() {
       setToast({ message: `Administrator ${data.name} created successfully!`, type: "success" });
       setCreateAdminModalOpen(false);
       fetchDashboardData();
-    } catch (err: any) {
-      setToast({ message: err.message || "Error creating admin", type: "error" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error creating admin";
+      setToast({ message: msg, type: "error" });
     } finally {
       setIsSubmittingAdmin(false);
     }
@@ -266,7 +444,7 @@ export default function AdminDashboard() {
     setIsSubmittingAdmin(true);
 
     try {
-      const payload: any = {
+      const payload: { name: string; email: string; password?: string; roleId?: number } = {
         name: adminFormData.name,
         email: adminFormData.email,
       };
@@ -295,8 +473,9 @@ export default function AdminDashboard() {
       setEditAdminModalOpen(false);
       setSelectedUser(null);
       fetchDashboardData();
-    } catch (err: any) {
-      setToast({ message: err.message || "Error updating admin", type: "error" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error updating admin";
+      setToast({ message: msg, type: "error" });
     } finally {
       setIsSubmittingAdmin(false);
     }
@@ -329,8 +508,9 @@ export default function AdminDashboard() {
       setDeleteAdminModalOpen(false);
       setSelectedUser(null);
       fetchDashboardData();
-    } catch (err: any) {
-      setToast({ message: err.message || "Error deleting admin", type: "error" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error deleting admin";
+      setToast({ message: msg, type: "error" });
     } finally {
       setIsSubmittingAdmin(false);
     }
@@ -368,8 +548,9 @@ export default function AdminDashboard() {
       setToast({ message: `Role "${data.name}" created successfully!`, type: "success" });
       setCreateRoleModalOpen(false);
       fetchDashboardData();
-    } catch (err: any) {
-      setToast({ message: err.message || "Error creating role", type: "error" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error creating role";
+      setToast({ message: msg, type: "error" });
     } finally {
       setIsSubmittingRole(false);
     }
@@ -408,8 +589,9 @@ export default function AdminDashboard() {
       setEditRoleModalOpen(false);
       setSelectedRole(null);
       fetchDashboardData();
-    } catch (err: any) {
-      setToast({ message: err.message || "Error updating role", type: "error" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error updating role";
+      setToast({ message: msg, type: "error" });
     } finally {
       setIsSubmittingRole(false);
     }
@@ -442,8 +624,9 @@ export default function AdminDashboard() {
       setDeleteRoleModalOpen(false);
       setSelectedRole(null);
       fetchDashboardData();
-    } catch (err: any) {
-      setToast({ message: err.message || "Error deleting role", type: "error" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Error deleting role";
+      setToast({ message: msg, type: "error" });
     } finally {
       setIsSubmittingRole(false);
     }
@@ -507,11 +690,11 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f4faff] flex flex-col md:flex-row">
-      {/* Sidebar Navigation */}
-      <aside className="w-full md:w-64 bg-white border-r border-[#e5e7eb] flex flex-col shrink-0">
+    <div className="h-screen w-screen overflow-hidden bg-[#f4faff] flex flex-col md:flex-row">
+      {/* Sidebar Navigation - Fixed Height on Screen */}
+      <aside className="w-full md:w-72 bg-white border-r border-[#e5e7eb] flex flex-col shrink-0 h-auto md:h-full z-20 select-none shadow-xs">
         {/* Sidebar Header with Official Logo */}
-        <div className="h-18 flex items-center justify-between px-6 border-b border-[#e5e7eb]">
+        <div className="h-18 flex items-center justify-between px-6 border-b border-[#e5e7eb] shrink-0 bg-white">
           <Link href="/" className="flex items-center gap-3 group" aria-label="IILP Home">
             <div className="relative w-11 h-11 shrink-0 drop-shadow-xs">
               <Image
@@ -536,38 +719,160 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Sidebar Nav Items */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto font-sans">
-          {/* Item 1: Overview */}
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors text-left cursor-pointer ${
-              activeTab === "overview"
-                ? "bg-[#e6f9ff] text-[#00698c] font-semibold border border-[#b0ebff]/60"
-                : "text-[#4a5565] hover:bg-[#f9fafb] hover:text-[#0a0d12]"
-            }`}
-          >
-            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
-            </svg>
-            Dashboard Overview
-          </button>
+        {/* Sidebar Nav Items with Independent Scrolling */}
+        <nav
+          className="flex-1 px-3 py-4 space-y-4 overflow-y-auto font-sans min-h-0"
+          data-lenis-prevent="true"
+        >
+          {/* Section: Overview */}
+          <div className="space-y-1">
+            <div className="px-2.5 text-[11px] font-bold uppercase tracking-wider text-[#6a7282]">
+              Overview
+            </div>
+            <button
+              onClick={() => handleTabChange("overview")}
+              className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
+                activeTab === "overview"
+                  ? "bg-[#000080] text-white shadow-xs font-bold"
+                  : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+              }`}
+            >
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
+              </svg>
+              <span className="truncate whitespace-nowrap">Dashboard Overview</span>
+            </button>
+          </div>
 
-          {/* Group: Admin & Role Manage */}
-          <div className="pt-2">
+          {/* Section: Access & Role Management */}
+          <div className="space-y-1 pt-1">
+            <div className="px-2.5 text-[11px] font-bold uppercase tracking-wider text-[#6a7282]">
+              Access &amp; Security
+            </div>
+            
+            {/* Collapsible Group Header */}
             <button
               onClick={() => setAdminMenuOpen(!adminMenuOpen)}
-              className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold text-[#00698c] uppercase tracking-wider hover:bg-[#f4faff] transition-colors cursor-pointer"
+              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "admin-manage" || activeTab === "role-manage"
+                  ? "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                  : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+              }`}
             >
-              <span className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-[#00bfff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              <div className="flex items-center gap-2 min-w-0">
+                <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                  activeTab === "admin-manage" || activeTab === "role-manage"
+                    ? "bg-[#00bfff] text-white"
+                    : "bg-[#f0f4f8] text-[#4a5565]"
+                }`}>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <span className="font-bold truncate whitespace-nowrap">Admin &amp; Role Management</span>
+              </div>
+              
+              <div className="flex items-center gap-1 shrink-0 ml-1.5">
+                <span className="px-1.5 py-0.5 rounded-full bg-white/90 border border-[#b0ebff] text-[10px] font-extrabold text-[#00698c] leading-none">
+                  {adminUsers.length + roles.length}
+                </span>
+                <svg
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    adminMenuOpen ? "rotate-180 text-[#00698c]" : "text-[#4a5565]"
+                  }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-                Admin &amp; Role Manage
-              </span>
+              </div>
+            </button>
+
+            {/* Sub-items */}
+            {adminMenuOpen && (
+              <div className="pl-2 pr-0 py-1 space-y-1 ml-2.5 border-l-2 border-[#b0ebff]">
+                {/* Sub-item: Admin Accounts */}
+                <button
+                  onClick={() => handleTabChange("admin-manage")}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === "admin-manage"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span className="truncate whitespace-nowrap">Admin Accounts</span>
+                  </div>
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                    activeTab === "admin-manage"
+                      ? "bg-white/20 text-white"
+                      : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                  }`}>
+                    {adminUsers.length}
+                  </span>
+                </button>
+
+                {/* Sub-item: Role Management */}
+                <button
+                  onClick={() => handleTabChange("role-manage")}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === "role-manage"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <span className="truncate whitespace-nowrap">Role Management</span>
+                  </div>
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                    activeTab === "role-manage"
+                      ? "bg-white/20 text-white"
+                      : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                  }`}>
+                    {roles.length}
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Section: Dynamic Content Management (CMS) */}
+          <div className="space-y-1 pt-1">
+            <div className="px-2.5 text-[11px] font-bold uppercase tracking-wider text-[#6a7282]">
+              Website &amp; Content
+            </div>
+            
+            <button
+              onClick={() => setCmsMenuOpen(!cmsMenuOpen)}
+              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "page-content" || activeTab === "site-metrics" || activeTab === "testimonials"
+                  ? "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                  : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                  activeTab === "page-content" || activeTab === "site-metrics" || activeTab === "testimonials"
+                    ? "bg-[#00bfff] text-white"
+                    : "bg-[#f0f4f8] text-[#4a5565]"
+                }`}>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <span className="font-bold truncate whitespace-nowrap">CMS &amp; Page Blocks</span>
+              </div>
+              
               <svg
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                  adminMenuOpen ? "rotate-180 text-[#00698c]" : "text-[#4a5565]"
+                className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ml-1.5 ${
+                  cmsMenuOpen ? "rotate-180 text-[#00698c]" : "text-[#4a5565]"
                 }`}
                 fill="none"
                 viewBox="0 0 24 24"
@@ -577,52 +882,58 @@ export default function AdminDashboard() {
               </svg>
             </button>
 
-            {adminMenuOpen && (
-              <div className="pl-3 pr-1 py-1 space-y-1 border-l-2 border-[#b0ebff] ml-4 mt-1">
-                {/* Sub-item: Admin */}
+            {cmsMenuOpen && (
+              <div className="pl-2 pr-0 py-1 space-y-1 ml-2.5 border-l-2 border-[#b0ebff]">
                 <button
-                  onClick={() => setActiveTab("admin-manage")}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                    activeTab === "admin-manage"
-                      ? "bg-[#e6f9ff] text-[#000080] font-bold border border-[#b0ebff]"
-                      : "text-[#4a5565] hover:bg-[#f9fafb] hover:text-[#0a0d12]"
+                  onClick={() => handleTabChange("page-content")}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === "page-content"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#00bfff]"></span>
-                    Admin Accounts
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#b0ebff] text-[10px] font-bold text-[#00698c]">
-                    {adminUsers.length}
-                  </span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "page-content" ? "bg-[#00bfff]" : "bg-[#00698c]"}`}></span>
+                    <span className="truncate whitespace-nowrap">Page Content (CMS)</span>
+                  </div>
                 </button>
 
-                {/* Sub-item: Role */}
                 <button
-                  onClick={() => setActiveTab("role-manage")}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                    activeTab === "role-manage"
-                      ? "bg-[#e6f9ff] text-[#000080] font-bold border border-[#b0ebff]"
-                      : "text-[#4a5565] hover:bg-[#f9fafb] hover:text-[#0a0d12]"
+                  onClick={() => handleTabChange("site-metrics")}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === "site-metrics"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#000080]"></span>
-                    Role Management
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#b0ebff] text-[10px] font-bold text-[#00698c]">
-                    {roles.length}
-                  </span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "site-metrics" ? "bg-[#00bfff]" : "bg-[#00698c]"}`}></span>
+                    <span className="truncate whitespace-nowrap">Site Impact Metrics</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleTabChange("testimonials")}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === "testimonials"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "testimonials" ? "bg-[#00bfff]" : "bg-emerald-500"}`}></span>
+                    <span className="truncate whitespace-nowrap">Testimonials</span>
+                  </div>
                 </button>
               </div>
             )}
           </div>
         </nav>
 
-        {/* User Session Footer */}
-        <div className="p-4 border-t border-[#e5e7eb] space-y-3 font-sans">
+        {/* User Session Footer - Fixed at Bottom */}
+        <div className="p-4 border-t border-[#e5e7eb] space-y-3 font-sans shrink-0 bg-white">
           <div className="flex items-center gap-3 px-2">
-            <div className="w-9 h-9 rounded-full bg-[#e6f9ff] border border-[#b0ebff] text-[#000080] font-bold flex items-center justify-center text-sm shrink-0">
+            <div className="w-9 h-9 rounded-full bg-[#e6f9ff] border border-[#b0ebff] text-[#000080] font-bold flex items-center justify-center text-sm shrink-0 shadow-xs">
               {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
             </div>
             <div className="min-w-0 flex-1">
@@ -633,7 +944,7 @@ export default function AdminDashboard() {
 
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full text-red-600 hover:bg-red-50 transition-colors text-xs font-semibold cursor-pointer border border-transparent hover:border-red-200"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-red-600 hover:bg-red-50 transition-colors text-xs font-semibold cursor-pointer border border-transparent hover:border-red-200"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -643,8 +954,8 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Main Content Area - Independently Scrollable */}
+      <div className="flex-1 flex flex-col h-full min-h-0 min-w-0 overflow-hidden">
         {/* Top Header Bar */}
         <header className="h-18 bg-white border-b border-[#e5e7eb] flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-3">
@@ -652,11 +963,10 @@ export default function AdminDashboard() {
               {activeTab === "overview" && "Dashboard Overview"}
               {activeTab === "admin-manage" && "Administrator Management"}
               {activeTab === "role-manage" && "Role & RBAC Security"}
+              {activeTab === "page-content" && "Page Content (CMS) Engine"}
+              {activeTab === "site-metrics" && "Site Impact Metrics"}
+              {activeTab === "testimonials" && "Student & Scholar Testimonials"}
             </h1>
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 font-sans">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              Live API Connected
-            </span>
           </div>
 
           <div className="flex items-center gap-3 font-sans">
@@ -709,7 +1019,10 @@ export default function AdminDashboard() {
         )}
 
         {/* Scrollable Dashboard Body */}
-        <main className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-8">
+        <main
+          className="flex-1 overflow-y-auto min-h-0 p-6 sm:p-8 space-y-8"
+          data-lenis-prevent="true"
+        >
           {/* TAB 1: OVERVIEW */}
           {activeTab === "overview" && (
             <div className="space-y-8">
@@ -880,7 +1193,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-playfair font-bold text-[#0a0d12]">Registered System Accounts</h3>
                     <button
-                      onClick={() => setActiveTab("admin-manage")}
+                      onClick={() => handleTabChange("admin-manage")}
                       className="text-xs text-[#00698c] font-semibold hover:text-[#000080] transition-colors"
                     >
                       Manage All →
@@ -935,6 +1248,14 @@ export default function AdminDashboard() {
           {/* TAB 2: ADMIN MANAGEMENT */}
           {activeTab === "admin-manage" && (
             <div className="space-y-6 font-sans">
+              {/* Sub-Navigation Switcher for Admin & Role Management */}
+              <AdminRoleSubNav
+                active="admin-manage"
+                onSelect={handleTabChange}
+                adminCount={adminUsers.length}
+                roleCount={roles.length}
+              />
+
               {/* Header & Controls */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs">
                 <div>
@@ -1079,6 +1400,14 @@ export default function AdminDashboard() {
           {/* TAB 3: ROLE MANAGEMENT */}
           {activeTab === "role-manage" && (
             <div className="space-y-6 font-sans">
+              {/* Sub-Navigation Switcher for Admin & Role Management */}
+              <AdminRoleSubNav
+                active="role-manage"
+                onSelect={handleTabChange}
+                adminCount={adminUsers.length}
+                roleCount={roles.length}
+              />
+
               {/* Header & Controls */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs">
                 <div>
@@ -1185,6 +1514,30 @@ export default function AdminDashboard() {
                 })}
               </div>
             </div>
+          )}
+
+          {/* TAB 4: PAGE CONTENT (CMS) */}
+          {activeTab === "page-content" && token && (
+            <PageContentManager
+              token={token}
+              onShowToast={(msg, type) => setToast({ message: msg, type })}
+            />
+          )}
+
+          {/* TAB 5: SITE METRICS */}
+          {activeTab === "site-metrics" && token && (
+            <SiteMetricsManager
+              token={token}
+              onShowToast={(msg, type) => setToast({ message: msg, type })}
+            />
+          )}
+
+          {/* TAB 6: TESTIMONIALS */}
+          {activeTab === "testimonials" && token && (
+            <TestimonialsManager
+              token={token}
+              onShowToast={(msg, type) => setToast({ message: msg, type })}
+            />
           )}
         </main>
       </div>

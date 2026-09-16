@@ -1,0 +1,748 @@
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  fetchAdminPageSlugs,
+  fetchAdminSections,
+  upsertAdminSection,
+  deleteAdminSection,
+  PageSectionData,
+} from "@/common/services/cms.service";
+import { ToastType } from "@/common/components/Toast";
+
+interface AdminSectionItem extends PageSectionData {
+  sectionKey?: string;
+}
+
+interface PageContentManagerProps {
+  token: string;
+  onShowToast: (message: string, type: ToastType) => void;
+}
+
+const COMMON_PAGES = [
+  { slug: "home", label: "Home Page (/)" },
+  { slug: "about", label: "About Page (/about)" },
+  { slug: "academics", label: "Academics (/academics)" },
+  { slug: "fellowships", label: "Fellowships (/fellowships)" },
+  { slug: "governance", label: "Governance (/governance)" },
+  { slug: "leadership-directory", label: "Leadership Directory (/leadership-directory)" },
+  { slug: "research-publications", label: "Research & Publications (/research-publications)" },
+  { slug: "news-media", label: "News & Media (/news-media)" },
+  { slug: "partnerships", label: "Partnerships (/partnerships)" },
+  { slug: "careers", label: "Careers (/careers)" },
+  { slug: "contact", label: "Contact (/contact)" },
+  { slug: "donate", label: "Donate (/donate)" },
+  { slug: "privacy-policy", label: "Privacy Policy (/privacy-policy)" },
+  { slug: "terms-of-use", label: "Terms of Use (/terms-of-use)" },
+];
+
+export interface SectionDefinition {
+  key: string;
+  label: string;
+  defaultTitle?: string;
+  defaultBadge?: string;
+}
+
+export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
+  home: [
+    { key: "hero", label: "Hero Banner", defaultTitle: "International Institute for Law and Politics (IILP)", defaultBadge: "Knowledge, Justice, and Leadership" },
+    { key: "mission_vision", label: "Mission & Vision", defaultTitle: "Advancing Interdisciplinary Scholarship", defaultBadge: "Our Mission" },
+    { key: "academic_programs", label: "Academic Programs", defaultTitle: "Six Academic Departments", defaultBadge: "Academic Programs" },
+    { key: "events", label: "Upcoming Events", defaultTitle: "Upcoming Events & Activities", defaultBadge: "Stay Updated" },
+    { key: "testimonials", label: "Student Testimonials", defaultTitle: "Happy students sharing experiences", defaultBadge: "Testimonials" },
+    { key: "image_gallery", label: "Campus Image Gallery", defaultTitle: "Campus Life & Global Academic Engagement" },
+    { key: "fellowship_network", label: "Global Fellowship Network", defaultTitle: "Join the IILP Fellowship Network", defaultBadge: "Global Fellowship Network" },
+    { key: "founder_message", label: "Founder's Message", defaultTitle: "Founder's Message", defaultBadge: "From the Founder" },
+    { key: "news_media", label: "News & Media Center", defaultTitle: "News & Media Center", defaultBadge: "Stay Updated" },
+  ],
+  about: [
+    { key: "hero", label: "About Hero Banner", defaultTitle: "About the Institute" },
+    { key: "institutional_profile", label: "Institutional Profile", defaultTitle: "Our Institutional Profile" },
+    { key: "mission_vision", label: "Mission & Vision Statement", defaultTitle: "Mission, Vision & Core Purpose" },
+    { key: "strategic_objectives", label: "Strategic Objectives", defaultTitle: "Strategic Goals & Priorities" },
+    { key: "institutional_values", label: "Institutional Values", defaultTitle: "Core Values & Principles" },
+    { key: "global_engagement", label: "Global Engagement & Impact", defaultTitle: "Global Engagement & Impact" },
+    { key: "founder_message", label: "President & Founder Message", defaultTitle: "Message from the Leadership" },
+    { key: "gallery", label: "About Photo Gallery", defaultTitle: "Institutional Photo Gallery" },
+  ],
+  academics: [
+    { key: "hero", label: "Academics Hero Banner", defaultTitle: "Academic Programs & Rigor" },
+    { key: "departments", label: "Academic Departments", defaultTitle: "Our Academic Departments" },
+    { key: "apply", label: "Apply to Academic Programs", defaultTitle: "Admissions & Applications" },
+  ],
+  fellowships: [
+    { key: "hero", label: "Fellowship Hero Banner", defaultTitle: "Global Fellowship Opportunities" },
+    { key: "categories", label: "Fellowship Categories", defaultTitle: "Fellowship Tracks & Eligibility" },
+    { key: "application", label: "Fellowship Application", defaultTitle: "How to Apply" },
+    { key: "cta", label: "Call to Action Banner", defaultTitle: "Ready to Apply for Fellowship?" },
+  ],
+  governance: [
+    { key: "hero", label: "Governance Hero", defaultTitle: "Institutional Governance & Integrity" },
+    { key: "leadership_structure", label: "Leadership Structure", defaultTitle: "Structure & Oversight" },
+    { key: "founding_authority", label: "Founding Authority", defaultTitle: "Founding Charter & Authority" },
+    { key: "founding_members", label: "Founding Members", defaultTitle: "Distinguished Founding Members" },
+    { key: "governing_council", label: "Governing Council", defaultTitle: "Governing Council" },
+    { key: "executive_directorate", label: "Executive Directorate", defaultTitle: "Executive Directorate Board" },
+    { key: "academic_senate", label: "Academic Senate", defaultTitle: "Academic Senate" },
+    { key: "advisory_board", label: "Advisory Board", defaultTitle: "International Advisory Board" },
+    { key: "ethics_commission", label: "Ethics Commission", defaultTitle: "Ethics Commission" },
+    { key: "youth_assembly", label: "Youth Leadership Assembly", defaultTitle: "Youth Leadership Assembly" },
+    { key: "get_involved", label: "Get Involved CTA", defaultTitle: "Engage with Governance" },
+  ],
+  "leadership-directory": [
+    { key: "hero", label: "Leadership Directory Hero", defaultTitle: "Institutional Leadership Directory" },
+    { key: "institutional_leadership", label: "Leadership Grid", defaultTitle: "Officers, Deans & Resident Scholars" },
+    { key: "join_team", label: "Join Leadership Team", defaultTitle: "Join Our Team" },
+  ],
+  "research-publications": [
+    { key: "hero", label: "Publications Hero", defaultTitle: "Research & Publications" },
+    { key: "featured", label: "Featured Publications", defaultTitle: "Key Scholarly Papers" },
+    { key: "publications_list", label: "Publications Archive", defaultTitle: "Monographs, Policy Briefs & Journals" },
+    { key: "call_for_papers", label: "Call for Papers", defaultTitle: "Submissions & Peer Review" },
+  ],
+  "news-media": [
+    { key: "hero", label: "News & Media Hero", defaultTitle: "News & Media Center" },
+    { key: "press_releases", label: "Press Releases & News", defaultTitle: "Press Releases & Announcements" },
+    { key: "photo_gallery", label: "Media Photo Gallery", defaultTitle: "Photo Highlights" },
+    { key: "newsletter", label: "Newsletter Subscription", defaultTitle: "Subscribe to Our Dispatch" },
+  ],
+  partnerships: [
+    { key: "hero", label: "Partnerships Hero", defaultTitle: "Strategic Global Partnerships" },
+    { key: "framework_tracks", label: "Partnership Framework Tracks", defaultTitle: "Collaborative Tracks" },
+    { key: "become_partner", label: "Become a Partner", defaultTitle: "Partner With Us" },
+  ],
+  careers: [
+    { key: "hero", label: "Careers Hero", defaultTitle: "Careers & Opportunities" },
+    { key: "openings", label: "Current Openings", defaultTitle: "Open Positions" },
+    { key: "work_culture", label: "Work Culture", defaultTitle: "Life at IILP" },
+  ],
+  contact: [
+    { key: "hero", label: "Contact Hero", defaultTitle: "Contact IILP" },
+    { key: "info_grid", label: "Offices & Information", defaultTitle: "Global Contact Details" },
+    { key: "form", label: "Inquiry Form", defaultTitle: "Send an Inquiry" },
+  ],
+  donate: [
+    { key: "hero", label: "Donation Hero", defaultTitle: "Support IILP" },
+    { key: "impact_funds", label: "Impact Funds", defaultTitle: "Endowment & Scholarship Funds" },
+    { key: "ways_to_give", label: "Ways to Give", defaultTitle: "Donation Channels" },
+  ],
+  "privacy-policy": [
+    { key: "content", label: "Privacy Policy Content", defaultTitle: "Privacy Policy" },
+  ],
+  "terms-of-use": [
+    { key: "content", label: "Terms of Use Content", defaultTitle: "Terms of Use" },
+  ],
+};
+
+export function PageContentManager({ token, onShowToast }: PageContentManagerProps) {
+  const [selectedPage, setSelectedPage] = useState("home");
+  const [availablePages, setAvailablePages] = useState<string[]>([]);
+  const [sections, setSections] = useState<AdminSectionItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Edit Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNewSection, setIsNewSection] = useState(false);
+  const [isCustomKey, setIsCustomKey] = useState(false);
+  const [editingKey, setEditingKey] = useState("");
+  const [formData, setFormData] = useState<Partial<PageSectionData>>({
+    title: "",
+    subtitle: "",
+    badge: "",
+    bgImage: "",
+    bodyContent: "",
+    actionText: "",
+    actionUrl: "",
+    sortOrder: 0,
+    isActive: true,
+    metadata: {},
+  });
+  const [metadataJson, setMetadataJson] = useState("{}");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load unique slugs from DB
+  const loadPageSlugs = useCallback(async () => {
+    try {
+      const slugs = await fetchAdminPageSlugs(token);
+      setAvailablePages(slugs);
+    } catch {
+      // Fallback
+    }
+  }, [token]);
+
+  // Load sections for current page
+  const loadSections = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchAdminSections(token, selectedPage);
+      setSections(data as AdminSectionItem[]);
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to load sections", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token, selectedPage, onShowToast]);
+
+  useEffect(() => {
+    let active = true;
+    fetchAdminPageSlugs(token)
+      .then((slugs) => {
+        if (active) setAvailablePages(slugs);
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [token]);
+
+  useEffect(() => {
+    let active = true;
+    fetchAdminSections(token, selectedPage)
+      .then((data) => {
+        if (active) setSections(data as AdminSectionItem[]);
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          onShowToast(err instanceof Error ? err.message : "Failed to load sections", "error");
+        }
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [token, selectedPage, onShowToast]);
+
+  const handleOpenEdit = (section: AdminSectionItem) => {
+    setIsNewSection(false);
+    setIsCustomKey(false);
+    setEditingKey(section.sectionKey || "");
+    setFormData({
+      title: section.title || "",
+      subtitle: section.subtitle || "",
+      badge: section.badge || "",
+      bgImage: section.bgImage || "",
+      bodyContent: section.bodyContent || "",
+      actionText: section.actionText || "",
+      actionUrl: section.actionUrl || "",
+      sortOrder: section.sortOrder ?? 0,
+      isActive: section.isActive ?? true,
+    });
+    setMetadataJson(JSON.stringify(section.metadata || {}, null, 2));
+    setIsModalOpen(true);
+  };
+
+  const handleOpenCreate = () => {
+    setIsNewSection(true);
+    setIsCustomKey(false);
+
+    const pageDefs = PAGE_SECTIONS_REGISTRY[selectedPage] || [
+      { key: "hero", label: "Hero Banner" },
+      { key: "content", label: "Main Content" },
+      { key: "cta", label: "Call to Action" },
+    ];
+    const unusedDef = pageDefs.find((def) => !sections.some((s) => s.sectionKey === def.key));
+    const initialDef = unusedDef || pageDefs[0];
+    const initialKey = initialDef ? initialDef.key : "hero";
+
+    setEditingKey(initialKey);
+    setFormData({
+      title: initialDef?.defaultTitle || "",
+      subtitle: "",
+      badge: initialDef?.defaultBadge || "",
+      bgImage: "",
+      bodyContent: "",
+      actionText: "",
+      actionUrl: "",
+      sortOrder: sections.length * 10,
+      isActive: true,
+    });
+    setMetadataJson("{}");
+    setIsModalOpen(true);
+  };
+
+  const handleSectionKeySelect = (keyVal: string) => {
+    if (keyVal === "__custom__") {
+      setIsCustomKey(true);
+      setEditingKey("");
+    } else {
+      setIsCustomKey(false);
+      setEditingKey(keyVal);
+      const pageDefs = PAGE_SECTIONS_REGISTRY[selectedPage] || [];
+      const match = pageDefs.find((d) => d.key === keyVal);
+      if (match) {
+        setFormData((prev) => ({
+          ...prev,
+          title: prev.title || match.defaultTitle || "",
+          badge: prev.badge || match.defaultBadge || "",
+        }));
+      }
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingKey.trim()) {
+      onShowToast("Section Key is required (e.g. hero, founder_message)", "error");
+      return;
+    }
+
+    let parsedMeta: Record<string, unknown> = {};
+    try {
+      if (metadataJson.trim()) {
+        parsedMeta = JSON.parse(metadataJson);
+      }
+    } catch {
+      onShowToast("Invalid JSON in Metadata field", "error");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await upsertAdminSection(token, selectedPage, editingKey.trim(), {
+        ...formData,
+        metadata: parsedMeta,
+      });
+      onShowToast(`Section '${editingKey}' saved successfully!`, "success");
+      setIsModalOpen(false);
+      loadSections();
+      loadPageSlugs();
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to save section", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (sectionKey: string) => {
+    if (!confirm(`Are you sure you want to delete section '${sectionKey}' from '${selectedPage}'?`)) {
+      return;
+    }
+
+    try {
+      await deleteAdminSection(token, selectedPage, sectionKey);
+      onShowToast(`Section '${sectionKey}' deleted.`, "info");
+      loadSections();
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to delete section", "error");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-[#e5e7eb] shadow-xs">
+        <div>
+          <h2 className="text-xl font-bold text-[#101828]">Page Content &amp; Dynamic Block Engine</h2>
+          <p className="text-xs text-[#4a5565] mt-1">
+            Universal headless CMS for hero banners, headlines, rich body copy, and button CTAs across all pages.
+          </p>
+        </div>
+
+        {/* Page Selector */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <select
+            value={selectedPage}
+            onChange={(e) => setSelectedPage(e.target.value)}
+            aria-label="Select Page to Manage"
+            className="bg-[#f8fafc] border border-[#d0d5dd] text-[#101828] text-xs font-semibold rounded-xl px-3.5 py-2 focus:ring-2 focus:ring-[#00bfff] focus:border-transparent transition-all outline-hidden cursor-pointer"
+          >
+            {COMMON_PAGES.map((p) => (
+              <option key={p.slug} value={p.slug}>
+                {p.label}
+              </option>
+            ))}
+            {availablePages
+              .filter((slug) => !COMMON_PAGES.some((p) => p.slug === slug))
+              .map((slug) => (
+                <option key={slug} value={slug}>
+                  Custom: /{slug}
+                </option>
+              ))}
+          </select>
+
+          <button
+            onClick={handleOpenCreate}
+            className="inline-flex items-center gap-2 bg-[#00bfff] hover:bg-[#00a6e0] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Section Block
+          </button>
+        </div>
+      </div>
+
+      {/* Sections List */}
+      {isLoading ? (
+        <div className="p-12 text-center bg-white rounded-2xl border border-[#e5e7eb]">
+          <div className="w-8 h-8 border-3 border-[#00bfff] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-sm font-medium text-[#4a5565]">Loading sections for /{selectedPage}...</p>
+        </div>
+      ) : sections.length === 0 ? (
+        <div className="p-12 text-center bg-white rounded-2xl border border-dashed border-[#d0d5dd]">
+          <div className="w-12 h-12 rounded-full bg-[#e6f9ff] text-[#00698c] flex items-center justify-center mx-auto mb-3">
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 className="text-base font-bold text-[#101828]">No Sections Defined Yet</h3>
+          <p className="text-xs text-[#4a5565] max-w-md mx-auto mt-1 mb-4">
+            /{selectedPage} currently has no stored blocks in the CMS. Create the first section to make this page dynamically customizable.
+          </p>
+          <button
+            onClick={handleOpenCreate}
+            className="bg-[#00bfff] hover:bg-[#00a6e0] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          >
+            Create Initial &lsquo;hero&rsquo; Block
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {sections.map((sec) => {
+            const sKey = sec.sectionKey || "section";
+            return (
+              <div
+                key={sec.id || sKey}
+                className="bg-white rounded-2xl border border-[#e5e7eb] p-6 shadow-xs flex flex-col md:flex-row md:items-start justify-between gap-6 hover:border-[#b0ebff] transition-all"
+              >
+                {/* Left Column: Details */}
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="px-3 py-1 rounded-md bg-[#000080]/5 text-[#000080] font-mono text-xs font-bold border border-[#000080]/10">
+                      key: {sKey}
+                    </span>
+                    {sec.badge && (
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#e6f9ff] text-[#00698c] text-[11px] font-semibold border border-[#b0ebff]">
+                        {sec.badge}
+                      </span>
+                    )}
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                        sec.isActive
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : "bg-gray-100 text-gray-500 border border-gray-200"
+                      }`}
+                    >
+                      {sec.isActive ? "Active" : "Inactive Draft"}
+                    </span>
+                    <span className="text-[11px] text-[#4a5565]">
+                      Order: {sec.sortOrder}
+                    </span>
+                  </div>
+
+                  {sec.title && (
+                    <h3 className="text-lg font-bold text-[#101828] font-playfair">
+                      {sec.title}
+                    </h3>
+                  )}
+
+                  {sec.subtitle && (
+                    <p className="text-xs text-[#4a5565] leading-relaxed line-clamp-2">
+                      {sec.subtitle}
+                    </p>
+                  )}
+
+                  {/* Body or Action details */}
+                  <div className="flex items-center gap-4 text-xs text-[#4a5565] flex-wrap pt-1">
+                    {sec.actionText && (
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold text-[#101828]">CTA:</span>
+                        <span className="px-2 py-0.5 bg-[#f3f4f6] rounded-md font-medium">
+                          {sec.actionText} &rarr; {sec.actionUrl || "#"}
+                        </span>
+                      </div>
+                    )}
+                    {sec.bgImage && (
+                      <div className="flex items-center gap-1 truncate max-w-xs">
+                        <span className="font-semibold text-[#101828]">Image:</span>
+                        <span className="truncate text-[#00698c]">{sec.bgImage}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column: Actions */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => handleOpenEdit(sec)}
+                    className="px-3.5 py-1.5 rounded-xl border border-[#d0d5dd] hover:bg-[#f9fafb] text-xs font-bold text-[#344054] transition-colors cursor-pointer"
+                  >
+                    Edit Block
+                  </button>
+                  <button
+                    onClick={() => handleDelete(sKey)}
+                    className="px-3.5 py-1.5 rounded-xl border border-red-200 hover:bg-red-50 text-xs font-bold text-red-600 transition-colors cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Edit / Create Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl border border-[#e5e7eb] max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#e5e7eb]">
+              <h3 className="text-base font-bold text-[#101828]">
+                {isNewSection ? `Add New Section for /${selectedPage}` : `Edit Section '${editingKey}'`}
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-[#98a2b3] hover:text-[#101828] text-lg font-bold cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+
+            <form onSubmit={handleSave} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Section Key */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-[#344054]">
+                      Section Key <span className="text-red-500">*</span>
+                    </label>
+                    {isNewSection && isCustomKey && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomKey(false);
+                          const pageDefs = PAGE_SECTIONS_REGISTRY[selectedPage] || [];
+                          const unusedDef = pageDefs.find((def) => !sections.some((s) => s.sectionKey === def.key)) || pageDefs[0];
+                          if (unusedDef) setEditingKey(unusedDef.key);
+                        }}
+                        className="text-[11px] font-medium text-[#00bfff] hover:underline cursor-pointer"
+                      >
+                        ← Choose from presets
+                      </button>
+                    )}
+                  </div>
+
+                  {!isNewSection ? (
+                    <div>
+                      <input
+                        type="text"
+                        disabled
+                        value={editingKey}
+                        className="w-full bg-[#f2f4f7] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs font-mono text-[#475467] cursor-not-allowed"
+                      />
+                      <p className="text-[10px] text-[#4a5565] mt-0.5">
+                        Key cannot be modified after creation.
+                      </p>
+                    </div>
+                  ) : !isCustomKey ? (
+                    <div>
+                      <select
+                        value={editingKey}
+                        onChange={(e) => handleSectionKeySelect(e.target.value)}
+                        className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs font-mono text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                        required
+                      >
+                        <optgroup label={`Preset Sections for "${selectedPage}"`}>
+                          {(PAGE_SECTIONS_REGISTRY[selectedPage] || [
+                            { key: "hero", label: "Hero Banner" },
+                            { key: "content", label: "Main Content" },
+                            { key: "cta", label: "Call to Action" },
+                          ]).map((def) => {
+                            const alreadyExists = sections.some((s) => s.sectionKey === def.key);
+                            return (
+                              <option key={def.key} value={def.key}>
+                                {def.label} ({def.key}) {alreadyExists ? "— [Already Added]" : ""}
+                              </option>
+                            );
+                          })}
+                        </optgroup>
+                        <optgroup label="Custom / Other">
+                          <option value="__custom__">+ Enter Custom Section Key...</option>
+                        </optgroup>
+                      </select>
+                      <p className="text-[10px] text-[#4a5565] mt-0.5">
+                        Select predefined section block or enter a custom key.
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        type="text"
+                        value={editingKey}
+                        onChange={(e) => setEditingKey(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "_"))}
+                        placeholder="e.g. custom_highlights, alumni_quote"
+                        className="w-full bg-[#f9fafb] border border-[#00bfff] rounded-xl px-3 py-2 text-xs font-mono text-[#101828] focus:outline-hidden"
+                        required
+                        autoFocus
+                      />
+                      <p className="text-[10px] text-[#4a5565] mt-0.5">
+                        Lowercase alphanumeric and underscore/hyphen only.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Badge Tag */}
+                <div>
+                  <label className="block text-xs font-bold text-[#344054] mb-1">
+                    Badge / Tagline Pill
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.badge || ""}
+                    onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+                    placeholder="e.g. Global Network"
+                    className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                  />
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-bold text-[#344054] mb-1">
+                  Main Headline / Title
+                </label>
+                <input
+                  type="text"
+                  value={formData.title || ""}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Primary header copy"
+                  className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                />
+              </div>
+
+              {/* Subtitle */}
+              <div>
+                <label className="block text-xs font-bold text-[#344054] mb-1">
+                  Subtitle / Catchphrase
+                </label>
+                <textarea
+                  rows={2}
+                  value={formData.subtitle || ""}
+                  onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+                  placeholder="Secondary descriptive copy"
+                  className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                />
+              </div>
+
+              {/* Background Image */}
+              <div>
+                <label className="block text-xs font-bold text-[#344054] mb-1">
+                  Background / Hero Image URL
+                </label>
+                <input
+                  type="text"
+                  value={formData.bgImage || ""}
+                  onChange={(e) => setFormData({ ...formData, bgImage: e.target.value })}
+                  placeholder="/assets/home-hero-v2.png or /uploads/..."
+                  className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                />
+              </div>
+
+              {/* CTA Action */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#344054] mb-1">
+                    Button CTA Text
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.actionText || ""}
+                    onChange={(e) => setFormData({ ...formData, actionText: e.target.value })}
+                    placeholder="e.g. Apply for Fellowship"
+                    className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#344054] mb-1">
+                    Button CTA Destination URL
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.actionUrl || ""}
+                    onChange={(e) => setFormData({ ...formData, actionUrl: e.target.value })}
+                    placeholder="e.g. /fellowships or #apply"
+                    className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                  />
+                </div>
+              </div>
+
+              {/* Rich Body Content */}
+              <div>
+                <label className="block text-xs font-bold text-[#344054] mb-1">
+                  Rich Body Content (Markdown / Text)
+                </label>
+                <textarea
+                  rows={4}
+                  value={formData.bodyContent || ""}
+                  onChange={(e) => setFormData({ ...formData, bodyContent: e.target.value })}
+                  placeholder="Comprehensive section body text or policy paragraph..."
+                  className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                />
+              </div>
+
+              {/* Metadata JSON */}
+              <div>
+                <label className="block text-xs font-bold text-[#344054] mb-1">
+                  JSON Metadata (Cards, Items, Figma IDs)
+                </label>
+                <textarea
+                  rows={3}
+                  value={metadataJson}
+                  onChange={(e) => setMetadataJson(e.target.value)}
+                  className="w-full bg-[#1e293b] text-[#38bdf8] font-mono text-xs rounded-xl p-3 focus:outline-hidden"
+                />
+              </div>
+
+              {/* Sequence & Toggle */}
+              <div className="flex items-center justify-between pt-2 border-t border-[#e5e7eb]">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#344054] mb-1">
+                      Sort Order
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.sortOrder ?? 0}
+                      onChange={(e) => setFormData({ ...formData, sortOrder: parseInt(e.target.value, 10) || 0 })}
+                      className="w-24 bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-1.5 text-xs text-[#101828]"
+                    />
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer mt-4">
+                    <input
+                      type="checkbox"
+                      checked={formData.isActive ?? true}
+                      onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                      className="w-4 h-4 text-[#00bfff] rounded-sm focus:ring-[#00bfff]"
+                    />
+                    <span className="text-xs font-bold text-[#344054]">Active on Public Website</span>
+                  </label>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2 text-xs font-bold text-[#4a5565] hover:bg-[#f3f4f6] rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="px-5 py-2 text-xs font-bold text-white bg-[#00bfff] hover:bg-[#00a6e0] rounded-xl shadow-xs transition-all disabled:opacity-60 cursor-pointer"
+                  >
+                    {isSaving ? "Saving..." : "Save Section"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

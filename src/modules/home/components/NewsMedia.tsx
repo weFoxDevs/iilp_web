@@ -1,42 +1,98 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { PageSectionData } from '@/common/services/cms.service';
 
-export function NewsMedia() {
+interface NewsItem {
+  id: number | string;
+  category: string;
+  date: string;
+  title: string;
+  image: string;
+  link?: string;
+}
+
+interface NewsMetadata extends Record<string, unknown> {
+  tabs?: string[];
+  featured?: NewsItem;
+  articles?: NewsItem[];
+}
+
+interface NewsMediaProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function NewsMedia({ data }: NewsMediaProps) {
   const [activeTab, setActiveTab] = useState('Programs');
 
-  const newsItems = [
-    {
-      id: 1,
-      category: 'News',
-      date: 'May 20, 2025',
-      title: 'Technological Advancements',
-      image: '/assets/news-small-1.png',
-    },
-    {
-      id: 2,
-      category: 'News',
-      date: 'May 20, 2025',
-      title: 'Technological Advancements',
-      image: '/assets/news-small-2.png',
-    },
-    {
-      id: 3,
-      category: 'News',
-      date: 'May 20, 2025',
-      title: 'Technological Advancements',
-      image: '/assets/news-small-3.png',
-    },
-    {
-      id: 4,
-      category: 'News',
-      date: 'May 20, 2025',
-      title: 'Technological Advancements',
-      image: '/assets/news-small-4.png',
-    },
-  ];
+  const defaultNewsData = {
+    badge: 'Stay Updated',
+    title: 'News & Media Center',
+    subtitle:
+      'Interdisciplinary programs advancing law, governance, human rights, and development through rigorous research and scholarship.',
+    actionText: 'View All News',
+    actionUrl: '/news',
+    metadata: {
+      tabs: ['Programs', 'News', 'Events'],
+      featured: {
+        id: 'featured',
+        category: 'News',
+        date: 'May 20, 2025',
+        title: 'Technological Advancements',
+        image: '/assets/news-main.png',
+        link: '/news',
+      },
+      articles: [
+        {
+          id: 1,
+          category: 'News',
+          date: 'May 20, 2025',
+          title: 'Technological Advancements',
+          image: '/assets/news-small-1.png',
+          link: '/news',
+        },
+        {
+          id: 2,
+          category: 'News',
+          date: 'May 20, 2025',
+          title: 'Technological Advancements',
+          image: '/assets/news-small-2.png',
+          link: '/news',
+        },
+        {
+          id: 3,
+          category: 'News',
+          date: 'May 20, 2025',
+          title: 'Technological Advancements',
+          image: '/assets/news-small-3.png',
+          link: '/news',
+        },
+        {
+          id: 4,
+          category: 'News',
+          date: 'May 20, 2025',
+          title: 'Technological Advancements',
+          image: '/assets/news-small-4.png',
+          link: '/news',
+        },
+      ],
+    } as NewsMetadata,
+  };
 
-  const tabs = ['Programs', 'News', 'Events'];
+  const section = {
+    badge: data?.badge ?? defaultNewsData.badge,
+    title: data?.title ?? defaultNewsData.title,
+    subtitle: data?.subtitle ?? defaultNewsData.subtitle,
+    actionText: data?.actionText || defaultNewsData.actionText,
+    actionUrl: data?.actionUrl || defaultNewsData.actionUrl,
+    metadata: (data?.metadata as NewsMetadata) || defaultNewsData.metadata,
+  };
+
+  const metadata = (section.metadata as NewsMetadata) || defaultNewsData.metadata;
+
+  const tabs = metadata.tabs && metadata.tabs.length > 0 ? metadata.tabs : defaultNewsData.metadata.tabs;
+  const featured = metadata.featured || defaultNewsData.metadata.featured;
+  const articles = metadata.articles && metadata.articles.length > 0 ? metadata.articles : defaultNewsData.metadata.articles;
 
   return (
     <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">
@@ -46,75 +102,81 @@ export function NewsMedia() {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 lg:gap-[80px] w-full">
           {/* Text Content */}
           <div className="flex flex-col items-start gap-[16px] max-w-[680px]">
-            <div className="border border-[#00698c] rounded-full px-[12px] py-[8px]">
-              <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
-                Stay Updated
-              </span>
-            </div>
+            {section.badge && (
+              <div className="border border-[#00698c] rounded-full px-[12px] py-[8px]">
+                <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
+                  {section.badge}
+                </span>
+              </div>
+            )}
 
             <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] text-[#0a0d12] tracking-[-0.72px] max-w-[580px]">
-              News & Media Center
+              {section.title || defaultNewsData.title}
             </h2>
 
             <p className="font-inter font-normal text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12] max-w-[611px]">
-              Interdisciplinary programs advancing law, governance, human rights, and development through rigorous research and scholarship.
+              {section.subtitle || defaultNewsData.subtitle}
             </p>
           </div>
 
           {/* Filter Tabs */}
-          <div className="bg-[#e6f9ff] border border-[#e6f9ff] p-[4px] rounded-full flex gap-[4px] items-center self-start lg:self-end">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-[16px] py-[10px] rounded-full font-source font-semibold text-[14px] leading-[20px] transition-all cursor-pointer ${
-                  activeTab === tab
-                    ? 'bg-[#1e2939] text-white shadow-sm'
-                    : 'bg-white text-[#4a5565] border border-[#e5e7eb] hover:bg-gray-50'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+          {tabs && tabs.length > 0 && (
+            <div className="bg-[#e6f9ff] border border-[#e6f9ff] p-[4px] rounded-full flex gap-[4px] items-center self-start lg:self-end">
+              {tabs.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-[16px] py-[10px] rounded-full font-source font-semibold text-[14px] leading-[20px] transition-all cursor-pointer ${
+                    activeTab === tab
+                      ? 'bg-[#1e2939] text-white shadow-sm'
+                      : 'bg-white text-[#4a5565] border border-[#e5e7eb] hover:bg-gray-50'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Content Grid */}
         <div className="flex flex-col lg:flex-row gap-[32px] items-start w-full">
           
           {/* Featured Article (Left) */}
-          <Link href="/news" className="w-full lg:w-[606px] shrink-0 flex flex-col gap-[16px] group cursor-pointer">
-            <div className="relative w-full aspect-[606/610] overflow-hidden">
-              <Image 
-                src="/assets/news-main.png" 
-                alt="Main News" 
-                fill 
-                sizes="(max-width: 1024px) 100vw, 606px"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                priority
-              />
-            </div>
-
-            <div className="flex flex-col gap-[8px] items-start w-full">
-              <div className="flex items-center gap-[10px]">
-                <span className="bg-[#e6f9ff] text-[#000036] font-source font-normal text-[14px] leading-[20px] px-[14px] py-[2px] rounded-[24px]">
-                  News
-                </span>
-                <span className="font-satoshi font-medium text-[14px] leading-[23.8px] text-[#160d03]">
-                  May 20, 2025
-                </span>
+          {featured && (
+            <Link href={featured.link || section.actionUrl || '/news'} className="w-full lg:w-[606px] shrink-0 flex flex-col gap-[16px] group cursor-pointer">
+              <div className="relative w-full aspect-[606/610] overflow-hidden">
+                <Image 
+                  src={featured.image} 
+                  alt={featured.title} 
+                  fill 
+                  sizes="(max-width: 1024px) 100vw, 606px"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  priority
+                />
               </div>
 
-              <h3 className="font-['Soria',var(--font-playfair),serif] font-bold text-[24px] leading-[32px] text-[#0a0d12] group-hover:text-[#00bfff] transition-colors">
-                Technological Advancements
-              </h3>
-            </div>
-          </Link>
+              <div className="flex flex-col gap-[8px] items-start w-full">
+                <div className="flex items-center gap-[10px]">
+                  <span className="bg-[#e6f9ff] text-[#000036] font-source font-normal text-[14px] leading-[20px] px-[14px] py-[2px] rounded-[24px]">
+                    {featured.category}
+                  </span>
+                  <span className="font-satoshi font-medium text-[14px] leading-[23.8px] text-[#160d03]">
+                    {featured.date}
+                  </span>
+                </div>
+
+                <h3 className="font-['Soria',var(--font-playfair),serif] font-bold text-[24px] leading-[32px] text-[#0a0d12] group-hover:text-[#00bfff] transition-colors">
+                  {featured.title}
+                </h3>
+              </div>
+            </Link>
+          )}
 
           {/* Smaller Articles Grid (Right) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-[32px] flex-1 w-full">
-            {newsItems.map((item) => (
-              <Link href="/news" key={item.id} className="flex flex-col gap-[16px] items-start w-full group cursor-pointer">
+            {(articles || []).map((item) => (
+              <Link href={item.link || '/news'} key={item.id} className="flex flex-col gap-[16px] items-start w-full group cursor-pointer">
                 <div className="relative w-full aspect-[339/245] overflow-hidden">
                   <Image 
                     src={item.image} 

@@ -1,28 +1,48 @@
 import Image from 'next/image';
+import { PageSectionData } from '@/common/services/cms.service';
 
-export function ImageGallery() {
-  const images = [
-    { 
-      src: "/assets/gallery-student-stairs.png", 
-      alt: "Students walking down campus stairs", 
-      size: "lg" 
+interface GalleryImageItem {
+  src: string;
+  alt: string;
+  size: 'sm' | 'lg' | string;
+}
+
+const defaultImages: GalleryImageItem[] = [
+  { 
+    src: "/assets/gallery-student-stairs.png", 
+    alt: "Students walking down campus stairs", 
+    size: "lg" 
+  },
+  { 
+    src: "/assets/gallery-students-park.png", 
+    alt: "Students walking in campus park", 
+    size: "sm" 
+  },
+  { 
+    src: "/assets/gallery-walking-stairs.png", 
+    alt: "Students walking down brick steps on campus", 
+    size: "lg" 
+  },
+  { 
+    src: "/assets/gallery-sunset-campus.png", 
+    alt: "Campus park bench at sunset", 
+    size: "sm" 
+  },
+];
+
+interface ImageGalleryProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function ImageGallery({ data }: ImageGalleryProps) {
+  const section = {
+    metadata: data?.metadata ?? {
+      images: defaultImages,
     },
-    { 
-      src: "/assets/gallery-students-park.png", 
-      alt: "Students walking in campus park", 
-      size: "sm" 
-    },
-    { 
-      src: "/assets/gallery-walking-stairs.png", 
-      alt: "Students walking down brick steps on campus", 
-      size: "lg" 
-    },
-    { 
-      src: "/assets/gallery-sunset-campus.png", 
-      alt: "Campus park bench at sunset", 
-      size: "sm" 
-    },
-  ];
+  };
+
+  const images =
+    ((section.metadata || {}).images as GalleryImageItem[]) || defaultImages;
 
   // Duplicate to create seamless infinite scrolling marquee
   const marqueeImages = [...images, ...images, ...images];

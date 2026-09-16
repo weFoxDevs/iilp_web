@@ -21,6 +21,11 @@ export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   useEffect(() => {
+    // Disable Lenis smooth scrolling on admin routes to allow native flex/overflow scrolling
+    if (router.pathname.startsWith('/admin')) {
+      return;
+    }
+
     // Initialize Lenis smooth scrolling
     const lenis = new Lenis({
       duration: 1.2,
@@ -51,7 +56,7 @@ export default function App({ Component, pageProps }: AppProps) {
       router.events.off('routeChangeComplete', handleRouteChange);
       lenis.destroy();
     };
-  }, [router]);
+  }, [router.pathname, router.events]);
 
   return (
     <div className={`${geistSans.variable} ${geistMono.variable} min-h-screen flex flex-col antialiased`}>
