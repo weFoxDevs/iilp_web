@@ -9,6 +9,7 @@
   /* Fonts */
   --font-sans-fallback: Arial, Helvetica, sans-serif;
   --font-sans-family: var(--font-geist-sans), var(--font-sans-fallback);
+  --font-serif-family: "Playfair Display", "Merriweather", Georgia, serif;
   --font-mono-family: var(--font-geist-mono), monospace;
 
   /* Theme Radii */
@@ -123,6 +124,7 @@ html.dark {
 @theme {
   /* Fonts mapping */
   --font-sans: var(--font-sans-family);
+  --font-serif: var(--font-serif-family);
   --font-mono: var(--font-mono-family);
   --font-inter: "Inter", sans-serif;
   --font-source: "Source Sans Pro", sans-serif;
