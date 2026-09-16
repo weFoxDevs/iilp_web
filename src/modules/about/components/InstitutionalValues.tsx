@@ -1,62 +1,80 @@
-export default function InstitutionalValues() {
-  const row1 = [
-    {
-      icon: '🎓',
-      title: 'Academic Excellence',
-      desc: 'Commitment to the highest standards of scholarship, research, and intellectual inquiry.',
-    },
-    {
-      icon: '🔍',
-      title: 'Integrity and Accountability',
-      desc: 'Dedication to honesty, transparency, professionalism, and responsible institutional conduct.',
-    },
-    {
-      icon: '⚖️',
-      title: 'Justice and Human Dignity',
-      desc: 'Respect for the inherent worth, rights, and dignity of all individuals.',
-    },
-  ];
+import { PageSectionData } from '@/common/services/cms.service';
 
-  const row2 = [
-    {
-      icon: '🏅',
-      title: 'Ethical Leadership',
-      desc: 'Promotion of leadership grounded in responsibility, service, integrity, and ethical principles.',
-    },
-    {
-      icon: '🌈',
-      title: 'Inclusiveness and Diversity',
-      desc: 'Recognition of diverse perspectives, experiences, and backgrounds as sources of intellectual strength.',
-    },
-    {
-      icon: '🧠',
-      title: 'Intellectual Independence',
-      desc: 'Commitment to academic freedom and objective inquiry free from undue influence.',
-    },
-    {
-      icon: '📊',
-      title: 'Evidence-Based Research',
-      desc: 'Support for rigorous, methodologically sound, and policy-relevant scholarship.',
-    },
-  ];
+interface ValueItem {
+  icon: string;
+  title: string;
+  desc: string;
+}
 
-  const row3 = [
-    {
-      icon: '🗳️',
-      title: 'Democratic Engagement',
-      desc: 'Encouragement of constructive dialogue, civic participation, and respect for democratic principles.',
-    },
-    {
-      icon: '🌐',
-      title: 'International Cooperation',
-      desc: 'Commitment to collaboration across borders in pursuit of shared knowledge and common solutions.',
-    },
-    {
-      icon: '🤲',
-      title: 'Social Responsibility',
-      desc: 'Recognition of the responsibility of academic institutions to contribute positively to society and the public good.',
-    },
-  ];
+const defaultValues: ValueItem[] = [
+  {
+    icon: '🎓',
+    title: 'Academic Excellence',
+    desc: 'Commitment to the highest standards of scholarship, research, and intellectual inquiry.',
+  },
+  {
+    icon: '🔍',
+    title: 'Integrity and Accountability',
+    desc: 'Dedication to honesty, transparency, professionalism, and responsible institutional conduct.',
+  },
+  {
+    icon: '⚖️',
+    title: 'Justice and Human Dignity',
+    desc: 'Respect for the inherent worth, rights, and dignity of all individuals.',
+  },
+  {
+    icon: '🏅',
+    title: 'Ethical Leadership',
+    desc: 'Promotion of leadership grounded in responsibility, service, integrity, and ethical principles.',
+  },
+  {
+    icon: '🌈',
+    title: 'Inclusiveness and Diversity',
+    desc: 'Recognition of diverse perspectives, experiences, and backgrounds as sources of intellectual strength.',
+  },
+  {
+    icon: '🧠',
+    title: 'Intellectual Independence',
+    desc: 'Commitment to academic freedom and objective inquiry free from undue influence.',
+  },
+  {
+    icon: '📊',
+    title: 'Evidence-Based Research',
+    desc: 'Support for rigorous, methodologically sound, and policy-relevant scholarship.',
+  },
+  {
+    icon: '🗳️',
+    title: 'Democratic Engagement',
+    desc: 'Encouragement of constructive dialogue, civic participation, and respect for democratic principles.',
+  },
+  {
+    icon: '🌐',
+    title: 'International Cooperation',
+    desc: 'Commitment to collaboration across borders in pursuit of shared knowledge and common solutions.',
+  },
+  {
+    icon: '🤲',
+    title: 'Social Responsibility',
+    desc: 'Recognition of the responsibility of academic institutions to contribute positively to society and the public good.',
+  },
+];
+
+interface InstitutionalValuesProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function InstitutionalValues({ data }: InstitutionalValuesProps) {
+  const badge = data?.badge ?? 'What We Stand For';
+  const title = data?.title ?? 'Institutional Values';
+
+  const meta = (data?.metadata || {}) as {
+    values?: ValueItem[];
+  };
+
+  const allValues = meta.values && meta.values.length > 0 ? meta.values : defaultValues;
+  const row1 = allValues.slice(0, 3);
+  const row2 = allValues.slice(3, 7);
+  const row3 = allValues.slice(7);
 
   return (
     <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-16 xl:px-[240px]">
@@ -64,14 +82,16 @@ export default function InstitutionalValues() {
         
         {/* Header Block */}
         <div className="flex flex-col gap-4 items-center text-center">
-          <div className="inline-flex items-center border border-[#00698c] rounded-full px-3.5 py-1.5">
-            <span className="text-xs md:text-sm font-semibold tracking-wider text-[#0a0d12] uppercase font-inter">
-              What We Stand For
-            </span>
-          </div>
+          {badge && (
+            <div className="inline-flex items-center border border-[#00698c] rounded-full px-3.5 py-1.5">
+              <span className="text-xs md:text-sm font-semibold tracking-wider text-[#0a0d12] uppercase font-inter">
+                {badge}
+              </span>
+            </div>
+          )}
 
           <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-[-0.72px] font-serif leading-[1.25]">
-            Institutional Values
+            {title}
           </h2>
         </div>
 

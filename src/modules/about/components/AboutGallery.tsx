@@ -1,12 +1,28 @@
 import Image from 'next/image';
+import { PageSectionData } from '@/common/services/cms.service';
 
-export default function AboutGallery() {
-  const images = [
-    { src: '/assets/gallery-1.png', size: 'lg' },
-    { src: '/assets/gallery-2.png', size: 'sm' },
-    { src: '/assets/gallery-3.png', size: 'lg' },
-    { src: '/assets/gallery-4.png', size: 'sm' },
-  ];
+interface GalleryItem {
+  src: string;
+  size: 'lg' | 'sm' | string;
+}
+
+const defaultImages: GalleryItem[] = [
+  { src: '/assets/gallery-1.png', size: 'lg' },
+  { src: '/assets/gallery-2.png', size: 'sm' },
+  { src: '/assets/gallery-3.png', size: 'lg' },
+  { src: '/assets/gallery-4.png', size: 'sm' },
+];
+
+interface AboutGalleryProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function AboutGallery({ data }: AboutGalleryProps) {
+  const meta = (data?.metadata || {}) as {
+    images?: GalleryItem[];
+  };
+
+  const images = meta.images && meta.images.length > 0 ? meta.images : defaultImages;
 
   // Repeat items for continuous infinite scroll
   const marqueeImages = [...images, ...images, ...images];
