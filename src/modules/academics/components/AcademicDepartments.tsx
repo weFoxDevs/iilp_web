@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { PageSectionData } from "@/common/services/cms.service";
 
 interface Department {
   id: string;
@@ -12,7 +13,7 @@ interface Department {
   highlighted?: boolean;
 }
 
-const departments: Department[] = [
+const defaultDepartments: Department[] = [
   {
     id: "law",
     number: "01",
@@ -67,7 +68,24 @@ const departments: Department[] = [
   },
 ];
 
-export default function AcademicDepartments() {
+interface AcademicDepartmentsProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function AcademicDepartments({ data }: AcademicDepartmentsProps) {
+  const badge = data?.badge ?? "Our Disciplines";
+  const title = data?.title ?? "Six Academic Departments";
+  const subtitle =
+    data?.subtitle ??
+    "Each department provides dedicated research, programs, and scholarship addressing the critical issues of our time through an interdisciplinary lens.";
+  const actionText = data?.actionText ?? "Contact Us";
+  const actionUrl = data?.actionUrl ?? "/contact";
+
+  const departmentsList: Department[] =
+    Array.isArray(data?.metadata?.departments) && data.metadata.departments.length > 0
+      ? (data.metadata.departments as Department[])
+      : defaultDepartments;
+
   return (
     <section className="bg-white py-16 md:py-24 lg:py-[140px] px-6 sm:px-10 lg:px-16 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px]">
@@ -75,39 +93,43 @@ export default function AcademicDepartments() {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
           <div className="flex flex-col gap-4 max-w-[850px]">
             {/* Pill Badge */}
-            <div className="w-fit border border-[#00698c] rounded-full px-3 py-1.5">
-              <span className="font-sans font-semibold text-xs sm:text-sm tracking-wider uppercase text-[#0a0d12]">
-                Our Disciplines
-              </span>
-            </div>
+            {badge && (
+              <div className="w-fit border border-[#00698c] rounded-full px-3 py-1.5">
+                <span className="font-sans font-semibold text-xs sm:text-sm tracking-wider uppercase text-[#0a0d12]">
+                  {badge}
+                </span>
+              </div>
+            )}
 
             {/* Heading */}
             <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight sm:leading-[44px]">
-              Six Academic Departments
+              {title}
             </h2>
 
             {/* Subtitle */}
-            <p className="font-sans text-base sm:text-lg lg:text-[20px] text-[#0a0d12]/80 leading-relaxed sm:leading-[30px]">
-              Each department provides dedicated research, programs, and scholarship
-              addressing the critical issues of our time through an interdisciplinary
-              lens.
-            </p>
+            {subtitle && (
+              <p className="font-sans text-base sm:text-lg lg:text-[20px] text-[#0a0d12]/80 leading-relaxed sm:leading-[30px]">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           {/* Contact Button */}
-          <div className="shrink-0">
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base px-6 py-3.5 rounded-full shadow-xs transition-colors duration-200"
-            >
-              Contact Us
-            </Link>
-          </div>
+          {actionText && (
+            <div className="shrink-0">
+              <Link
+                href={actionUrl}
+                className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base px-6 py-3.5 rounded-full shadow-xs transition-colors duration-200"
+              >
+                {actionText}
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* 6 Departments Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-[30px]">
-          {departments.map((dept) => (
+          {departmentsList.map((dept) => (
             <Link
               key={dept.id}
               href="/department-details"
