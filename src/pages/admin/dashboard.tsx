@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/common/components/AuthContext";
+import Toast, { ToastType } from "@/common/components/Toast";
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -31,45 +32,92 @@ interface SystemInfo {
 interface DashboardSummary {
   metrics: DashboardMetrics;
   recentUsers: RecentUser[];
-  departmentsSummary: {
-    total: number;
-    preview: Array<{ id: string; name: string; code: string }>;
-  };
   systemInfo: SystemInfo;
 }
 
-interface DepartmentItem {
-  id: string;
-  number?: string;
+interface PermissionItem {
+  id: number;
   name: string;
-  code: string;
   description?: string;
-  mission?: string;
-  researchAreas?: string[];
 }
 
-type TabType = "overview" | "departments" | "rbac" | "token";
+interface RoleItem {
+  id: number;
+  name: string;
+  permissions?: PermissionItem[];
+  users?: any[];
+}
+
+interface AdminUserItem {
+  id: number;
+  name: string;
+  email: string;
+  createdAt: string;
+  verifiedAt: string | null;
+  role?: {
+    id: number;
+    name: string;
+    permissions?: PermissionItem[];
+  } | null;
+}
+
+type TabType = "overview" | "admin-manage" | "role-manage";
 
 export default function AdminDashboard() {
   const { user, token, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
 
+  // Navigation state
   const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const [adminMenuOpen, setAdminMenuOpen] = useState(true);
+
+  // Data states
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [departments, setDepartments] = useState<DepartmentItem[]>([]);
+  const [adminUsers, setAdminUsers] = useState<AdminUserItem[]>([]);
+  const [roles, setRoles] = useState<RoleItem[]>([]);
+  const [permissions, setPermissions] = useState<PermissionItem[]>([]);
+  const [userSearch, setUserSearch] = useState("");
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [copiedToken, setCopiedToken] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+  // Modals state - Admin User
+  const [createAdminModalOpen, setCreateAdminModalOpen] = useState(false);
+  const [editAdminModalOpen, setEditAdminModalOpen] = useState(false);
+  const [deleteAdminModalOpen, setDeleteAdminModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<AdminUserItem | null>(null);
+  const [adminFormData, setAdminFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    roleId: "",
+  });
+  const [isSubmittingAdmin, setIsSubmittingAdmin] = useState(false);
+
+  // Modals state - Role
+  const [createRoleModalOpen, setCreateRoleModalOpen] = useState(false);
+  const [editRoleModalOpen, setEditRoleModalOpen] = useState(false);
+  const [deleteRoleModalOpen, setDeleteRoleModalOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<RoleItem | null>(null);
+  const [roleFormData, setRoleFormData] = useState<{
+    name: string;
+    permissionIds: number[];
+  }>({
+    name: "",
+    permissionIds: [],
+  });
+  const [isSubmittingRole, setIsSubmittingRole] = useState(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
+  // Fetch all dashboard data
   const fetchDashboardData = useCallback(async () => {
     if (!token) return;
     setIsDataLoading(true);
     setFetchError(null);
 
     try {
-      // 1. Fetch Dashboard Aggregated Summary
+      // 1. Fetch Dashboard Summary
       const summaryRes = await fetch(`${apiUrl}/admin/dashboard/summary`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -84,21 +132,43 @@ export default function AdminDashboard() {
         }
         throw new Error(`Failed to load dashboard summary (${summaryRes.status})`);
       }
-
       const summaryJson: DashboardSummary = await summaryRes.json();
       setSummary(summaryJson);
 
-      // 2. Fetch Departments List
-      const deptRes = await fetch(`${apiUrl}/departments`, {
+      // 2. Fetch Admin Users
+      const usersRes = await fetch(`${apiUrl}/users`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
+      if (usersRes.ok) {
+        const usersJson = await usersRes.json();
+        setAdminUsers(Array.isArray(usersJson) ? usersJson : []);
+      }
 
-      if (deptRes.ok) {
-        const deptJson = await deptRes.json();
-        setDepartments(Array.isArray(deptJson) ? deptJson : deptJson.items || []);
+      // 3. Fetch Roles
+      const rolesRes = await fetch(`${apiUrl}/roles`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (rolesRes.ok) {
+        const rolesJson = await rolesRes.json();
+        setRoles(Array.isArray(rolesJson) ? rolesJson : []);
+      }
+
+      // 4. Fetch Permissions
+      const permsRes = await fetch(`${apiUrl}/permissions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (permsRes.ok) {
+        const permsJson = await permsRes.json();
+        setPermissions(Array.isArray(permsJson) ? permsJson : []);
       }
     } catch (err: any) {
       setFetchError(err.message || "Failed to connect to backend server.");
@@ -119,13 +189,7 @@ export default function AdminDashboard() {
     }
   }, [isAuthenticated, token, fetchDashboardData]);
 
-  const copyToken = () => {
-    if (!token) return;
-    navigator.clipboard.writeText(token);
-    setCopiedToken(true);
-    setTimeout(() => setCopiedToken(false), 2000);
-  };
-
+  // Uptime formatter
   const formatUptime = (seconds: number) => {
     const d = Math.floor(seconds / (3600 * 24));
     const h = Math.floor((seconds % (3600 * 24)) / 3600);
@@ -138,6 +202,283 @@ export default function AdminDashboard() {
     parts.push(`${s}s`);
     return parts.join(" ");
   };
+
+  // ================= ADMIN USER CRUD HANDLERS =================
+  const openCreateAdminModal = () => {
+    setAdminFormData({
+      name: "",
+      email: "",
+      password: "",
+      roleId: roles.length > 0 ? String(roles[0].id) : "",
+    });
+    setCreateAdminModalOpen(true);
+  };
+
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+    setIsSubmittingAdmin(true);
+
+    try {
+      const res = await fetch(`${apiUrl}/users`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: adminFormData.name,
+          email: adminFormData.email,
+          password: adminFormData.password,
+          roleId: adminFormData.roleId ? Number(adminFormData.roleId) : undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to create administrator");
+      }
+
+      setToast({ message: `Administrator ${data.name} created successfully!`, type: "success" });
+      setCreateAdminModalOpen(false);
+      fetchDashboardData();
+    } catch (err: any) {
+      setToast({ message: err.message || "Error creating admin", type: "error" });
+    } finally {
+      setIsSubmittingAdmin(false);
+    }
+  };
+
+  const openEditAdminModal = (item: AdminUserItem) => {
+    setSelectedUser(item);
+    setAdminFormData({
+      name: item.name,
+      email: item.email,
+      password: "",
+      roleId: item.role ? String(item.role.id) : "",
+    });
+    setEditAdminModalOpen(true);
+  };
+
+  const handleUpdateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !selectedUser) return;
+    setIsSubmittingAdmin(true);
+
+    try {
+      const payload: any = {
+        name: adminFormData.name,
+        email: adminFormData.email,
+      };
+      if (adminFormData.password) {
+        payload.password = adminFormData.password;
+      }
+      if (adminFormData.roleId) {
+        payload.roleId = Number(adminFormData.roleId);
+      }
+
+      const res = await fetch(`${apiUrl}/users/${selectedUser.id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to update administrator");
+      }
+
+      setToast({ message: `Administrator ${data.name} updated successfully!`, type: "success" });
+      setEditAdminModalOpen(false);
+      setSelectedUser(null);
+      fetchDashboardData();
+    } catch (err: any) {
+      setToast({ message: err.message || "Error updating admin", type: "error" });
+    } finally {
+      setIsSubmittingAdmin(false);
+    }
+  };
+
+  const openDeleteAdminModal = (item: AdminUserItem) => {
+    setSelectedUser(item);
+    setDeleteAdminModalOpen(true);
+  };
+
+  const handleDeleteAdmin = async () => {
+    if (!token || !selectedUser) return;
+    setIsSubmittingAdmin(true);
+
+    try {
+      const res = await fetch(`${apiUrl}/users/${selectedUser.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to delete administrator");
+      }
+
+      setToast({ message: "Administrator successfully deleted.", type: "success" });
+      setDeleteAdminModalOpen(false);
+      setSelectedUser(null);
+      fetchDashboardData();
+    } catch (err: any) {
+      setToast({ message: err.message || "Error deleting admin", type: "error" });
+    } finally {
+      setIsSubmittingAdmin(false);
+    }
+  };
+
+  // ================= ROLE CRUD HANDLERS =================
+  const openCreateRoleModal = () => {
+    setRoleFormData({
+      name: "",
+      permissionIds: [],
+    });
+    setCreateRoleModalOpen(true);
+  };
+
+  const handleCreateRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) return;
+    setIsSubmittingRole(true);
+
+    try {
+      const res = await fetch(`${apiUrl}/roles`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(roleFormData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to create role");
+      }
+
+      setToast({ message: `Role "${data.name}" created successfully!`, type: "success" });
+      setCreateRoleModalOpen(false);
+      fetchDashboardData();
+    } catch (err: any) {
+      setToast({ message: err.message || "Error creating role", type: "error" });
+    } finally {
+      setIsSubmittingRole(false);
+    }
+  };
+
+  const openEditRoleModal = (r: RoleItem) => {
+    setSelectedRole(r);
+    setRoleFormData({
+      name: r.name,
+      permissionIds: r.permissions ? r.permissions.map((p) => p.id) : [],
+    });
+    setEditRoleModalOpen(true);
+  };
+
+  const handleUpdateRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !selectedRole) return;
+    setIsSubmittingRole(true);
+
+    try {
+      const res = await fetch(`${apiUrl}/roles/${selectedRole.id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(roleFormData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to update role");
+      }
+
+      setToast({ message: `Role "${data.name}" updated successfully!`, type: "success" });
+      setEditRoleModalOpen(false);
+      setSelectedRole(null);
+      fetchDashboardData();
+    } catch (err: any) {
+      setToast({ message: err.message || "Error updating role", type: "error" });
+    } finally {
+      setIsSubmittingRole(false);
+    }
+  };
+
+  const openDeleteRoleModal = (r: RoleItem) => {
+    setSelectedRole(r);
+    setDeleteRoleModalOpen(true);
+  };
+
+  const handleDeleteRole = async () => {
+    if (!token || !selectedRole) return;
+    setIsSubmittingRole(true);
+
+    try {
+      const res = await fetch(`${apiUrl}/roles/${selectedRole.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to delete role");
+      }
+
+      setToast({ message: `Role deleted successfully.`, type: "success" });
+      setDeleteRoleModalOpen(false);
+      setSelectedRole(null);
+      fetchDashboardData();
+    } catch (err: any) {
+      setToast({ message: err.message || "Error deleting role", type: "error" });
+    } finally {
+      setIsSubmittingRole(false);
+    }
+  };
+
+  const togglePermission = (id: number) => {
+    setRoleFormData((prev) => {
+      const exists = prev.permissionIds.includes(id);
+      return {
+        ...prev,
+        permissionIds: exists
+          ? prev.permissionIds.filter((pId) => pId !== id)
+          : [...prev.permissionIds, id],
+      };
+    });
+  };
+
+  const toggleAllPermissions = () => {
+    if (roleFormData.permissionIds.length === permissions.length) {
+      setRoleFormData((prev) => ({ ...prev, permissionIds: [] }));
+    } else {
+      setRoleFormData((prev) => ({
+        ...prev,
+        permissionIds: permissions.map((p) => p.id),
+      }));
+    }
+  };
+
+  // Filtered users for search
+  const filteredUsers = adminUsers.filter(
+    (u) =>
+      u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
+      u.email.toLowerCase().includes(userSearch.toLowerCase()) ||
+      (u.role?.name && u.role.name.toLowerCase().includes(userSearch.toLowerCase())),
+  );
 
   if (isLoading) {
     return (
@@ -156,7 +497,7 @@ export default function AdminDashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-serif font-bold text-[#0a0d12]">Access Denied</h2>
+          <h2 className="text-2xl font-playfair font-bold text-[#0a0d12]">Access Denied</h2>
           <p className="text-sm font-sans text-[#4a5565]">
             You must be logged in to access the administrator panel. Redirecting to login...
           </p>
@@ -196,7 +537,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* Sidebar Nav Items */}
-        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto font-sans">
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto font-sans">
+          {/* Item 1: Overview */}
           <button
             onClick={() => setActiveTab("overview")}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors text-left cursor-pointer ${
@@ -211,52 +553,70 @@ export default function AdminDashboard() {
             Dashboard Overview
           </button>
 
-          <button
-            onClick={() => setActiveTab("departments")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors text-left cursor-pointer ${
-              activeTab === "departments"
-                ? "bg-[#e6f9ff] text-[#00698c] font-semibold border border-[#b0ebff]/60"
-                : "text-[#4a5565] hover:bg-[#f9fafb] hover:text-[#0a0d12]"
-            }`}
-          >
-            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            Academic Departments
-            {summary && (
-              <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-[#e6f9ff] text-[#00698c] font-semibold border border-[#b0ebff]">
-                {summary.metrics.totalDepartments}
+          {/* Group: Admin & Role Manage */}
+          <div className="pt-2">
+            <button
+              onClick={() => setAdminMenuOpen(!adminMenuOpen)}
+              className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-bold text-[#00698c] uppercase tracking-wider hover:bg-[#f4faff] transition-colors cursor-pointer"
+            >
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-[#00bfff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Admin &amp; Role Manage
               </span>
+              <svg
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  adminMenuOpen ? "rotate-180 text-[#00698c]" : "text-[#4a5565]"
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {adminMenuOpen && (
+              <div className="pl-3 pr-1 py-1 space-y-1 border-l-2 border-[#b0ebff] ml-4 mt-1">
+                {/* Sub-item: Admin */}
+                <button
+                  onClick={() => setActiveTab("admin-manage")}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                    activeTab === "admin-manage"
+                      ? "bg-[#e6f9ff] text-[#000080] font-bold border border-[#b0ebff]"
+                      : "text-[#4a5565] hover:bg-[#f9fafb] hover:text-[#0a0d12]"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#00bfff]"></span>
+                    Admin Accounts
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#b0ebff] text-[10px] font-bold text-[#00698c]">
+                    {adminUsers.length}
+                  </span>
+                </button>
+
+                {/* Sub-item: Role */}
+                <button
+                  onClick={() => setActiveTab("role-manage")}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                    activeTab === "role-manage"
+                      ? "bg-[#e6f9ff] text-[#000080] font-bold border border-[#b0ebff]"
+                      : "text-[#4a5565] hover:bg-[#f9fafb] hover:text-[#0a0d12]"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#000080]"></span>
+                    Role Management
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-white border border-[#b0ebff] text-[10px] font-bold text-[#00698c]">
+                    {roles.length}
+                  </span>
+                </button>
+              </div>
             )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab("rbac")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors text-left cursor-pointer ${
-              activeTab === "rbac"
-                ? "bg-[#e6f9ff] text-[#00698c] font-semibold border border-[#b0ebff]/60"
-                : "text-[#4a5565] hover:bg-[#f9fafb] hover:text-[#0a0d12]"
-            }`}
-          >
-            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            RBAC &amp; Security
-          </button>
-
-          <button
-            onClick={() => setActiveTab("token")}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors text-left cursor-pointer ${
-              activeTab === "token"
-                ? "bg-[#e6f9ff] text-[#00698c] font-semibold border border-[#b0ebff]/60"
-                : "text-[#4a5565] hover:bg-[#f9fafb] hover:text-[#0a0d12]"
-            }`}
-          >
-            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-            </svg>
-            Session Token
-          </button>
+          </div>
         </nav>
 
         {/* User Session Footer */}
@@ -290,9 +650,8 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-3">
             <h1 className="text-xl sm:text-2xl font-playfair font-bold text-[#0a0d12] capitalize">
               {activeTab === "overview" && "Dashboard Overview"}
-              {activeTab === "departments" && "Academic Departments"}
-              {activeTab === "rbac" && "Role-Based Access Control"}
-              {activeTab === "token" && "Active Session & Security"}
+              {activeTab === "admin-manage" && "Administrator Management"}
+              {activeTab === "role-manage" && "Role & RBAC Security"}
             </h1>
             <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 font-sans">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -371,7 +730,7 @@ export default function AdminDashboard() {
                     Greetings, {user?.name || "Administrator"}
                   </h2>
                   <p className="text-sm font-sans text-[#4a5565] max-w-xl leading-relaxed">
-                    Your authenticated session is active. You have executive access to manage CMS content, academic departments, and platform roles.
+                    Your authenticated session is active. You have executive access to manage CMS content, admin accounts, and security roles.
                   </p>
                 </div>
 
@@ -401,31 +760,11 @@ export default function AdminDashboard() {
 
               {/* 4 Metric Stats Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 font-sans">
-                {/* Stat 1: Departments */}
+                {/* Stat 1: Registered Admins */}
                 <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
-                      Departments
-                    </span>
-                    <div className="w-9 h-9 rounded-xl bg-[#e6f9ff] text-[#00698c] flex items-center justify-center">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-playfair font-bold text-[#000080]">
-                      {summary?.metrics.totalDepartments ?? (isDataLoading ? "..." : 0)}
-                    </span>
-                    <span className="text-xs text-[#4a5565]">Academic units</span>
-                  </div>
-                </div>
-
-                {/* Stat 2: Registered Users */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
-                      User Accounts
+                      Admins &amp; Users
                     </span>
                     <div className="w-9 h-9 rounded-xl bg-[#e6f9ff] text-[#00698c] flex items-center justify-center">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -435,17 +774,17 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-playfair font-bold text-[#000080]">
-                      {summary?.metrics.totalUsers ?? (isDataLoading ? "..." : 0)}
+                      {adminUsers.length || summary?.metrics.totalUsers || (isDataLoading ? "..." : 0)}
                     </span>
-                    <span className="text-xs text-[#4a5565]">Admin accounts</span>
+                    <span className="text-xs text-[#4a5565]">Registered accounts</span>
                   </div>
                 </div>
 
-                {/* Stat 3: Security Roles */}
+                {/* Stat 2: Security Roles */}
                 <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
-                      Active Roles
+                      Security Roles
                     </span>
                     <div className="w-9 h-9 rounded-xl bg-[#e6f9ff] text-[#00698c] flex items-center justify-center">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -455,13 +794,13 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-playfair font-bold text-[#000080]">
-                      {summary?.metrics.totalRoles ?? (isDataLoading ? "..." : 0)}
+                      {roles.length || summary?.metrics.totalRoles || (isDataLoading ? "..." : 0)}
                     </span>
                     <span className="text-xs text-[#4a5565]">RBAC tiers</span>
                   </div>
                 </div>
 
-                {/* Stat 4: Permissions */}
+                {/* Stat 3: Permissions */}
                 <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
@@ -475,9 +814,29 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-playfair font-bold text-[#000080]">
-                      {summary?.metrics.totalPermissions ?? (isDataLoading ? "..." : 0)}
+                      {permissions.length || summary?.metrics.totalPermissions || (isDataLoading ? "..." : 0)}
                     </span>
-                    <span className="text-xs text-[#4a5565]">Access rules</span>
+                    <span className="text-xs text-[#4a5565]">Dynamic privileges</span>
+                  </div>
+                </div>
+
+                {/* Stat 4: Departments */}
+                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
+                      Academic Units
+                    </span>
+                    <div className="w-9 h-9 rounded-xl bg-[#e6f9ff] text-[#00698c] flex items-center justify-center">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-playfair font-bold text-[#000080]">
+                      {summary?.metrics.totalDepartments ?? (isDataLoading ? "..." : 0)}
+                    </span>
+                    <span className="text-xs text-[#4a5565]">Departments</span>
                   </div>
                 </div>
               </div>
@@ -520,35 +879,43 @@ export default function AdminDashboard() {
                 <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-4 lg:col-span-2">
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-playfair font-bold text-[#0a0d12]">Registered System Accounts</h3>
-                    <span className="text-xs text-[#00698c] font-semibold bg-[#e6f9ff] px-2.5 py-1 rounded-full border border-[#b0ebff]">
-                      Total: {summary?.metrics.totalUsers || 0}
-                    </span>
+                    <button
+                      onClick={() => setActiveTab("admin-manage")}
+                      className="text-xs text-[#00698c] font-semibold hover:text-[#000080] transition-colors"
+                    >
+                      Manage All →
+                    </button>
                   </div>
                   <hr className="border-[#e5e7eb]" />
 
-                  {summary?.recentUsers && summary.recentUsers.length > 0 ? (
+                  {adminUsers.length > 0 ? (
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs">
                         <thead>
                           <tr className="border-b border-[#e5e7eb] text-[#4a5565]">
-                            <th className="pb-3 font-semibold">Administrator Name</th>
+                            <th className="pb-3 font-semibold">Administrator</th>
                             <th className="pb-3 font-semibold">Email</th>
                             <th className="pb-3 font-semibold">Role</th>
                             <th className="pb-3 font-semibold">Registered</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#f4f4fa]">
-                          {summary.recentUsers.map((u) => (
+                          {adminUsers.slice(0, 5).map((u) => (
                             <tr key={u.id} className="hover:bg-[#f9fafb] transition-colors">
-                              <td className="py-3 font-semibold text-[#0a0d12]">{u.name}</td>
+                              <td className="py-3 font-semibold text-[#0a0d12] flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-[#e6f9ff] text-[#000080] font-bold text-[10px] flex items-center justify-center">
+                                  {u.name.charAt(0).toUpperCase()}
+                                </div>
+                                {u.name}
+                              </td>
                               <td className="py-3 text-[#4a5565] font-mono">{u.email}</td>
                               <td className="py-3">
                                 <span className="px-2.5 py-1 rounded-full bg-[#e6f9ff] text-[#00698c] font-semibold text-[11px] border border-[#b0ebff]">
-                                  {u.role}
+                                  {u.role?.name || "Unassigned"}
                                 </span>
                               </td>
                               <td className="py-3 text-[#4a5565]">
-                                {new Date(u.joinedAt).toLocaleDateString()}
+                                {new Date(u.createdAt).toLocaleDateString()}
                               </td>
                             </tr>
                           ))}
@@ -565,174 +932,703 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* TAB 2: DEPARTMENTS */}
-          {activeTab === "departments" && (
+          {/* TAB 2: ADMIN MANAGEMENT */}
+          {activeTab === "admin-manage" && (
             <div className="space-y-6 font-sans">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              {/* Header & Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs">
                 <div>
-                  <h2 className="text-2xl font-playfair font-bold text-[#000080]">Academic Departments</h2>
+                  <h2 className="text-2xl font-playfair font-bold text-[#000080]">Administrator Management</h2>
                   <p className="text-xs sm:text-sm text-[#4a5565] mt-1">
-                    Live department entities registered in PostgreSQL via TypeORM.
+                    Create, configure, and manage administrative accounts with assigned security roles.
                   </p>
                 </div>
-                <Link
-                  href="/academics"
-                  target="_blank"
-                  className="px-5 py-2.5 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold transition-colors shadow-[0px_2px_8px_rgba(0,191,255,0.35)] flex items-center gap-1.5 self-start sm:self-auto"
+                <button
+                  onClick={openCreateAdminModal}
+                  className="px-5 py-2.5 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold transition-all shadow-[0px_4px_14px_rgba(0,191,255,0.35)] flex items-center gap-2 cursor-pointer self-start sm:self-auto"
                 >
-                  <span>View Public Academics</span>
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                </Link>
+                  <span>Add Administrator</span>
+                </button>
               </div>
 
-              {departments.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {departments.map((dept) => (
-                    <div
-                      key={dept.id}
-                      className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-mono font-bold text-[#00698c] bg-[#e6f9ff] px-2.5 py-1 rounded-md border border-[#b0ebff]">
-                          Code: {dept.code}
-                        </span>
-                        <span className="text-[11px] text-[#4a5565] font-mono">
-                          ID: {dept.id.substring(0, 8)}...
-                        </span>
-                      </div>
-                      <h3 className="text-lg font-playfair font-bold text-[#0a0d12]">{dept.name}</h3>
-                      {dept.description && (
-                        <p className="text-xs text-[#4a5565] leading-relaxed line-clamp-2">
-                          {dept.description}
-                        </p>
-                      )}
-                      {dept.mission && (
-                        <div className="p-3.5 rounded-xl bg-[#f4faff] text-xs text-[#000080] border border-[#e5e7eb] italic font-playfair">
-                          &ldquo;{dept.mission}&rdquo;
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-12 text-center bg-white border border-[#b0ebff] rounded-2xl">
-                  <p className="text-sm text-[#4a5565]">
-                    {isDataLoading ? "Loading academic departments..." : "No departments currently found in database."}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB 3: RBAC & SECURITY */}
-          {activeTab === "rbac" && (
-            <div className="space-y-6 font-sans">
-              <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
-                <div>
-                  <h3 className="text-xl font-playfair font-bold text-[#000080]">Active Role &amp; Permissions</h3>
-                  <p className="text-xs text-[#4a5565] mt-1">
-                    Your administrative account permissions enforced through NestJS PermissionsGuard and Role entities.
-                  </p>
-                </div>
-                <hr className="border-[#e5e7eb]" />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
-                  <div className="space-y-4 text-xs">
-                    <div className="p-4 rounded-xl bg-[#f4faff] border border-[#e5e7eb] space-y-3">
-                      <div>
-                        <span className="text-[#4a5565] block font-medium">Administrator Name</span>
-                        <span className="text-base font-bold text-[#0a0d12]">{user?.name}</span>
-                      </div>
-                      <div>
-                        <span className="text-[#4a5565] block font-medium">Registered Email</span>
-                        <span className="text-sm font-semibold text-[#0a0d12] font-mono">{user?.email}</span>
-                      </div>
-                      <div>
-                        <span className="text-[#4a5565] block font-medium">Assigned System Role</span>
-                        <span className="inline-block mt-1 px-3 py-1 rounded-full bg-[#000080] text-white font-bold text-xs shadow-xs">
-                          {user?.role || "Admin"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <span className="text-xs font-semibold text-[#00698c] block uppercase tracking-wider">
-                      Granted Granular Permissions
-                    </span>
-                    <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto p-4 rounded-xl bg-[#f4faff] border border-[#e5e7eb]">
-                      {[
-                        "user:create",
-                        "user:update",
-                        "user:view",
-                        "user:delete",
-                        "department:create",
-                        "department:update",
-                        "department:delete",
-                        "role:create",
-                        "role:update",
-                        "role:view",
-                        "role:delete",
-                        "permission:view",
-                      ].map((perm) => (
-                        <span
-                          key={perm}
-                          className="px-2.5 py-1 rounded-lg text-xs font-mono bg-white border border-[#b0ebff] text-[#000080] font-medium shadow-2xs"
-                        >
-                          ✓ {perm}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: SESSION TOKEN */}
-          {activeTab === "token" && (
-            <div className="space-y-6 font-sans">
-              <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-xl font-playfair font-bold text-[#000080]">Bearer Session Token</h3>
-                    <p className="text-xs text-[#4a5565] mt-1">
-                      JSON Web Token (JWT) issued by backend to authorize requests to <code className="font-mono text-[#00698c]">/api/v1/admin/*</code>.
-                    </p>
-                  </div>
-                  <button
-                    onClick={copyToken}
-                    className="px-4 py-2 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer self-start sm:self-auto shadow-[0px_2px_8px_rgba(0,191,255,0.35)]"
+              {/* Search Bar */}
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    placeholder="Search by name, email, or role..."
+                    className="w-full bg-white border border-[#d5d5ed] rounded-xl px-4 py-2.5 pl-10 text-xs font-sans text-[#0a0d12] placeholder-[#6a7282] focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20 transition-all"
+                  />
+                  <svg
+                    className="w-4 h-4 text-[#6a7282] absolute left-3.5 top-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    {copiedToken ? (
-                      <>
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>Copied!</span>
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                        </svg>
-                        <span>Copy Token</span>
-                      </>
-                    )}
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                {userSearch && (
+                  <button
+                    onClick={() => setUserSearch("")}
+                    className="text-xs text-[#00698c] hover:underline cursor-pointer"
+                  >
+                    Clear Filter
                   </button>
-                </div>
-                <hr className="border-[#e5e7eb]" />
+                )}
+              </div>
 
-                <div className="p-4 bg-[#f4faff] border border-[#b0ebff] rounded-xl font-mono text-xs text-[#000080] break-all select-all max-h-48 overflow-y-auto leading-relaxed">
-                  {token}
+              {/* Administrators Table */}
+              <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-xs overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#f9fafb] border-b border-[#e5e7eb] text-[#4a5565]">
+                      <tr>
+                        <th className="py-3.5 px-6 font-semibold uppercase tracking-wider text-[11px]">Administrator</th>
+                        <th className="py-3.5 px-6 font-semibold uppercase tracking-wider text-[11px]">Email Address</th>
+                        <th className="py-3.5 px-6 font-semibold uppercase tracking-wider text-[11px]">Assigned Role</th>
+                        <th className="py-3.5 px-6 font-semibold uppercase tracking-wider text-[11px]">Date Registered</th>
+                        <th className="py-3.5 px-6 font-semibold uppercase tracking-wider text-[11px] text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#f4f4fa]">
+                      {filteredUsers.length > 0 ? (
+                        filteredUsers.map((u) => {
+                          const isCurrentUser = user?.email === u.email;
+                          return (
+                            <tr key={u.id} className="hover:bg-[#f9fafb] transition-colors">
+                              <td className="py-4 px-6 font-semibold text-[#0a0d12]">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-[#e6f9ff] border border-[#b0ebff] text-[#000080] font-bold text-xs flex items-center justify-center shrink-0">
+                                    {u.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <span className="block">{u.name}</span>
+                                    {isCurrentUser && (
+                                      <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">
+                                        (You)
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-4 px-6 font-mono text-[#00698c]">{u.email}</td>
+                              <td className="py-4 px-6">
+                                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#e6f9ff] text-[#000080] border border-[#b0ebff] font-semibold text-xs">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#00bfff]"></span>
+                                  {u.role?.name || "No Role"}
+                                </span>
+                              </td>
+                              <td className="py-4 px-6 text-[#4a5565]">
+                                {new Date(u.createdAt).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </td>
+                              <td className="py-4 px-6 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => openEditAdminModal(u)}
+                                    className="p-1.5 text-[#00698c] hover:text-[#000080] hover:bg-[#e6f9ff] rounded-lg transition-colors cursor-pointer"
+                                    title="Edit Administrator"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                  </button>
+
+                                  <button
+                                    onClick={() => openDeleteAdminModal(u)}
+                                    disabled={isCurrentUser}
+                                    className={`p-1.5 rounded-lg transition-colors ${
+                                      isCurrentUser
+                                        ? "text-gray-300 cursor-not-allowed"
+                                        : "text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                                    }`}
+                                    title={isCurrentUser ? "Cannot delete own account" : "Delete Administrator"}
+                                  >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="py-10 text-center text-[#4a5565]">
+                            {isDataLoading ? "Loading administrators..." : "No administrators matching query."}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: ROLE MANAGEMENT */}
+          {activeTab === "role-manage" && (
+            <div className="space-y-6 font-sans">
+              {/* Header & Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs">
+                <div>
+                  <h2 className="text-2xl font-playfair font-bold text-[#000080]">Role &amp; RBAC Management</h2>
+                  <p className="text-xs sm:text-sm text-[#4a5565] mt-1">
+                    Configure institutional user roles and associate fine-grained API permission matrices.
+                  </p>
+                </div>
+                <button
+                  onClick={openCreateRoleModal}
+                  className="px-5 py-2.5 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold transition-all shadow-[0px_4px_14px_rgba(0,191,255,0.35)] flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>Create New Role</span>
+                </button>
+              </div>
+
+              {/* Roles Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {roles.map((r) => {
+                  const isProtected = r.name.toLowerCase() === "admin" || r.name.toLowerCase() === "super admin";
+                  const rolePerms = r.permissions || [];
+
+                  return (
+                    <div
+                      key={r.id}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-4 hover:shadow-md transition-shadow flex flex-col justify-between"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="font-playfair font-bold text-lg text-[#0a0d12]">{r.name}</span>
+                            {isProtected && (
+                              <span className="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold uppercase tracking-wider">
+                                Core System Role
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[11px] font-mono text-[#00698c] bg-[#e6f9ff] px-2.5 py-1 rounded-md border border-[#b0ebff]">
+                            ID: {r.id}
+                          </span>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between text-xs mb-2">
+                            <span className="text-[#4a5565] font-semibold">Granted Permissions</span>
+                            <span className="text-[#00698c] font-bold">{rolePerms.length} privileges</span>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-3 bg-[#f4faff] rounded-xl border border-[#e5e7eb]">
+                            {rolePerms.length > 0 ? (
+                              rolePerms.map((p) => (
+                                <span
+                                  key={p.id}
+                                  className="px-2 py-0.5 rounded-md text-[11px] font-mono bg-white border border-[#b0ebff] text-[#000080] font-medium"
+                                >
+                                  ✓ {p.name}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-xs text-[#6a7282] italic">No permissions assigned</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Role Actions */}
+                      <div className="pt-4 border-t border-[#e5e7eb] flex items-center justify-between text-xs">
+                        <span className="text-[11px] text-[#4a5565]">
+                          Assigned to admins with {r.name} authority
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openEditRoleModal(r)}
+                            className="px-3 py-1.5 rounded-lg border border-[#b0ebff] text-[#00698c] hover:text-[#000080] hover:bg-[#e6f9ff] font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Edit
+                          </button>
+
+                          <button
+                            onClick={() => openDeleteRoleModal(r)}
+                            disabled={isProtected}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 ${
+                              isProtected
+                                ? "text-gray-300 border border-gray-200 cursor-not-allowed"
+                                : "text-red-600 border border-red-200 hover:bg-red-50 cursor-pointer"
+                            }`}
+                            title={isProtected ? "Core Admin role cannot be deleted" : "Delete Role"}
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
         </main>
       </div>
+
+      {/* ================= MODAL: CREATE ADMIN ================= */}
+      {createAdminModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
+          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-6">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-4">
+              <div>
+                <h3 className="text-xl font-playfair font-bold text-[#000080]">Create Administrator</h3>
+                <p className="text-xs text-[#4a5565] mt-0.5">Add an authorized institutional account</p>
+              </div>
+              <button
+                onClick={() => setCreateAdminModalOpen(false)}
+                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateAdmin} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#0a0d12]">
+                  Full Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={adminFormData.name}
+                  onChange={(e) => setAdminFormData({ ...adminFormData, name: e.target.value })}
+                  placeholder="e.g. Dr. Sarah Ahmed"
+                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#0a0d12]">
+                  Email Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={adminFormData.email}
+                  onChange={(e) => setAdminFormData({ ...adminFormData, email: e.target.value })}
+                  placeholder="sarah.ahmed@iilp.org"
+                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#0a0d12]">
+                  Initial Password <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={adminFormData.password}
+                  onChange={(e) => setAdminFormData({ ...adminFormData, password: e.target.value })}
+                  placeholder="••••••••"
+                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#0a0d12]">Assigned Role</label>
+                <select
+                  value={adminFormData.roleId}
+                  onChange={(e) => setAdminFormData({ ...adminFormData, roleId: e.target.value })}
+                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                >
+                  {roles.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e7eb]">
+                <button
+                  type="button"
+                  onClick={() => setCreateAdminModalOpen(false)}
+                  className="px-4 py-2 rounded-full border border-[#d5d5ed] text-xs font-semibold text-[#4a5565] hover:bg-gray-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingAdmin}
+                  className="px-5 py-2 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold shadow-[0px_2px_8px_rgba(0,191,255,0.35)] cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingAdmin ? "Creating..." : "Create Administrator"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: EDIT ADMIN ================= */}
+      {editAdminModalOpen && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
+          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-6">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-4">
+              <div>
+                <h3 className="text-xl font-playfair font-bold text-[#000080]">Edit Administrator</h3>
+                <p className="text-xs text-[#4a5565] mt-0.5">Update credentials and access tier</p>
+              </div>
+              <button
+                onClick={() => setEditAdminModalOpen(false)}
+                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateAdmin} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#0a0d12]">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={adminFormData.name}
+                  onChange={(e) => setAdminFormData({ ...adminFormData, name: e.target.value })}
+                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#0a0d12]">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={adminFormData.email}
+                  onChange={(e) => setAdminFormData({ ...adminFormData, email: e.target.value })}
+                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#0a0d12]">
+                  New Password <span className="text-[#6a7282] font-normal">(Leave blank to keep current)</span>
+                </label>
+                <input
+                  type="password"
+                  minLength={6}
+                  value={adminFormData.password}
+                  onChange={(e) => setAdminFormData({ ...adminFormData, password: e.target.value })}
+                  placeholder="••••••••"
+                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#0a0d12]">Assigned Role</label>
+                <select
+                  value={adminFormData.roleId}
+                  onChange={(e) => setAdminFormData({ ...adminFormData, roleId: e.target.value })}
+                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                >
+                  {roles.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e7eb]">
+                <button
+                  type="button"
+                  onClick={() => setEditAdminModalOpen(false)}
+                  className="px-4 py-2 rounded-full border border-[#d5d5ed] text-xs font-semibold text-[#4a5565] hover:bg-gray-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingAdmin}
+                  className="px-5 py-2 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold shadow-[0px_2px_8px_rgba(0,191,255,0.35)] cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingAdmin ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: DELETE ADMIN CONFIRMATION ================= */}
+      {deleteAdminModalOpen && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
+          <div className="bg-white border border-red-200 rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-playfair font-bold text-[#0a0d12]">Delete Administrator</h3>
+            <p className="text-xs text-[#4a5565] leading-relaxed">
+              Are you sure you want to delete administrator <strong>{selectedUser.name}</strong> ({selectedUser.email})? This action cannot be reversed.
+            </p>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteAdminModalOpen(false)}
+                className="px-4 py-2 rounded-full border border-[#d5d5ed] text-xs font-semibold text-[#4a5565] hover:bg-gray-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isSubmittingAdmin}
+                onClick={handleDeleteAdmin}
+                className="px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold cursor-pointer disabled:opacity-50"
+              >
+                {isSubmittingAdmin ? "Deleting..." : "Confirm Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: CREATE ROLE ================= */}
+      {createRoleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
+          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-6">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-4">
+              <div>
+                <h3 className="text-xl font-playfair font-bold text-[#000080]">Create New Role</h3>
+                <p className="text-xs text-[#4a5565] mt-0.5">Define security level and check authorized permissions</p>
+              </div>
+              <button
+                onClick={() => setCreateRoleModalOpen(false)}
+                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateRole} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#0a0d12]">
+                  Role Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={roleFormData.name}
+                  onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
+                  placeholder="e.g. Academic Officer, Media Manager"
+                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-[#0a0d12]">Associated Permissions</label>
+                  <button
+                    type="button"
+                    onClick={toggleAllPermissions}
+                    className="text-xs text-[#00698c] hover:text-[#000080] font-semibold cursor-pointer underline"
+                  >
+                    {roleFormData.permissionIds.length === permissions.length ? "Deselect All" : "Select All"}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-3 bg-[#f4faff] rounded-xl border border-[#e5e7eb]">
+                  {permissions.map((p) => {
+                    const isChecked = roleFormData.permissionIds.includes(p.id);
+                    return (
+                      <label
+                        key={p.id}
+                        className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
+                          isChecked
+                            ? "bg-white border-[#b0ebff] text-[#000080] font-semibold shadow-2xs"
+                            : "bg-transparent border-transparent text-[#4a5565] hover:bg-white/60"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => togglePermission(p.id)}
+                          className="rounded text-[#00bfff] focus:ring-[#00bfff]"
+                        />
+                        <span className="font-mono text-[11px] truncate">{p.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e7eb]">
+                <button
+                  type="button"
+                  onClick={() => setCreateRoleModalOpen(false)}
+                  className="px-4 py-2 rounded-full border border-[#d5d5ed] text-xs font-semibold text-[#4a5565] hover:bg-gray-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingRole}
+                  className="px-5 py-2 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold shadow-[0px_2px_8px_rgba(0,191,255,0.35)] cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingRole ? "Creating..." : "Create Role"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: EDIT ROLE ================= */}
+      {editRoleModalOpen && selectedRole && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
+          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-6">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-4">
+              <div>
+                <h3 className="text-xl font-playfair font-bold text-[#000080]">Edit Role: {selectedRole.name}</h3>
+                <p className="text-xs text-[#4a5565] mt-0.5">Modify permission scope and privileges</p>
+              </div>
+              <button
+                onClick={() => setEditRoleModalOpen(false)}
+                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateRole} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-[#0a0d12]">Role Name</label>
+                <input
+                  type="text"
+                  required
+                  value={roleFormData.name}
+                  onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
+                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-[#0a0d12]">Associated Permissions</label>
+                  <button
+                    type="button"
+                    onClick={toggleAllPermissions}
+                    className="text-xs text-[#00698c] hover:text-[#000080] font-semibold cursor-pointer underline"
+                  >
+                    {roleFormData.permissionIds.length === permissions.length ? "Deselect All" : "Select All"}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-3 bg-[#f4faff] rounded-xl border border-[#e5e7eb]">
+                  {permissions.map((p) => {
+                    const isChecked = roleFormData.permissionIds.includes(p.id);
+                    return (
+                      <label
+                        key={p.id}
+                        className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
+                          isChecked
+                            ? "bg-white border-[#b0ebff] text-[#000080] font-semibold shadow-2xs"
+                            : "bg-transparent border-transparent text-[#4a5565] hover:bg-white/60"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => togglePermission(p.id)}
+                          className="rounded text-[#00bfff] focus:ring-[#00bfff]"
+                        />
+                        <span className="font-mono text-[11px] truncate">{p.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e7eb]">
+                <button
+                  type="button"
+                  onClick={() => setEditRoleModalOpen(false)}
+                  className="px-4 py-2 rounded-full border border-[#d5d5ed] text-xs font-semibold text-[#4a5565] hover:bg-gray-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingRole}
+                  className="px-5 py-2 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold shadow-[0px_2px_8px_rgba(0,191,255,0.35)] cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingRole ? "Saving..." : "Save Role"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: DELETE ROLE CONFIRMATION ================= */}
+      {deleteRoleModalOpen && selectedRole && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
+          <div className="bg-white border border-red-200 rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-playfair font-bold text-[#0a0d12]">Delete Role</h3>
+            <p className="text-xs text-[#4a5565] leading-relaxed">
+              Are you sure you want to delete the role <strong>{selectedRole.name}</strong>? Administrators assigned to this role will lose its permissions.
+            </p>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteRoleModalOpen(false)}
+                className="px-4 py-2 rounded-full border border-[#d5d5ed] text-xs font-semibold text-[#4a5565] hover:bg-gray-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isSubmittingRole}
+                onClick={handleDeleteRole}
+                className="px-5 py-2 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold cursor-pointer disabled:opacity-50"
+              >
+                {isSubmittingRole ? "Deleting..." : "Confirm Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Feedback */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
