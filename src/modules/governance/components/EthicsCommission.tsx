@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { PageSectionData } from '@/common/services/cms.service';
 
 const ACCOUNTABILITY_FUNCTIONS: string[] = [
   'Monitor compliance with institutional ethics and professional standards.',
@@ -10,7 +11,23 @@ const ACCOUNTABILITY_FUNCTIONS: string[] = [
   'Protect the credibility, legitimacy, and reputation of the Institute.',
 ];
 
-export default function EthicsCommission() {
+interface EthicsCommissionProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function EthicsCommission({ data }: EthicsCommissionProps) {
+  const badge = data?.badge ?? 'Integrity & Accountability';
+  const title = data?.title ?? 'Ethics and Accountability Commission';
+  const subtitle =
+    data?.subtitle ??
+    'The Ethics and Accountability Commission serves as the guardian of institutional integrity, ethical governance, transparency, and professional conduct.';
+  const bgImage = data?.bgImage || '/assets/governance-advisory-student.png';
+
+  const functionsList: string[] =
+    Array.isArray(data?.metadata?.functions) && data.metadata.functions.length > 0
+      ? (data.metadata.functions as string[])
+      : ACCOUNTABILITY_FUNCTIONS;
+
   return (
     <section className="w-full bg-[#e6f9ff] py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-[80px]">
@@ -19,20 +36,24 @@ export default function EthicsCommission() {
         <div className="w-full lg:flex-1 flex flex-col gap-8 lg:gap-[40px] items-start">
           <div className="flex flex-col gap-6 lg:gap-[30px] items-start">
             <div className="flex flex-col gap-4 items-start">
-              <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-2">
-                <span className="text-sm md:text-[16px] font-semibold tracking-wider text-[#0a0d12] uppercase leading-[17.6px]">
-                  Integrity &amp; Accountability
-                </span>
-              </div>
+              {badge && (
+                <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-2">
+                  <span className="text-sm md:text-[16px] font-semibold tracking-wider text-[#0a0d12] uppercase leading-[17.6px]">
+                    {badge}
+                  </span>
+                </div>
+              )}
 
               <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-[-0.72px] font-serif leading-[44px] max-w-[580px]">
-                Ethics and Accountability Commission
+                {title}
               </h2>
             </div>
 
-            <p className="text-[#0a0d12]/70 text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] font-normal font-sans">
-              The Ethics and Accountability Commission serves as the guardian of institutional integrity, ethical governance, transparency, and professional conduct.
-            </p>
+            {subtitle && (
+              <p className="text-[#0a0d12]/70 text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] font-normal font-sans">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           {/* Functions Card Box */}
@@ -42,7 +63,7 @@ export default function EthicsCommission() {
             </h3>
 
             <div className="flex flex-col gap-4 w-full">
-              {ACCOUNTABILITY_FUNCTIONS.map((func, index) => (
+              {functionsList.map((func, index) => (
                 <div key={index} className="flex items-start gap-4 w-full">
                   <div className="relative w-6 h-6 shrink-0 mt-0.5">
                     <Image
@@ -64,8 +85,8 @@ export default function EthicsCommission() {
         {/* Right Column: Image with Floating Student Rating Badge */}
         <div className="w-full lg:flex-1 h-[520px] sm:h-[620px] lg:h-[700px] relative overflow-hidden self-stretch">
           <Image
-            src="/assets/governance-advisory-student.png"
-            alt="Student with laptop and phone - Ethics Commission"
+            src={bgImage}
+            alt={title}
             fill
             sizes="(max-width: 1024px) 100vw, 580px"
             className="object-cover"

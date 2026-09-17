@@ -1,5 +1,7 @@
+import React from "react";
 import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
+import { usePageContent } from "@/common/hooks/usePageContent";
 
 import GovernanceHero from '@/modules/governance/components/GovernanceHero';
 import LeadershipStructure from '@/modules/governance/components/LeadershipStructure';
@@ -14,21 +16,23 @@ import YouthLeadershipAssembly from '@/modules/governance/components/YouthLeader
 import GovernanceGetInvolved from '@/modules/governance/components/GovernanceGetInvolved';
 
 export default function GovernancePage() {
+  const { getSection } = usePageContent('governance');
+
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans">
       <Header />
       <main className="flex-grow">
-        <GovernanceHero />
-        <LeadershipStructure />
-        <FoundingAuthority />
-        <FoundingMembers />
-        <GoverningCouncil />
-        <ExecutiveDirectorateBoard />
-        <AcademicSenate />
-        <AdvisoryBoard />
-        <EthicsCommission />
-        <YouthLeadershipAssembly />
-        <GovernanceGetInvolved />
+        <GovernanceHero data={getSection('hero')} />
+        <LeadershipStructure data={getSection('structure_intro')} />
+        <FoundingAuthority data={getSection('founding_authority')} />
+        <FoundingMembers data={getSection('founding_members')} />
+        <GoverningCouncil data={getSection('governing_council')} />
+        <ExecutiveDirectorateBoard data={getSection('executive_directorate')} />
+        <AcademicSenate data={getSection('academic_senate')} />
+        <AdvisoryBoard data={getSection('advisory_board')} />
+        <EthicsCommission data={getSection('ethics_commission')} />
+        <YouthLeadershipAssembly data={getSection('youth_leadership')} />
+        <GovernanceGetInvolved data={getSection('get_involved_banner')} />
       </main>
       <Footer />
     </div>

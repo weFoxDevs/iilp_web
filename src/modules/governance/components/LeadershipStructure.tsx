@@ -1,44 +1,65 @@
 import Image from 'next/image';
+import { PageSectionData } from '@/common/services/cms.service';
 
-export default function LeadershipStructure() {
-  const leadershipTiers = [
-    {
-      title: 'Founding Authority',
-      desc: 'Founder & President — visionary and strategic authority',
-    },
-    {
-      title: 'Governing Council',
-      desc: 'Highest governing and decision-making body',
-    },
-    {
-      title: 'Executive Directorate Board',
-      desc: 'Operational leadership and program delivery',
-    },
-    {
-      title: 'Academic Senate',
-      desc: 'Principal academic and intellectual authority',
-    },
-    {
-      title: 'ICT & Media Cell',
-      desc: 'Digital presence, media and communications',
-    },
-    {
-      title: 'Advisory Board',
-      desc: 'External strategic and intellectual guidance',
-    },
-    {
-      title: 'Global Fellowship Network',
-      desc: 'International scholarly community',
-    },
-    {
-      title: 'Ethics & Accountability Commission',
-      desc: 'Institutional integrity and ethical governance',
-    },
-    {
-      title: 'Youth Leadership Assembly',
-      desc: 'Youth participation and leadership development',
-    },
-  ];
+interface LeadershipTier {
+  title: string;
+  desc: string;
+}
+
+const defaultLeadershipTiers: LeadershipTier[] = [
+  {
+    title: 'Founding Authority',
+    desc: 'Founder & President — visionary and strategic authority',
+  },
+  {
+    title: 'Governing Council',
+    desc: 'Highest governing and decision-making body',
+  },
+  {
+    title: 'Executive Directorate Board',
+    desc: 'Operational leadership and program delivery',
+  },
+  {
+    title: 'Academic Senate',
+    desc: 'Principal academic and intellectual authority',
+  },
+  {
+    title: 'ICT & Media Cell',
+    desc: 'Digital presence, media and communications',
+  },
+  {
+    title: 'Advisory Board',
+    desc: 'External strategic and intellectual guidance',
+  },
+  {
+    title: 'Global Fellowship Network',
+    desc: 'International scholarly community',
+  },
+  {
+    title: 'Ethics & Accountability Commission',
+    desc: 'Institutional integrity and ethical governance',
+  },
+  {
+    title: 'Youth Leadership Assembly',
+    desc: 'Youth participation and leadership development',
+  },
+];
+
+interface LeadershipStructureProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function LeadershipStructure({ data }: LeadershipStructureProps) {
+  const badge = data?.badge ?? 'How We Are Governed';
+  const title = data?.title ?? 'Multi-Tiered Leadership Structure';
+  const subtitle =
+    data?.subtitle ??
+    'The Institute is governed through a multi-tiered leadership structure that combines strategic oversight, operational management, academic leadership, and institutional development.';
+
+  const tiersList: LeadershipTier[] =
+    Array.isArray(data?.metadata?.tiers) && data.metadata.tiers.length > 0
+      ? (data.metadata.tiers as LeadershipTier[])
+      : defaultLeadershipTiers;
 
   return (
     <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-16 xl:px-[240px]">
@@ -98,24 +119,28 @@ export default function LeadershipStructure() {
           
           {/* Header Block */}
           <div className="flex flex-col gap-4 items-start">
-            <div className="inline-flex items-center border border-[#00698c] rounded-full px-3.5 py-1.5">
-              <span className="text-xs md:text-sm font-semibold tracking-wider text-[#0a0d12] uppercase font-inter">
-                How We Are Governed
-              </span>
-            </div>
+            {badge && (
+              <div className="inline-flex items-center border border-[#00698c] rounded-full px-3.5 py-1.5">
+                <span className="text-xs md:text-sm font-semibold tracking-wider text-[#0a0d12] uppercase font-inter">
+                  {badge}
+                </span>
+              </div>
+            )}
 
             <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-[-0.72px] font-serif leading-[1.25]">
-              Multi-Tiered Leadership Structure
+              {title}
             </h2>
 
-            <p className="text-[#0a0d12]/70 text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] font-sans mt-2">
-              The Institute is governed through a multi-tiered leadership structure that combines strategic oversight, operational management, academic leadership, and institutional development.
-            </p>
+            {subtitle && (
+              <p className="text-[#0a0d12]/70 text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] font-sans mt-2">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           {/* 9 Leadership Tier Cards */}
           <div className="flex flex-col gap-4 lg:gap-[24px] w-full">
-            {leadershipTiers.map((tier, index) => (
+            {tiersList.map((tier, index) => (
               <div 
                 key={index}
                 className="bg-[#e6f9ff] border border-[#b0ebff] p-5 lg:p-[24px] flex flex-col gap-1 transition-all hover:border-[#00bfff]/60 hover:shadow-xs"
@@ -131,6 +156,7 @@ export default function LeadershipStructure() {
           </div>
 
         </div>
+
 
       </div>
     </section>

@@ -1,6 +1,7 @@
 import Image from 'next/image';
+import { PageSectionData } from '@/common/services/cms.service';
 
-const FUNCTIONS: string[] = [
+const defaultFunctions: string[] = [
   'Provide strategic advice on institutional growth and long-term development.',
   'Support the advancement of academic excellence and research quality.',
   "Strengthen the Institute's international reputation and visibility.",
@@ -10,7 +11,23 @@ const FUNCTIONS: string[] = [
   'Contribute expertise on emerging global legal, political, and humanitarian issues.',
 ];
 
-export default function AdvisoryBoard() {
+interface AdvisoryBoardProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function AdvisoryBoard({ data }: AdvisoryBoardProps) {
+  const badge = data?.badge ?? 'External Guidance';
+  const title = data?.title ?? 'Advisory Board';
+  const subtitle =
+    data?.subtitle ??
+    'The Advisory Board consists of distinguished scholars, academics, policymakers, diplomats, jurists, researchers, and senior professionals who provide strategic advice and intellectual guidance to the Institute.';
+  const bgImage = data?.bgImage || '/assets/governance-advisory-student.png';
+
+  const functionsList: string[] =
+    Array.isArray(data?.metadata?.functions) && data.metadata.functions.length > 0
+      ? (data.metadata.functions as string[])
+      : defaultFunctions;
+
   return (
     <section className="w-full bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-[80px]">
@@ -18,8 +35,8 @@ export default function AdvisoryBoard() {
         {/* Left Column: Image with Floating Student Rating Badge */}
         <div className="w-full lg:flex-1 h-[520px] sm:h-[620px] lg:h-[700px] relative overflow-hidden self-stretch">
           <Image
-            src="/assets/governance-advisory-student.png"
-            alt="Student with laptop and phone - Advisory Board"
+            src={bgImage}
+            alt={title}
             fill
             sizes="(max-width: 1024px) 100vw, 580px"
             className="object-cover"
@@ -71,20 +88,24 @@ export default function AdvisoryBoard() {
         <div className="w-full lg:flex-1 flex flex-col gap-8 lg:gap-[40px] items-start">
           <div className="flex flex-col gap-6 lg:gap-[30px] items-start">
             <div className="flex flex-col gap-4 items-start">
-              <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-2">
-                <span className="text-sm md:text-[16px] font-semibold tracking-wider text-[#0a0d12] uppercase leading-[17.6px]">
-                  External Guidance
-                </span>
-              </div>
+              {badge && (
+                <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-2">
+                  <span className="text-sm md:text-[16px] font-semibold tracking-wider text-[#0a0d12] uppercase leading-[17.6px]">
+                    {badge}
+                  </span>
+                </div>
+              )}
 
               <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-[-0.72px] font-serif leading-[44px] max-w-[580px]">
-                Advisory Board
+                {title}
               </h2>
             </div>
 
-            <p className="text-[#0a0d12]/70 text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] font-normal font-sans">
-              The Advisory Board consists of distinguished scholars, academics, policymakers, diplomats, jurists, researchers, and senior professionals who provide strategic advice and intellectual guidance to the Institute.
-            </p>
+            {subtitle && (
+              <p className="text-[#0a0d12]/70 text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] font-normal font-sans">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           {/* Functions Card Box */}
@@ -94,7 +115,7 @@ export default function AdvisoryBoard() {
             </h3>
 
             <div className="flex flex-col gap-4 w-full">
-              {FUNCTIONS.map((func, index) => (
+              {functionsList.map((func, index) => (
                 <div key={index} className="flex items-start gap-4 w-full">
                   <div className="relative w-6 h-6 shrink-0 mt-0.5">
                     <Image
@@ -112,7 +133,6 @@ export default function AdvisoryBoard() {
             </div>
           </div>
         </div>
-
       </div>
     </section>
   );

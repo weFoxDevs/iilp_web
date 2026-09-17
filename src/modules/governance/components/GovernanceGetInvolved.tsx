@@ -1,6 +1,19 @@
 import Link from 'next/link';
+import { PageSectionData } from '@/common/services/cms.service';
 
-export default function GovernanceGetInvolved() {
+interface GovernanceGetInvolvedProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function GovernanceGetInvolved({ data }: GovernanceGetInvolvedProps) {
+  const title = data?.title ?? 'Get Involved';
+  const subtitle = data?.subtitle ?? 'Empowering Dreams, Transforming Futures.';
+  const description =
+    data?.bodyContent ??
+    'Contact the Youth Leadership Development Officer to apply for involvement in the Youth Leadership Assembly.';
+  const actionText = data?.actionText ?? 'Apply to Get Involved';
+  const actionUrl = data?.actionUrl ?? '/contact';
+
   return (
     <section className="w-full bg-white pb-16 lg:pb-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto bg-[#160d03] rounded-2xl overflow-hidden p-8 sm:p-12 lg:py-[64px] lg:px-[64px]">
@@ -9,26 +22,32 @@ export default function GovernanceGetInvolved() {
           {/* Left Column: Heading */}
           <div className="flex-1">
             <h2 className="text-4xl sm:text-5xl lg:text-[48px] font-serif font-medium text-white tracking-[-1.5px] leading-[1.25]">
-              Get Involved
+              {title}
             </h2>
           </div>
 
           {/* Right Column: Details & Action */}
           <div className="flex-1 max-w-[500px] flex flex-col gap-8 items-start justify-center">
-            <p className="text-white/70 text-base sm:text-lg lg:text-[18px] font-sans font-medium">
-              Empowering Dreams, Transforming Futures.
-            </p>
+            {subtitle && (
+              <p className="text-white/70 text-base sm:text-lg lg:text-[18px] font-sans font-medium">
+                {subtitle}
+              </p>
+            )}
 
-            <p className="text-xl sm:text-2xl lg:text-[24px] font-serif font-normal text-white leading-snug">
-              Contact the Youth Leadership Development Officer to apply for involvement in the Youth Leadership Assembly.
-            </p>
+            {description && (
+              <p className="text-xl sm:text-2xl lg:text-[24px] font-serif font-normal text-white leading-snug">
+                {description}
+              </p>
+            )}
 
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center rounded-full bg-[#00bfff] hover:bg-[#00a8e0] text-white px-6 py-3.5 text-base font-semibold shadow-[0px_1px_2px_rgba(29,41,61,0.05)] transition-all font-sans"
-            >
-              Apply to Get Involved
-            </Link>
+            {actionText && (
+              <Link
+                href={actionUrl}
+                className="inline-flex items-center justify-center rounded-full bg-[#00bfff] hover:bg-[#00a8e0] text-white px-6 py-3.5 text-base font-semibold shadow-[0px_1px_2px_rgba(29,41,61,0.05)] transition-all font-sans"
+              >
+                {actionText}
+              </Link>
+            )}
           </div>
 
         </div>
