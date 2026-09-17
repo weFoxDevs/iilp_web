@@ -4,7 +4,7 @@ import { Footer } from "@/common/components/Footer";
 import FellowshipHero from "@/modules/fellowships/components/FellowshipHero";
 import FellowshipCategories from "@/modules/fellowships/components/FellowshipCategories";
 import FellowshipApplication from "@/modules/fellowships/components/FellowshipApplication";
-import { CallToAction } from "@/common/components/CallToAction";
+import { usePageContent } from "@/common/hooks/usePageContent";
 
 interface FellowshipsPageProps {
   defaultTab?: "research" | "junior" | "honorary";
@@ -13,15 +13,21 @@ interface FellowshipsPageProps {
 export default function FellowshipsPage({
   defaultTab = "research",
 }: FellowshipsPageProps) {
+  const { getSection } = usePageContent("fellowships");
+
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans">
       <Header />
       <main className="flex-grow">
-        <FellowshipHero />
-        <FellowshipCategories initialTab={defaultTab} />
-        <FellowshipApplication />
+        <FellowshipHero data={getSection("hero")} />
+        <FellowshipCategories
+          initialTab={defaultTab}
+          data={getSection("pathways_intro")}
+        />
+        <FellowshipApplication data={getSection("application_cta")} />
       </main>
       <Footer />
     </div>
   );
 }
+

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import { PageSectionData } from "@/common/services/cms.service";
 
 interface FellowshipPathway {
   id: "research" | "junior" | "honorary";
@@ -12,7 +13,7 @@ interface FellowshipPathway {
   benefits: string[];
 }
 
-const pathways: FellowshipPathway[] = [
+const defaultPathways: FellowshipPathway[] = [
   {
     id: "research",
     name: "Research Fellows",
@@ -79,15 +80,28 @@ const pathways: FellowshipPathway[] = [
 
 interface FellowshipCategoriesProps {
   initialTab?: "research" | "junior" | "honorary";
+  data?: Partial<PageSectionData>;
 }
 
 export default function FellowshipCategories({
   initialTab = "research",
+  data,
 }: FellowshipCategoriesProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"research" | "junior" | "honorary">(
     initialTab
   );
+
+  const badge = data?.badge ?? "Fellowship Categories";
+  const title = data?.title ?? "Three Fellowship Pathways";
+  const subtitle =
+    data?.subtitle ??
+    "IILP offers three fellowship categories designed to engage scholars and professionals at different stages of their careers.";
+
+  const pathwaysList: FellowshipPathway[] =
+    Array.isArray(data?.metadata?.pathways) && data.metadata.pathways.length > 0
+      ? (data.metadata.pathways as FellowshipPathway[])
+      : defaultPathways;
 
   useEffect(() => {
     if (router.isReady && router.query.tab) {
@@ -115,7 +129,7 @@ export default function FellowshipCategories({
   };
 
   const currentPathway =
-    pathways.find((p) => p.id === activeTab) || pathways[0];
+    pathwaysList.find((p) => p.id === activeTab) || pathwaysList[0];
 
   return (
     <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
@@ -123,27 +137,30 @@ export default function FellowshipCategories({
         {/* Header Section */}
         <div className="flex flex-col items-center gap-4 text-center max-w-[850px]">
           {/* Pill Badge */}
-          <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-1.5">
-            <span className="font-sans font-semibold text-xs sm:text-sm text-[#0a0d12] uppercase tracking-wider">
-              Fellowship Categories
-            </span>
-          </div>
+          {badge && (
+            <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-1.5">
+              <span className="font-sans font-semibold text-xs sm:text-sm text-[#0a0d12] uppercase tracking-wider">
+                {badge}
+              </span>
+            </div>
+          )}
 
           {/* Heading */}
           <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]">
-            Three Fellowship Pathways
+            {title}
           </h2>
 
           {/* Subheading */}
-          <p className="font-sans font-normal text-base sm:text-lg lg:text-[20px] text-[#0a0d12] leading-relaxed lg:leading-[30px]">
-            IILP offers three fellowship categories designed to engage scholars and
-            professionals at different stages of their careers.
-          </p>
+          {subtitle && (
+            <p className="font-sans font-normal text-base sm:text-lg lg:text-[20px] text-[#0a0d12] leading-relaxed lg:leading-[30px]">
+              {subtitle}
+            </p>
+          )}
         </div>
 
         {/* Tab Filter Pills */}
         <div className="bg-[#e6f9ff] border border-[#e6f9ff] rounded-full p-1 flex flex-wrap sm:flex-nowrap gap-1 items-center justify-center">
-          {pathways.map((pathway) => {
+          {pathwaysList.map((pathway) => {
             const isActive = activeTab === pathway.id;
             return (
               <button
@@ -169,6 +186,7 @@ export default function FellowshipCategories({
             );
           })}
         </div>
+
 
         {/* Mission and Vision Container */}
         <div className="bg-[#00506b] rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-[40px] w-full">

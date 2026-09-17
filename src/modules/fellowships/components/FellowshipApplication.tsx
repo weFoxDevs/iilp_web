@@ -1,7 +1,18 @@
 import React, { useState } from "react";
 import Image from "next/image";
+import { PageSectionData } from "@/common/services/cms.service";
 
-export default function FellowshipApplication() {
+interface FellowshipApplicationProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function FellowshipApplication({ data }: FellowshipApplicationProps) {
+  const badge = data?.badge ?? "Fellowship Application";
+  const title = data?.title ?? "Apply for Fellowship";
+  const subtitle =
+    data?.subtitle ??
+    "Complete the form below to apply for the IILP Global Fellowship Network.";
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -45,22 +56,27 @@ export default function FellowshipApplication() {
         {/* Section Header */}
         <div className="flex flex-col items-center gap-4 text-center max-w-[850px]">
           {/* Pill Badge */}
-          <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-2">
-            <span className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]">
-              Fellowship Application
-            </span>
-          </div>
+          {badge && (
+            <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-2">
+              <span className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]">
+                {badge}
+              </span>
+            </div>
+          )}
 
           {/* Title */}
           <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]">
-            Apply for Fellowship
+            {title}
           </h2>
 
           {/* Subtitle */}
-          <p className="font-sans font-normal text-base sm:text-lg lg:text-[20px] text-[#0a0d12] leading-relaxed lg:leading-[30px]">
-            Complete the form below to apply for the IILP Global Fellowship Network.
-          </p>
+          {subtitle && (
+            <p className="font-sans font-normal text-base sm:text-lg lg:text-[20px] text-[#0a0d12] leading-relaxed lg:leading-[30px]">
+              {subtitle}
+            </p>
+          )}
         </div>
+
 
         {/* Form Container */}
         <div className="bg-white p-6 sm:p-8 md:p-[32px] w-full max-w-[852px] shadow-xs">
