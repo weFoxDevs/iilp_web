@@ -1,7 +1,21 @@
 import React from "react";
 import Link from "next/link";
+import { PageSectionData } from "@/common/services/cms.service";
 
-export default function BecomePartnerBanner() {
+interface BecomePartnerBannerProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function BecomePartnerBanner({ data }: BecomePartnerBannerProps) {
+  const title = data?.title || "Become an IILP Partner";
+  const subtitle =
+    data?.subtitle ||
+    data?.bodyContent ||
+    "IILP welcomes new partnerships with institutions, organizations, and governments aligned with its mission. Contact us to discuss collaboration opportunities.";
+  const actionText =
+    (data?.metadata?.actionText as string) || "Initiate Partnership Inquiry";
+  const actionUrl = (data?.metadata?.actionUrl as string) || "/contact";
+
   return (
     <section className="bg-white pb-16 lg:pb-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto w-full">
@@ -9,23 +23,21 @@ export default function BecomePartnerBanner() {
           {/* Left Column: Heading */}
           <div className="w-full lg:max-w-[451px] shrink-0 pt-2 lg:pt-4">
             <h2 className="font-serif font-medium text-3xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-[-1.5px] leading-tight lg:leading-[62.4px]">
-              Become an IILP Partner
+              {title}
             </h2>
           </div>
 
           {/* Right Column: Description & Action */}
           <div className="flex flex-col items-start gap-8 w-full lg:max-w-[500px] my-auto">
             <p className="font-serif text-white text-lg sm:text-xl lg:text-[24px] leading-normal sm:leading-relaxed">
-              IILP welcomes new partnerships with institutions, organizations,
-              and governments aligned with its mission. Contact us to discuss
-              collaboration opportunities.
+              {subtitle}
             </p>
 
             <Link
-              href="/contact"
+              href={actionUrl}
               className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base px-6 py-3.5 rounded-full drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] transition-colors cursor-pointer"
             >
-              Initiate Partnership Inquiry
+              {actionText}
             </Link>
           </div>
         </div>

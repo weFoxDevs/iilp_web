@@ -53,7 +53,25 @@ const COUNTRY_CODES = [
   { flag: "🇧🇩", code: "+880", label: "BD (+880)" },
 ];
 
-export function CareersMainSection() {
+import { PageSectionData } from "@/common/services/cms.service";
+
+interface CareersMainSectionProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function CareersMainSection({ data }: CareersMainSectionProps) {
+  const badge = data?.badge || "Opportunities";
+  const title = data?.title || "Work With IILP";
+  const subtitle =
+    data?.subtitle ||
+    data?.bodyContent ||
+    "IILP is building a world-class team of researchers, educators, administrators, and communicators committed to advancing knowledge, justice, and leadership for global change.";
+
+  const opportunityCards =
+    Array.isArray(data?.metadata?.opportunities) && data?.metadata?.opportunities.length > 0
+      ? (data?.metadata?.opportunities as ValueCardItem[])
+      : OPPORTUNITY_CARDS;
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -156,7 +174,7 @@ export function CareersMainSection() {
                   className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]"
                   data-node-id="155:77165"
                 >
-                  Opportunities
+                  {badge}
                 </span>
               </div>
 
@@ -165,7 +183,7 @@ export function CareersMainSection() {
                 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]"
                 data-node-id="155:77166"
               >
-                Work With IILP
+                {title}
               </h2>
             </div>
 
@@ -174,9 +192,7 @@ export function CareersMainSection() {
               className="font-sans font-normal text-base sm:text-lg lg:text-[20px] text-[#0a0d12]/70 leading-relaxed lg:leading-[30px]"
               data-node-id="155:77168"
             >
-              IILP is building a world-class team of researchers, educators,
-              administrators, and communicators committed to advancing
-              knowledge, justice, and leadership for global change.
+              {subtitle}
             </p>
           </div>
 
@@ -185,7 +201,7 @@ export function CareersMainSection() {
             className="flex flex-col gap-4 items-start w-full"
             data-node-id="155:77169"
           >
-            {OPPORTUNITY_CARDS.map((card) => {
+            {opportunityCards.map((card) => {
               const isSelected = activeCard === card.id;
               return (
                 <div

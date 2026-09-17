@@ -23,6 +23,8 @@ const defaultFilterTabs: FilterTab[] = [
   { id: "newsletter", name: "Newsletter Archive" },
 ];
 
+import { PageSectionData } from "@/common/services/cms.service";
+
 interface LatestNewsMediaProps {
   badge?: string;
   title?: string;
@@ -30,16 +32,21 @@ interface LatestNewsMediaProps {
   tabs?: FilterTab[];
   detailsHref?: string;
   headerLayout?: "center" | "split";
+  data?: Partial<PageSectionData>;
 }
 
 export default function LatestNewsMedia({
-  badge = "Media Center",
-  title = "Latest from IILP",
-  subtitle = "Latest developments from IILP and upcoming conferences, seminars, and workshops.",
+  badge: propBadge = "Media Center",
+  title: propTitle = "Latest from IILP",
+  subtitle: propSubtitle = "Latest developments from IILP and upcoming conferences, seminars, and workshops.",
   tabs = defaultFilterTabs,
   detailsHref = "/news-details",
   headerLayout = "center",
+  data,
 }: LatestNewsMediaProps) {
+  const badge = data?.badge || propBadge;
+  const title = data?.title || propTitle;
+  const subtitle = data?.subtitle || propSubtitle;
   const [activeFilter, setActiveFilter] = useState(tabs[0]?.id || "all");
 
   return (

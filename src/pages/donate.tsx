@@ -1,9 +1,12 @@
 import Head from "next/head";
 import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
+import { usePageContent } from "@/common/hooks/usePageContent";
 import { DonateHero, DonateMainSection } from "@/modules/donate";
 
 export default function DonatePage() {
+  const { getSection } = usePageContent("donate");
+
   return (
     <>
       <Head>
@@ -21,10 +24,10 @@ export default function DonatePage() {
         {/* Main Content */}
         <main className="flex-grow">
           {/* Section 1: Hero Banner (Figma node 155:76236) */}
-          <DonateHero />
+          <DonateHero data={getSection("hero")} />
 
           {/* Section 2: Why Give & Make a Gift Form (Figma node 155:76605) */}
-          <DonateMainSection />
+          <DonateMainSection data={getSection("impact_intro")} />
         </main>
 
         {/* Institutional Footer (Figma Frame 155:76235 renders Footer without CTA) */}

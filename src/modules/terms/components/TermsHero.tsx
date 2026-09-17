@@ -1,7 +1,20 @@
 import React from "react";
 import Image from "next/image";
+import { PageSectionData } from "@/common/services/cms.service";
 
-export function TermsHero() {
+interface TermsHeroProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function TermsHero({ data }: TermsHeroProps) {
+  const badge = data?.badge || "Terms of Use";
+  const title = data?.title || "Agreement to Terms";
+  const subtitle =
+    data?.subtitle ||
+    data?.bodyContent ||
+    "Terms and conditions governing your use of the IILP website.";
+  const bgImage = data?.bgImage || "/images/contact-hero-bg.png";
+
   return (
     <section
       className="relative w-full overflow-hidden min-h-[520px] lg:min-h-[580px] flex items-end justify-center pb-24 lg:pb-[140px] pt-32 lg:pt-[160px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]"
@@ -10,8 +23,8 @@ export function TermsHero() {
       {/* Background Image with Dark & Fade Gradients */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
-          src="/images/contact-hero-bg.png"
-          alt="Terms of Use"
+          src={bgImage}
+          alt={title}
           fill
           priority
           className="object-cover object-center"
@@ -32,7 +45,7 @@ export function TermsHero() {
             className="font-sans font-semibold text-sm sm:text-base text-[#fdfdfd] uppercase tracking-wider leading-[17.6px]"
             data-node-id="155:75204"
           >
-            Terms of Use
+            {badge}
           </span>
         </div>
 
@@ -41,7 +54,7 @@ export function TermsHero() {
           className="font-serif font-semibold text-3xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-[-0.96px] leading-tight lg:leading-[60px] max-w-[856px]"
           data-node-id="155:75205"
         >
-          Agreement to Terms
+          {title}
         </h1>
 
         {/* Supporting Description (Figma node 155:75206) */}
@@ -49,7 +62,7 @@ export function TermsHero() {
           className="font-sans font-normal text-base sm:text-lg lg:text-[20px] text-white/95 leading-relaxed lg:leading-[30px] max-w-[978px]"
           data-node-id="155:75206"
         >
-          Terms and conditions governing your use of the IILP website.
+          {subtitle}
         </p>
       </div>
 

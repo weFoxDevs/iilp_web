@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { PageSectionData } from "@/common/services/cms.service";
 import { EventItem, EventCategory } from "../types";
 import { initialEvents } from "../data/eventsData";
 import { EventCard } from "./EventCard";
@@ -13,7 +14,18 @@ const categories: EventCategory[] = [
   "Policy Dialogues",
 ];
 
-export function EventsCalendar() {
+interface EventsCalendarProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function EventsCalendar({ data }: EventsCalendarProps = {}) {
+  const badge = data?.badge || "Calendar";
+  const title = data?.title || "Upcoming Events";
+  const subtitle =
+    data?.subtitle ||
+    data?.bodyContent ||
+    "Latest developments from IILP and upcoming conferences, seminars, and workshops.";
+
   const [activeCategory, setActiveCategory] = useState<EventCategory>("All");
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
 
@@ -30,19 +42,18 @@ export function EventsCalendar() {
           {/* Pill Badge */}
           <div className="inline-flex items-center border border-[#00698c] rounded-full px-3.5 py-2">
             <span className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]">
-              Calendar
+              {badge}
             </span>
           </div>
 
           {/* Title */}
           <h2 className="font-serif font-medium text-3xl sm:text-4xl md:text-5xl lg:text-[44px] text-[#0a0d12] tracking-[-0.72px] leading-tight">
-            Upcoming Events
+            {title}
           </h2>
 
           {/* Subtitle */}
           <p className="font-sans text-base sm:text-lg lg:text-[20px] text-gray-600 leading-relaxed max-w-[720px]">
-            Latest developments from IILP and upcoming conferences, seminars,
-            and workshops.
+            {subtitle}
           </p>
         </div>
 

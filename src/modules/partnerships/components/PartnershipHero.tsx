@@ -1,14 +1,27 @@
 import React from "react";
 import Image from "next/image";
+import { PageSectionData } from "@/common/services/cms.service";
 
-export default function PartnershipHero() {
+interface PartnershipHeroProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function PartnershipHero({ data }: PartnershipHeroProps) {
+  const badge = data?.badge || "Partnerships";
+  const title = data?.title || "Partnerships With Organization";
+  const subtitle =
+    data?.subtitle ||
+    data?.bodyContent ||
+    "IILP builds strategic partnerships with universities, research institutions, international organizations, NGOs, and governments to advance its mission of global justice and governance.";
+  const bgImage = data?.bgImage || "/assets/fellowship-hero-bg.png";
+
   return (
     <section className="relative w-full overflow-hidden min-h-[580px] lg:min-h-[640px] flex items-end justify-center pb-20 lg:pb-[140px] pt-24 lg:pt-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
       {/* Background Image with Gradients */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
-          src="/assets/fellowship-hero-bg.png"
-          alt="Partnerships with Organization"
+          src={bgImage}
+          alt={title}
           fill
           priority
           className="object-cover object-center"
@@ -23,18 +36,18 @@ export default function PartnershipHero() {
         {/* Badge */}
         <div className="inline-flex items-center border border-[#e6f9ff] rounded-full px-3 py-2 bg-white/10 backdrop-blur-xs">
           <span className="font-sans font-semibold text-sm sm:text-base text-[#fdfdfd] uppercase tracking-wider leading-[17.6px]">
-            Partnerships
+            {badge}
           </span>
         </div>
 
         {/* Title */}
         <h1 className="font-serif font-semibold text-3xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-[-0.96px] leading-tight lg:leading-[60px] max-w-[856px]">
-          Partnerships With Organization
+          {title}
         </h1>
 
         {/* Description */}
         <p className="font-sans font-normal text-base sm:text-lg lg:text-[20px] text-white leading-relaxed lg:leading-[30px] max-w-[978px]">
-          IILP builds strategic partnerships with universities, research institutions, international organizations, NGOs, and governments to advance its mission of global justice and governance.
+          {subtitle}
         </p>
       </div>
 

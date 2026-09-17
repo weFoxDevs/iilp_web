@@ -1,14 +1,27 @@
 import React from "react";
 import Image from "next/image";
+import { PageSectionData } from "@/common/services/cms.service";
 
-export function EventsHero() {
+interface EventsHeroProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function EventsHero({ data }: EventsHeroProps) {
+  const badge = data?.badge || "Events & Conferences";
+  const title = data?.title || "Conferences · Seminars · Workshops · Webinars";
+  const subtitle =
+    data?.subtitle ||
+    data?.bodyContent ||
+    "IILP organizes conferences, seminars, workshops, webinars, and policy dialogues to advance knowledge, foster dialogue, and build capacity in law, governance, and human rights.";
+  const bgImage = data?.bgImage || "/assets/fellowship-hero-bg.png";
+
   return (
     <section className="relative w-full overflow-hidden min-h-[580px] lg:min-h-[660px] flex items-end justify-center pb-24 lg:pb-[140px] pt-32 lg:pt-[160px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
       {/* Background Image with Dark & Fade Gradients */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
-          src="/assets/fellowship-hero-bg.png"
-          alt="Conferences, Seminars, Workshops, Webinars"
+          src={bgImage}
+          alt={title}
           fill
           priority
           className="object-cover object-center"
@@ -23,20 +36,18 @@ export function EventsHero() {
         {/* Pill Badge */}
         <div className="inline-flex items-center border border-[#e6f9ff] rounded-full px-3.5 py-2 bg-white/10 backdrop-blur-xs shadow-xs">
           <span className="font-sans font-semibold text-sm sm:text-base text-[#fdfdfd] uppercase tracking-wider leading-[17.6px]">
-            Events &amp; Conferences
+            {badge}
           </span>
         </div>
 
         {/* Title */}
         <h1 className="font-serif font-semibold text-3xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-[-0.96px] leading-tight lg:leading-[60px] max-w-[856px]">
-          Conferences · Seminars · Workshops · Webinars
+          {title}
         </h1>
 
         {/* Description */}
         <p className="font-sans font-normal text-base sm:text-lg lg:text-[20px] text-white leading-relaxed lg:leading-[30px] max-w-[978px]">
-          IILP organizes conferences, seminars, workshops, webinars, and policy
-          dialogues to advance knowledge, foster dialogue, and build capacity in
-          law, governance, and human rights.
+          {subtitle}
         </p>
       </div>
 

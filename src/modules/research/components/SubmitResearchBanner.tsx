@@ -1,7 +1,20 @@
 import React from "react";
 import Link from "next/link";
+import { PageSectionData } from "@/common/services/cms.service";
 
-export default function SubmitResearchBanner() {
+interface SubmitResearchBannerProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function SubmitResearchBanner({ data }: SubmitResearchBannerProps) {
+  const title = data?.title ?? "Submit Your Research to IILP";
+  const subtitle =
+    data?.subtitle ??
+    data?.bodyContent ??
+    "Researchers and scholars are welcome to submit papers, policy briefs, and working papers for consideration in IILP's publications.";
+  const actionText = data?.actionText ?? "Submit Research";
+  const actionUrl = data?.actionUrl ?? "/contact";
+
   return (
     <section className="bg-white pb-16 sm:pb-24 lg:pb-[140px] px-4 sm:px-8 lg:px-16 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto w-full">
@@ -9,25 +22,28 @@ export default function SubmitResearchBanner() {
           {/* Left Column: Heading */}
           <div className="max-w-[451px]">
             <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[48px] text-white leading-tight lg:leading-[62.4px] tracking-[-1.5px]">
-              Submit Your Research to IILP
+              {title}
             </h2>
           </div>
 
           {/* Right Column: Subtitle & CTA Button */}
           <div className="flex flex-col gap-6 lg:gap-[32px] max-w-[500px] mt-8 lg:mt-[130px]">
-            <p className="font-serif text-lg sm:text-xl lg:text-[24px] text-white leading-snug lg:leading-normal">
-              Researchers and scholars are welcome to submit papers, policy briefs,
-              and working papers for consideration in IILP&apos;s publications.
-            </p>
+            {subtitle && (
+              <p className="font-serif text-lg sm:text-xl lg:text-[24px] text-white leading-snug lg:leading-normal">
+                {subtitle}
+              </p>
+            )}
 
-            <div>
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#00a3db] text-white font-sans font-semibold text-sm sm:text-base px-6 py-3.5 rounded-full transition-colors drop-shadow-xs whitespace-nowrap"
-              >
-                Submit Research
-              </Link>
-            </div>
+            {actionText && (
+              <div>
+                <Link
+                  href={actionUrl}
+                  className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#00a3db] text-white font-sans font-semibold text-sm sm:text-base px-6 py-3.5 rounded-full transition-colors drop-shadow-xs whitespace-nowrap"
+                >
+                  {actionText}
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

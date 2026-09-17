@@ -59,7 +59,16 @@ function ContactCard({
   );
 }
 
-export function ContactInfoGrid() {
+import { PageSectionData } from "@/common/services/cms.service";
+
+interface ContactInfoGridProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function ContactInfoGrid({ data }: ContactInfoGridProps = {}) {
+  const badge = data?.badge || "Reach Us";
+  const title = data?.title || "Contact Information";
+
   return (
     <section
       className="bg-[#e6f9ff] flex flex-col gap-[60px] lg:gap-[80px] items-center px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] py-16 sm:py-24 lg:py-[140px] relative w-full"
@@ -81,7 +90,7 @@ export function ContactInfoGrid() {
               className="font-sans font-semibold leading-[17.6px] text-[#0a0d12] text-[16px] uppercase whitespace-nowrap"
               data-node-id="150:72332"
             >
-              Reach Us
+              {badge}
             </span>
           </div>
 
@@ -90,7 +99,7 @@ export function ContactInfoGrid() {
             className="font-serif font-medium leading-tight sm:leading-[44px] text-[#0a0d12] text-3xl sm:text-4xl lg:text-[36px] text-center tracking-[-0.72px] max-w-[580px]"
             data-node-id="150:72333"
           >
-            Contact Information
+            {title}
           </h2>
         </div>
 

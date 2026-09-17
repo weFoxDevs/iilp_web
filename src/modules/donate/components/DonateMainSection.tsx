@@ -46,9 +46,22 @@ const valueCards: ValueCardItem[] = [
   },
 ];
 
+import { PageSectionData } from "@/common/services/cms.service";
+
 const presetAmounts = [25, 50, 100, 150];
 
-export function DonateMainSection() {
+interface DonateMainSectionProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
+  const badge = data?.badge || "Why Give";
+  const title = data?.title || "Support IILP's Mission";
+  const subtitle =
+    data?.subtitle ||
+    data?.bodyContent ||
+    "Your donation directly supports IILP's mission of advancing knowledge, justice, and leadership for global change. Every contribution — large or small — makes a meaningful difference.";
+
   const [frequency, setFrequency] = useState<"Monthly" | "One-Time">("Monthly");
   const [selectedPreset, setSelectedPreset] = useState<number | "custom">("custom");
   const [customAmount, setCustomAmount] = useState("30");
@@ -140,7 +153,7 @@ export function DonateMainSection() {
                   className="font-sans font-semibold leading-[17.6px] text-[#0a0d12] text-[16px] uppercase whitespace-nowrap"
                   data-node-id="155:76665"
                 >
-                  Why Give
+                  {badge}
                 </span>
               </div>
 
@@ -149,7 +162,7 @@ export function DonateMainSection() {
                 className="font-serif font-medium leading-tight sm:leading-[44px] text-[#0a0d12] text-3xl sm:text-4xl lg:text-[36px] tracking-[-0.72px] w-full max-w-[580px]"
                 data-node-id="155:76666"
               >
-                Support IILP&apos;s Mission
+                {title}
               </h2>
             </div>
 
@@ -158,7 +171,7 @@ export function DonateMainSection() {
               className="font-sans font-normal leading-[30px] text-[#0a0d12]/70 text-lg sm:text-[20px] max-w-[580px]"
               data-node-id="155:76668"
             >
-              Your donation directly supports IILP&apos;s mission of advancing knowledge, justice, and leadership for global change. Every contribution — large or small — makes a meaningful difference.
+              {subtitle}
             </p>
           </div>
 

@@ -1,7 +1,9 @@
 import React from "react";
 import Image from "next/image";
+import { PageSectionData } from "@/common/services/cms.service";
 
 interface NewsMediaHeroProps {
+  data?: Partial<PageSectionData>;
   badge?: string;
   title?: string;
   subtitle?: string;
@@ -9,11 +11,19 @@ interface NewsMediaHeroProps {
 }
 
 export default function NewsMediaHero({
-  badge = "News",
-  title = "News & Media Center",
-  subtitle = "Stay updated with IILP's latest news, press releases, articles, opinion pieces, interviews, videos, and newsletter archives.",
-  bgImage = "/assets/fellowship-hero-bg.png",
+  data,
+  badge: propBadge,
+  title: propTitle,
+  subtitle: propSubtitle,
+  bgImage: propBgImage,
 }: NewsMediaHeroProps) {
+  const badge = data?.badge ?? propBadge ?? "News";
+  const title = data?.title ?? propTitle ?? "News & Media Center";
+  const subtitle =
+    data?.subtitle ??
+    propSubtitle ??
+    "Stay updated with IILP's latest news, press releases, articles, opinion pieces, interviews, videos, and newsletter archives.";
+  const bgImage = data?.bgImage || propBgImage || "/assets/fellowship-hero-bg.png";
   return (
     <section className="relative w-full overflow-hidden min-h-[580px] lg:min-h-[640px] flex items-end justify-center pb-20 lg:pb-[140px] pt-24 lg:pt-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
       {/* Background Image with Gradients */}

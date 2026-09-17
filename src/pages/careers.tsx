@@ -1,9 +1,12 @@
 import Head from "next/head";
 import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
+import { usePageContent } from "@/common/hooks/usePageContent";
 import { CareersHero, CareersMainSection } from "@/modules/careers";
 
 export default function CareersPage() {
+  const { getSection } = usePageContent("careers");
+
   return (
     <>
       <Head>
@@ -21,10 +24,10 @@ export default function CareersPage() {
         {/* Main Content */}
         <main className="flex-grow">
           {/* Section 1: Hero Banner (Figma node 155:77146) */}
-          <CareersHero />
+          <CareersHero data={getSection("hero")} />
 
           {/* Section 2: Opportunities & Expression of Interest Form (Figma node 155:77158) */}
-          <CareersMainSection />
+          <CareersMainSection data={getSection("eoi_intro")} />
         </main>
 
         {/* Institutional Footer (Figma Frame 155:77145 renders Footer without CTA) */}

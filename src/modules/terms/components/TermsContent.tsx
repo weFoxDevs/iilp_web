@@ -84,7 +84,20 @@ const termsSections: TermsSection[] = [
   },
 ];
 
-export function TermsContent() {
+import { PageSectionData } from "@/common/services/cms.service";
+
+interface TermsContentProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function TermsContent({ data }: TermsContentProps = {}) {
+  const lastUpdated =
+    (data?.metadata?.lastUpdated as string) || "Last updated: January 2026";
+  const sections =
+    Array.isArray(data?.metadata?.sections) && data?.metadata?.sections.length > 0
+      ? (data.metadata.sections as { heading: string; content: string; id?: string }[])
+      : termsSections;
+
   return (
     <section
       className="bg-white flex items-start justify-center px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] py-16 sm:py-24 lg:py-[140px] relative w-full"
@@ -105,23 +118,23 @@ export function TermsContent() {
             className="font-sans font-normal leading-[20px] text-[#717680] text-[14px] whitespace-nowrap"
             data-node-id="155:75211"
           >
-            Last updated: January 2026
+            {lastUpdated}
           </p>
         </div>
 
-        {/* 8 Terms Sections */}
-        {termsSections.map((sec) => (
+        {/* Terms Sections */}
+        {sections.map((sec, idx) => (
           <article
-            key={sec.id}
+            key={sec.id || idx}
             className="flex flex-col items-start pt-[24px] relative shrink-0 w-full"
-            data-node-id={sec.nodeId}
+            data-node-id={(sec as any).nodeId}
             data-name="Container"
           >
             {/* Heading */}
             <div className="flex flex-col items-start relative shrink-0 w-full" data-name="Heading 2">
               <h2
                 className="font-serif font-bold leading-normal text-[#000080] text-[24px] whitespace-nowrap"
-                data-node-id={sec.headingNodeId}
+                data-node-id={(sec as any).headingNodeId}
               >
                 {sec.heading}
               </h2>
@@ -134,7 +147,7 @@ export function TermsContent() {
             >
               <p
                 className="font-sans font-normal leading-[28px] text-[#374151] text-[18px] w-full"
-                data-node-id={sec.paragraphNodeId}
+                data-node-id={(sec as any).paragraphNodeId}
               >
                 {sec.id === "contact" ? (
                   <>

@@ -1,4 +1,5 @@
 import React from "react";
+import { PageSectionData } from "@/common/services/cms.service";
 
 interface TrackItem {
   icon: string;
@@ -6,7 +7,7 @@ interface TrackItem {
   description: string;
 }
 
-const topTracks: TrackItem[] = [
+const defaultTopTracks: TrackItem[] = [
   {
     icon: "🎓",
     title: "University Partnerships",
@@ -27,7 +28,7 @@ const topTracks: TrackItem[] = [
   },
 ];
 
-const bottomTracks: TrackItem[] = [
+const defaultBottomTracks: TrackItem[] = [
   {
     icon: "🤝",
     title: "NGO Partnerships",
@@ -42,7 +43,25 @@ const bottomTracks: TrackItem[] = [
   },
 ];
 
-export default function PartnershipFrameworkTracks() {
+interface PartnershipFrameworkTracksProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function PartnershipFrameworkTracks({ data }: PartnershipFrameworkTracksProps) {
+  const badge = data?.badge || "Global Network";
+  const title = data?.title || "Partnership Framework";
+  const subtitle =
+    data?.subtitle ||
+    data?.bodyContent ||
+    "IILP actively seeks partnerships across five tracks, each designed to amplify the impact of collaborative knowledge-building and policy engagement.";
+
+  const customTracks =
+    Array.isArray(data?.metadata?.tracks) && data?.metadata?.tracks.length > 0
+      ? (data?.metadata?.tracks as TrackItem[])
+      : null;
+  const topTracks = customTracks ? customTracks.slice(0, 3) : defaultTopTracks;
+  const bottomTracks = customTracks ? customTracks.slice(3) : defaultBottomTracks;
+
   return (
     <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px] items-center">
@@ -51,20 +70,18 @@ export default function PartnershipFrameworkTracks() {
           {/* Pill Badge */}
           <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-2">
             <span className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]">
-              Global Network
+              {badge}
             </span>
           </div>
 
           {/* Title */}
           <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]">
-            Partnership Framework
+            {title}
           </h2>
 
           {/* Subtitle */}
           <p className="font-sans font-normal text-base sm:text-lg lg:text-[20px] text-[#0a0d12] leading-relaxed lg:leading-[30px]">
-            IILP actively seeks partnerships across five tracks, each designed to
-            amplify the impact of collaborative knowledge-building and policy
-            engagement.
+            {subtitle}
           </p>
         </div>
 

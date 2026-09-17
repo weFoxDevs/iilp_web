@@ -2,12 +2,15 @@ import React from "react";
 import Head from "next/head";
 import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
+import { usePageContent } from "@/common/hooks/usePageContent";
 import { EventsHero } from "@/modules/events/components/EventsHero";
 import { EventsCalendar } from "@/modules/events/components/EventsCalendar";
 import { NewsletterArchive } from "@/modules/events/components/NewsletterArchive";
 import { PhotoGallery } from "@/modules/events/components/PhotoGallery";
 
 export default function EventsPage() {
+  const { getSection } = usePageContent("events");
+
   return (
     <>
       <Head>
@@ -23,16 +26,16 @@ export default function EventsPage() {
 
         <main className="flex-grow">
           {/* Hero Section (Frame 147:65673) */}
-          <EventsHero />
+          <EventsHero data={getSection("hero")} />
 
           {/* Upcoming Events Calendar & Grid (Frame 147:65681) */}
-          <EventsCalendar />
+          <EventsCalendar data={getSection("events_calendar")} />
 
           {/* Newsletter Archive Banner (Frame 147:65856) */}
-          <NewsletterArchive />
+          <NewsletterArchive data={getSection("newsletter_banner")} />
 
           {/* Photo Gallery / Visual Media Section (Frame 147:65883) */}
-          <PhotoGallery />
+          <PhotoGallery data={getSection("photo_gallery")} />
         </main>
 
         {/* Footer with "Join the IILP Community Today" CTA (Frame 147:65936 & 147:65953) */}

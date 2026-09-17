@@ -1,8 +1,19 @@
 import React, { useState } from "react";
+import { PageSectionData } from "@/common/services/cms.service";
 
-export function NewsletterArchive() {
+interface NewsletterArchiveProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function NewsletterArchive({ data }: NewsletterArchiveProps = {}) {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const title = data?.title || "Newsletter Archive";
+  const subtitle =
+    data?.subtitle ||
+    data?.bodyContent ||
+    "IILP's newsletter will be published regularly with research highlights, event announcements, and institutional updates. Past editions will be archived here.";
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,16 +29,14 @@ export function NewsletterArchive() {
           {/* Left Column: Heading 2 */}
           <div className="w-full lg:max-w-[451px] shrink-0 pt-2 lg:pt-4">
             <h2 className="font-serif font-medium text-3xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-[-1.5px] leading-tight lg:leading-[62.4px]">
-              Newsletter Archive
+              {title}
             </h2>
           </div>
 
           {/* Right Column: Description & Subscribe Form */}
           <div className="flex flex-col items-start gap-8 w-full lg:max-w-[500px] my-auto">
             <p className="font-serif font-bold text-xl sm:text-2xl lg:text-[24px] text-white leading-snug">
-              IILP&apos;s newsletter will be published regularly with research
-              highlights, event announcements, and institutional updates. Past
-              editions will be archived here.
+              {subtitle}
             </p>
 
             {isSubscribed ? (

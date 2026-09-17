@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import Image from "next/image";
+import { PageSectionData } from "@/common/services/cms.service";
 
 interface GalleryBlock {
   type: "large" | "medium" | "stacked";
@@ -54,8 +55,15 @@ const galleryBlocks: GalleryBlock[] = [
   },
 ];
 
-export default function PhotoGallerySection() {
+interface PhotoGallerySectionProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function PhotoGallerySection({ data }: PhotoGallerySectionProps = {}) {
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const badge = data?.badge || "Visual Media";
+  const title = data?.title || "Photo Gallery";
 
   const handleScroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -72,13 +80,13 @@ export default function PhotoGallerySection() {
           {/* Pill Badge */}
           <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-2">
             <span className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]">
-              Visual Media
+              {badge}
             </span>
           </div>
 
           {/* Title */}
           <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]">
-            Photo Gallery
+            {title}
           </h2>
         </div>
       </div>

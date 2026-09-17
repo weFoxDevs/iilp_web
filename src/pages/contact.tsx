@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
+import { usePageContent } from "@/common/hooks/usePageContent";
 import {
   ContactHero,
   ContactFormSection,
@@ -8,6 +9,8 @@ import {
 } from "@/modules/contact";
 
 export default function ContactPage() {
+  const { getSection } = usePageContent("contact");
+
   return (
     <>
       <Head>
@@ -25,13 +28,13 @@ export default function ContactPage() {
         {/* Main Contact Page Content */}
         <main className="flex-grow">
           {/* Section 1: Hero Banner */}
-          <ContactHero />
+          <ContactHero data={getSection("hero")} />
 
           {/* Section 2: Send a Message Form & Campus Map */}
           <ContactFormSection />
 
           {/* Section 3: Contact Information (4 Cards) */}
-          <ContactInfoGrid />
+          <ContactInfoGrid data={getSection("contact_info_cards")} />
         </main>
 
         {/* Section 4 & 5: CTA Banner + Institutional Footer */}

@@ -1,12 +1,15 @@
 import Head from "next/head";
 import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
+import { usePageContent } from "@/common/hooks/usePageContent";
 import {
   PrivacyPolicyHero,
   PrivacyPolicyContent,
 } from "@/modules/privacy";
 
 export default function PrivacyPolicyPage() {
+  const { getSection } = usePageContent("privacy-policy");
+
   return (
     <>
       <Head>
@@ -24,10 +27,10 @@ export default function PrivacyPolicyPage() {
         {/* Main Content */}
         <main className="flex-grow">
           {/* Hero Section (Figma node 150:74268) */}
-          <PrivacyPolicyHero />
+          <PrivacyPolicyHero data={getSection("hero")} />
 
           {/* Policy Body Content (Figma node 150:74280) */}
-          <PrivacyPolicyContent />
+          <PrivacyPolicyContent data={getSection("policy_sections")} />
         </main>
 
         {/* Institutional Footer (Figma Frame 150:74267 renders Footer without CTA) */}

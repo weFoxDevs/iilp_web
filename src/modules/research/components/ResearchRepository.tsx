@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { PageSectionData } from "@/common/services/cms.service";
 
 interface Publication {
   id: string;
@@ -88,8 +89,41 @@ const publicationsData: Publication[] = [
   },
 ];
 
-export default function ResearchRepository() {
+interface ResearchRepositoryProps {
+  data?: Partial<PageSectionData>;
+}
+
+export default function ResearchRepository({ data }: ResearchRepositoryProps) {
   const [activeFilter, setActiveFilter] = useState("All Publications");
+
+  const badge = data?.badge ?? "Scholarly Output";
+  const title = data?.title ?? "Research Repository & Publications";
+  const subtitle =
+    data?.subtitle ??
+    "Browse IILP's growing collection of scholarly outputs across all research areas.";
+  const actionText = data?.actionText ?? "Submit Research";
+  const actionUrl = data?.actionUrl ?? "/contact";
+
+  const categories: string[] =
+    Array.isArray(data?.metadata?.filterCategories) && data.metadata.filterCategories.length > 0
+      ? (data.metadata.filterCategories as string[])
+      : filterCategories;
+
+  const publicationsList: Publication[] =
+    Array.isArray(data?.metadata?.publications) && data.metadata.publications.length > 0
+      ? (data.metadata.publications as Publication[])
+      : publicationsData;
+
+  const displayedPublications =
+    activeFilter === "All Publications"
+      ? publicationsList
+      : publicationsList.filter(
+          (pub) => pub.category.toLowerCase() === activeFilter.toLowerCase(),
+        ).length > 0
+      ? publicationsList.filter(
+          (pub) => pub.category.toLowerCase() === activeFilter.toLowerCase(),
+        )
+      : publicationsList;
 
   return (
     <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
@@ -98,38 +132,43 @@ export default function ResearchRepository() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div className="flex flex-col gap-4 max-w-[850px]">
             {/* Pill Badge */}
-            <div className="w-fit border border-[#00698c] rounded-full px-3.5 py-1.5">
-              <span className="font-sans font-semibold text-xs sm:text-sm uppercase tracking-wider text-[#0a0d12]">
-                Scholarly Output
-              </span>
-            </div>
+            {badge && (
+              <div className="w-fit border border-[#00698c] rounded-full px-3.5 py-1.5">
+                <span className="font-sans font-semibold text-xs sm:text-sm uppercase tracking-wider text-[#0a0d12]">
+                  {badge}
+                </span>
+              </div>
+            )}
 
             {/* Title */}
             <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight sm:leading-[44px]">
-              Research Repository &amp; Publications
+              {title}
             </h2>
 
             {/* Subtitle */}
-            <p className="font-sans text-base sm:text-lg lg:text-[20px] text-[#0a0d12]/80 leading-relaxed sm:leading-[30px]">
-              Browse IILP&apos;s growing collection of scholarly outputs across all
-              research areas.
-            </p>
+            {subtitle && (
+              <p className="font-sans text-base sm:text-lg lg:text-[20px] text-[#0a0d12]/80 leading-relaxed sm:leading-[30px]">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           {/* Submit Research Button */}
-          <div className="shrink-0">
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base px-6 py-3.5 rounded-full drop-shadow-xs transition-colors duration-200 whitespace-nowrap"
-            >
-              Submit Research
-            </Link>
-          </div>
+          {actionText && (
+            <div className="shrink-0">
+              <Link
+                href={actionUrl}
+                className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base px-6 py-3.5 rounded-full drop-shadow-xs transition-colors duration-200 whitespace-nowrap"
+              >
+                {actionText}
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Filter Pills Container */}
         <div className="bg-[#e6f9ff] border border-[#e6f9ff] p-1.5 rounded-full flex flex-wrap items-center justify-center gap-1.5 w-fit mx-auto shadow-xs">
-          {filterCategories.map((cat) => {
+          {categories.map((cat) => {
             const isActive = activeFilter === cat;
             return (
               <button
@@ -150,7 +189,7 @@ export default function ResearchRepository() {
 
         {/* 2x2 Publications Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-[30px]">
-          {publicationsData.map((pub) => (
+          {displayedPublications.map((pub) => (
             <Link
               key={pub.id}
               href="/publication-details"

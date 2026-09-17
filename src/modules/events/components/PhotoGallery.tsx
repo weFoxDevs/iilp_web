@@ -49,7 +49,15 @@ const galleryBlocks: GalleryBlock[] = [
   },
 ];
 
-export function PhotoGallery() {
+import { PageSectionData } from "@/common/services/cms.service";
+
+interface PhotoGalleryProps {
+  data?: Partial<PageSectionData>;
+}
+
+export function PhotoGallery({ data }: PhotoGalleryProps = {}) {
+  const badge = data?.badge || "Visual Media";
+  const title = data?.title || "Photo Gallery";
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = (direction: "left" | "right") => {
@@ -66,13 +74,13 @@ export function PhotoGallery() {
         {/* Pill Badge */}
         <div className="inline-flex items-center border border-[#00698c] rounded-full px-3.5 py-2 bg-transparent">
           <span className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]">
-            Visual Media
+            {badge}
           </span>
         </div>
 
         {/* Section Heading */}
         <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]">
-          Photo Gallery
+          {title}
         </h2>
       </div>
 
