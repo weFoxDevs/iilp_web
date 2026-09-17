@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { PageSectionData } from "@/common/services/cms.service";
 import { EventItem, EventCategory } from "../types";
 import { initialEvents } from "../data/eventsData";
 import { EventCard } from "./EventCard";
 import { EventRegistrationModal } from "./EventRegistrationModal";
+import { fetchPublicEvents, transformApiEventToEventItem } from "@/common/services/events.service";
 
 const categories: EventCategory[] = [
   "All",
@@ -28,11 +29,35 @@ export function EventsCalendar({ data }: EventsCalendarProps = {}) {
 
   const [activeCategory, setActiveCategory] = useState<EventCategory>("All");
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
+  const [eventsList, setEventsList] = useState<EventItem[]>(initialEvents);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadEvents() {
+      setIsLoading(true);
+      try {
+        const res = await fetchPublicEvents({ limit: 50 });
+        if (isMounted && res && res.items && res.items.length > 0) {
+          const transformed = res.items.map(transformApiEventToEventItem);
+          setEventsList(transformed);
+        }
+      } catch (err) {
+        console.warn("[EventsCalendar] Using initial events fallback:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadEvents();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filteredEvents = useMemo(() => {
-    if (activeCategory === "All") return initialEvents;
-    return initialEvents.filter((item) => item.category === activeCategory);
-  }, [activeCategory]);
+    if (activeCategory === "All") return eventsList;
+    return eventsList.filter((item) => item.category === activeCategory);
+  }, [activeCategory, eventsList]);
 
   return (
     <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">

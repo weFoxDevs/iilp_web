@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { Header } from "@/common/components/Header";
@@ -8,13 +8,36 @@ import { EventDetailsHero } from "@/modules/events/components/EventDetailsHero";
 import { EventDetailsContent } from "@/modules/events/components/EventDetailsContent";
 import { PhotoGallery } from "@/modules/events/components/PhotoGallery";
 import { EventDetailsRelated } from "@/modules/events/components/EventDetailsRelated";
+import { fetchPublicEventBySlug, transformApiEventToEventItem } from "@/common/services/events.service";
+import { EventItem } from "@/modules/events/types";
 
 export default function EventDetailPage() {
   const router = useRouter();
   const { id } = router.query;
 
-  const event =
+  const defaultEvent =
     initialEvents.find((item) => item.id === id) || initialEvents[0];
+  const [event, setEvent] = useState<EventItem>(defaultEvent);
+
+  useEffect(() => {
+    if (!id || typeof id !== "string") return;
+
+    let isMounted = true;
+    async function loadEvent() {
+      try {
+        const apiEvent = await fetchPublicEventBySlug(id as string);
+        if (isMounted && apiEvent) {
+          setEvent(transformApiEventToEventItem(apiEvent));
+        }
+      } catch (err) {
+        console.warn("[EventDetailPage] Fallback to static event:", err);
+      }
+    }
+    loadEvent();
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
 
   return (
     <>
