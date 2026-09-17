@@ -14,6 +14,7 @@ import {
   ApiEventVenue,
   ApiEventRegistration,
 } from "@/common/services/events.service";
+import { uploadMediaFile } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
 
 interface EventsManagerProps {
@@ -130,6 +131,33 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<{ id: string; title: string } | null>(null);
   const [isDeletingEvent, setIsDeletingEvent] = useState(false);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 25 * 1024 * 1024) {
+      onShowToast("Banner image must be less than 25MB", "error");
+      return;
+    }
+
+    setIsUploadingBanner(true);
+    try {
+      const res = await uploadMediaFile(token, file, "events");
+      setEventFormData((prev) => ({
+        ...prev,
+        imageUrl: res.url,
+      }));
+      onShowToast("Event banner uploaded to Object Storage!", "success");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to upload banner";
+      onShowToast(msg, "error");
+    } finally {
+      setIsUploadingBanner(false);
+      e.target.value = "";
+    }
+  };
 
   // Summary Metrics
   const publishedCount = events.filter((e) => e.status === "PUBLISHED").length;
@@ -1258,10 +1286,51 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
                   {/* Media Image URL + Live Preview */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     <div>
-                      <label className="block font-bold text-gray-800 mb-1.5">Banner Image URL</label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block font-bold text-gray-800">Banner Image</label>
+                        {eventFormData.imageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setEventFormData({ ...eventFormData, imageUrl: "" })}
+                            className="text-[11px] font-medium text-red-500 hover:text-red-700"
+                          >
+                            Clear image
+                          </button>
+                        )}
+                      </div>
+                      <div className="mb-2">
+                        <label
+                          className={`flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl border border-dashed text-xs font-medium cursor-pointer transition-all ${
+                            isUploadingBanner
+                              ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
+                              : "bg-white border-[#00bfff] text-[#008cb3] hover:bg-[#f0f9ff]"
+                          }`}
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                            />
+                          </svg>
+                          <span>
+                            {isUploadingBanner
+                              ? "Uploading to MinIO / S3..."
+                              : "Upload Banner Image (MinIO / S3)"}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            disabled={isUploadingBanner}
+                            onChange={handleBannerUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
                       <input
                         type="text"
-                        placeholder="/images/events/default-event.jpg"
+                        placeholder="http://localhost:9000/iilp-media/... or /images/..."
                         value={eventFormData.imageUrl}
                         onChange={(e) => setEventFormData({ ...eventFormData, imageUrl: e.target.value })}
                         className="w-full bg-white text-gray-900 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs placeholder:text-gray-400 focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20 transition-all"

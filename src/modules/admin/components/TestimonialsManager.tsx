@@ -5,6 +5,7 @@ import {
   createAdminTestimonial,
   updateAdminTestimonial,
   deleteAdminTestimonial,
+  uploadMediaFile,
   TestimonialItem,
 } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
@@ -31,6 +32,33 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
     isPublished: true,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      onShowToast("Avatar image must be less than 10MB", "error");
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const res = await uploadMediaFile(token, file, "testimonials");
+      setFormData((prev) => ({
+        ...prev,
+        avatarUrl: res.url,
+      }));
+      onShowToast("Avatar uploaded to Object Storage!", "success");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to upload avatar";
+      onShowToast(msg, "error");
+    } finally {
+      setIsUploadingAvatar(false);
+      e.target.value = "";
+    }
+  };
 
   const loadTestimonials = useCallback(async () => {
     setIsLoading(true);
@@ -292,17 +320,81 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#344054] mb-1">
-                  Avatar Photo URL
-                </label>
-                <input
-                  type="text"
-                  value={formData.avatarUrl || ""}
-                  onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
-                  placeholder="/assets/testimonial-avatar.png"
-                  className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
-                />
+              {/* Avatar Photo & Storage Upload */}
+              <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-3.5">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-[#1e293b]">
+                    Author Avatar Photo
+                  </label>
+                  {formData.avatarUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, avatarUrl: "" })}
+                      className="text-[11px] font-medium text-red-500 hover:text-red-700 transition-colors"
+                    >
+                      Remove photo
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3 mb-3">
+                  {/* Avatar Preview */}
+                  <div className="relative w-12 h-12 rounded-full overflow-hidden border border-[#e2e8f0] bg-white flex-shrink-0 flex items-center justify-center">
+                    {formData.avatarUrl ? (
+                      <img
+                        src={formData.avatarUrl}
+                        alt="Avatar Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/assets/testimonial-avatar.png";
+                        }}
+                      />
+                    ) : (
+                      <span className="text-[10px] text-gray-400">No Photo</span>
+                    )}
+                  </div>
+
+                  {/* Upload Button */}
+                  <label
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-dashed text-xs font-medium cursor-pointer transition-all ${
+                      isUploadingAvatar
+                        ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
+                        : "bg-white border-[#00bfff] text-[#008cb3] hover:bg-[#f0f9ff]"
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
+                    </svg>
+                    <span>
+                      {isUploadingAvatar
+                        ? "Uploading to MinIO / S3..."
+                        : "Upload Avatar (MinIO / S3)"}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={isUploadingAvatar}
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Direct URL Input */}
+                <div>
+                  <input
+                    type="text"
+                    value={formData.avatarUrl || ""}
+                    onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
+                    placeholder="http://localhost:9000/iilp-media/... or /assets/..."
+                    className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                  />
+                </div>
               </div>
 
               <div>

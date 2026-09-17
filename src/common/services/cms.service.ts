@@ -140,6 +140,73 @@ export async function upsertAdminSection(
   return res.json();
 }
 
+export interface UploadMediaResult {
+  url: string;
+  path: string;
+  originalname?: string;
+  size?: number;
+  mimetype?: string;
+}
+
+export async function uploadMediaFile(
+  token: string,
+  file: File,
+  folder: string = 'pages'
+): Promise<UploadMediaResult> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(
+    `${getApiUrl()}/uploads?folder=${encodeURIComponent(folder)}`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    }
+  );
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(
+      errorData.message || `File upload failed with status ${res.status}`
+    );
+  }
+
+  return res.json();
+}
+
+export async function uploadSectionImage(
+  token: string,
+  pageSlug: string,
+  sectionKey: string,
+  file: File
+): Promise<{ success: boolean; url: string; path: string; section: PageSectionData }> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(
+    `${getApiUrl()}/admin/pages/${encodeURIComponent(pageSlug)}/sections/${encodeURIComponent(sectionKey)}/image`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    }
+  );
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(
+      errorData.message || `Section image upload failed with status ${res.status}`
+    );
+  }
+
+  return res.json();
+}
+
 export async function deleteAdminSection(
   token: string,
   pageSlug: string,
