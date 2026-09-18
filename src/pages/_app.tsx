@@ -1,6 +1,7 @@
 import type { AppProps } from 'next/app';
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/common/components/AuthContext";
+import { SiteLayoutProvider } from "@/common/components/SiteLayoutContext";
 import "@/assets/style/globals.css";
 import "lenis/dist/lenis.css";
 import { useEffect } from 'react';
@@ -61,7 +62,9 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <div className={`${geistSans.variable} ${geistMono.variable} min-h-screen flex flex-col antialiased`}>
       <AuthProvider>
-        <Component {...pageProps} />
+        <SiteLayoutProvider>
+          <Component {...pageProps} />
+        </SiteLayoutProvider>
       </AuthProvider>
     </div>
   );

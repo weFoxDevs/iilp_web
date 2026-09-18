@@ -7,6 +7,7 @@ export interface PageSectionData {
   bodyContent?: string | null;
   actionText?: string | null;
   actionUrl?: string | null;
+  sectionKey?: string;
   metadata?: Record<string, unknown>;
   sortOrder?: number;
   isActive?: boolean;
@@ -119,6 +120,15 @@ export async function seedAdminHomeSections(token: string): Promise<PageSectionD
     headers: getAuthHeaders(token),
   });
   if (!res.ok) throw new Error(`Failed to seed home sections (${res.status})`);
+  return res.json();
+}
+
+export async function seedAdminLayoutSections(token: string): Promise<PageSectionData[]> {
+  const res = await fetch(`${getApiUrl()}/admin/pages/seed-layout`, {
+    method: 'POST',
+    headers: getAuthHeaders(token),
+  });
+  if (!res.ok) throw new Error(`Failed to seed layout sections (${res.status})`);
   return res.json();
 }
 
