@@ -1,91 +1,35 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/router";
-
-interface DropdownItem {
-  name: string;
-  href: string;
-  description: string;
-  badge?: string;
-}
-
-interface DropdownGroup {
-  category: string;
-  items: DropdownItem[];
-}
-
-const othersGroups: DropdownGroup[] = [
-  {
-    category: "Research & Academics",
-    items: [
-      {
-        name: "Research & Publications",
-        href: "/publications",
-        description: "Repository of policy briefs, papers & reports",
-      },
-      {
-        name: "Publication Details",
-        href: "/publication-details",
-        description: "In-depth research paper & publication sample",
-      },
-      {
-        name: "Department Details",
-        href: "/department-details",
-        description: "Academic departments, courses & faculty",
-      },
-      {
-        name: "Leadership Directory",
-        href: "/leadership-directory",
-        description: "Executive leadership & distinguished faculty profiles",
-      },
-    ],
-  },
-  {
-    category: "Media & Partnerships",
-    items: [
-      {
-        name: "Events & Conferences",
-        href: "/events",
-        description: "Conferences, seminars, workshops & webinars",
-      },
-      {
-        name: "Event Details",
-        href: "/event-details",
-        description: "Symposium agenda, highlights & registration",
-      },
-      {
-        name: "News & Media Center",
-        href: "/news-media",
-        description: "Press releases, events & photo gallery",
-      },
-      {
-        name: "News Article Details",
-        href: "/news-details",
-        description: "Student clubs & campus news details",
-      },
-      {
-        name: "Partnership Framework",
-        href: "/partnership-framework",
-        description: "Collaborative engagement across five strategic tracks",
-      },
-      {
-        name: "Global Fellowship Network",
-        href: "/fellowships",
-        description: "Junior, Research & Honorary fellows network",
-      },
-    ],
-  },
-];
-
-// Flat list for checking active route
-const allOthersItems = othersGroups.flatMap((g) => g.items);
+import { useSiteLayout } from "./SiteLayoutContext";
 
 export default function NavBar() {
   const router = useRouter();
+  const { navbar } = useSiteLayout();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Auto-detect whether image is square with padding (like logo.png) or tight horizontal
+  const [isSquareLogo, setIsSquareLogo] = useState<boolean>(true);
+
+  const othersGroups = navbar.dropdownGroups;
+  const navLinks = navbar.navLinks;
+  const allOthersItems = othersGroups.flatMap((g) => g.items || []);
+
+  const logoUrl = navbar.logo.url || "/assets/logo.png";
+  const logoHeight = navbar.logo.height || 56;
+  const logoFit = navbar.logo.fit || "auto";
+  const shouldZoom = logoFit === "zoom" || (logoFit === "auto" && isSquareLogo);
+
+  const handleLogoLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    if (naturalWidth && naturalHeight) {
+      const ratio = naturalWidth / naturalHeight;
+      // If ratio is between 0.75 and 1.35, it is a square image with centered logo like logo.png
+      setIsSquareLogo(ratio >= 0.75 && ratio <= 1.35);
+    }
+  };
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -101,13 +45,6 @@ export default function NavBar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const navLinks = [
-    { name: "About IILP", href: "/about" },
-    { name: "Governance", href: "/governance" },
-    { name: "Academics", href: "/academics" },
-    { name: "Fellowships", href: "/fellowships" },
-  ];
-
   const isOthersActive = allOthersItems.some((item) =>
     router.pathname.startsWith(item.href)
   );
@@ -116,14 +53,46 @@ export default function NavBar() {
     <div className="w-full bg-white drop-shadow-[0px_37px_40.5px_rgba(0,0,0,0.06)] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-[30px] py-[9px] relative z-40">
       <div className="w-full max-w-[1440px] h-[65px] flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center shrink-0" aria-label="IILP Home">
-          <div className="w-[127px] h-[56px] relative shrink-0 overflow-hidden">
-            <img
-              src="/assets/logo.png"
-              alt="IILP Logo"
-              className="absolute h-[274.59%] w-[120.67%] max-w-none left-[-9.93%] top-[-85.73%] pointer-events-none select-none"
-            />
-          </div>
+        <Link
+          href={navbar.logo.href || "/"}
+          className="flex items-center shrink-0"
+          aria-label={navbar.logo.alt || "IILP Home"}
+        >
+          {shouldZoom ? (
+            <div
+              className="relative shrink-0 overflow-hidden flex items-center justify-center"
+              style={{
+                width: `${Math.round(logoHeight * 2.27)}px`,
+                height: `${logoHeight}px`,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={logoUrl}
+                alt={navbar.logo.alt || "IILP Logo"}
+                onLoad={handleLogoLoad}
+                className="absolute h-[275%] w-[122%] max-w-none left-[-10%] top-[-86%] pointer-events-none select-none"
+              />
+            </div>
+          ) : (
+            <div
+              className="relative shrink-0 flex items-center justify-start"
+              style={{
+                height: `${logoHeight}px`,
+                minWidth: "120px",
+                maxWidth: "240px",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={logoUrl}
+                alt={navbar.logo.alt || "IILP Logo"}
+                onLoad={handleLogoLoad}
+                style={{ maxHeight: `${logoHeight}px` }}
+                className="w-auto max-w-full object-contain pointer-events-none select-none"
+              />
+            </div>
+          )}
         </Link>
 
         {/* Desktop Navigation & Action Buttons */}
@@ -260,25 +229,41 @@ export default function NavBar() {
           </nav>
 
           {/* Action Buttons */}
+          {/* Action Buttons */}
           <div className="flex items-center gap-[8px] font-sans">
-            <Link
-              href="/donate"
-              className="text-[14px] font-semibold text-[#101828] hover:text-primary-500 px-[16px] py-[10px] transition-colors rounded-full"
-            >
-              Donate
-            </Link>
-            <Link
-              href="/contact"
-              className="bg-[#f9fafb] border border-[#e5e7eb] rounded-full px-[16px] py-[10px] text-[14px] font-semibold text-[#4a5565] hover:bg-white hover:text-gray-900 transition-colors drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)]"
-            >
-              Contact
-            </Link>
-            <Link
-              href="/fellowships#apply"
-              className="bg-[#00bfff] hover:bg-sky-400 rounded-full px-[16px] py-[10px] text-[14px] font-semibold text-white transition-colors drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)]"
-            >
-              Apply Now
-            </Link>
+            {navbar.actionButtons.map((btn) => {
+              if (btn.variant === "primary") {
+                return (
+                  <Link
+                    key={btn.name + btn.href}
+                    href={btn.href}
+                    className="bg-[#00bfff] hover:bg-sky-400 rounded-full px-[16px] py-[10px] text-[14px] font-semibold text-white transition-colors drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)]"
+                  >
+                    {btn.name}
+                  </Link>
+                );
+              }
+              if (btn.variant === "outline") {
+                return (
+                  <Link
+                    key={btn.name + btn.href}
+                    href={btn.href}
+                    className="bg-[#f9fafb] border border-[#e5e7eb] rounded-full px-[16px] py-[10px] text-[14px] font-semibold text-[#4a5565] hover:bg-white hover:text-gray-900 transition-colors drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)]"
+                  >
+                    {btn.name}
+                  </Link>
+                );
+              }
+              return (
+                <Link
+                  key={btn.name + btn.href}
+                  href={btn.href}
+                  className="text-[14px] font-semibold text-[#101828] hover:text-primary-500 px-[16px] py-[10px] transition-colors rounded-full"
+                >
+                  {btn.name}
+                </Link>
+              );
+            })}
           </div>
         </div>
 
@@ -350,27 +335,22 @@ export default function NavBar() {
 
           {/* Mobile Buttons */}
           <div className="flex flex-col gap-2 pt-3 border-t border-gray-100">
-            <Link
-              href="/donate"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-center py-2.5 text-sm font-semibold text-gray-900 border border-gray-200 rounded-full"
-            >
-              Donate
-            </Link>
-            <Link
-              href="/contact"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-center py-2.5 text-sm font-semibold text-gray-600 bg-gray-50 border border-gray-200 rounded-full"
-            >
-              Contact
-            </Link>
-            <Link
-              href="/fellowships#apply"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-center py-2.5 text-sm font-semibold text-white bg-[#00bfff] rounded-full"
-            >
-              Apply Now
-            </Link>
+            {navbar.actionButtons.map((btn) => (
+              <Link
+                key={"mob-" + btn.name + btn.href}
+                href={btn.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`text-center py-2.5 text-sm font-semibold rounded-full ${
+                  btn.variant === "primary"
+                    ? "text-white bg-[#00bfff]"
+                    : btn.variant === "outline"
+                    ? "text-gray-600 bg-gray-50 border border-gray-200"
+                    : "text-gray-900 border border-gray-200"
+                }`}
+              >
+                {btn.name}
+              </Link>
+            ))}
           </div>
         </div>
       )}

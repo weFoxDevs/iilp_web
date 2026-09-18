@@ -4,6 +4,7 @@ import {
   fetchAdminSections,
   upsertAdminSection,
   deleteAdminSection,
+  uploadMediaFile,
   PageSectionData,
 } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
@@ -157,6 +158,48 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
   });
   const [metadataJson, setMetadataJson] = useState("{}");
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
+
+  const closeModal = () => {
+    if (localImagePreview) {
+      URL.revokeObjectURL(localImagePreview);
+    }
+    setPendingImageFile(null);
+    setLocalImagePreview(null);
+    setIsModalOpen(false);
+  };
+
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 25 * 1024 * 1024) {
+      onShowToast("Image size must be less than 25MB", "error");
+      return;
+    }
+
+    if (localImagePreview) {
+      URL.revokeObjectURL(localImagePreview);
+    }
+
+    setPendingImageFile(file);
+    setLocalImagePreview(URL.createObjectURL(file));
+    e.target.value = "";
+  };
+
+  const handleRemoveImage = () => {
+    if (localImagePreview) {
+      URL.revokeObjectURL(localImagePreview);
+    }
+    setPendingImageFile(null);
+    setLocalImagePreview(null);
+    setFormData((prev) => ({
+      ...prev,
+      bgImage: "",
+    }));
+  };
 
   // Load unique slugs from DB
   const loadPageSlugs = useCallback(async () => {
@@ -215,6 +258,11 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
   }, [token, selectedPage, onShowToast]);
 
   const handleOpenEdit = (section: AdminSectionItem) => {
+    if (localImagePreview) {
+      URL.revokeObjectURL(localImagePreview);
+    }
+    setPendingImageFile(null);
+    setLocalImagePreview(null);
     setIsNewSection(false);
     setIsCustomKey(false);
     setEditingKey(section.sectionKey || "");
@@ -234,6 +282,11 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
   };
 
   const handleOpenCreate = () => {
+    if (localImagePreview) {
+      URL.revokeObjectURL(localImagePreview);
+    }
+    setPendingImageFile(null);
+    setLocalImagePreview(null);
     setIsNewSection(true);
     setIsCustomKey(false);
 
@@ -300,10 +353,28 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
 
     setIsSaving(true);
     try {
+      let finalBgImage = formData.bgImage;
+
+      // Only upload the file to storage when the admin confirms and saves the section!
+      if (pendingImageFile) {
+        setIsUploadingImage(true);
+        const res = await uploadMediaFile(token, pendingImageFile, `pages/${selectedPage}`);
+        finalBgImage = res.url;
+        setIsUploadingImage(false);
+      }
+
       await upsertAdminSection(token, selectedPage, editingKey.trim(), {
         ...formData,
+        bgImage: finalBgImage,
         metadata: parsedMeta,
       });
+
+      if (localImagePreview) {
+        URL.revokeObjectURL(localImagePreview);
+      }
+      setPendingImageFile(null);
+      setLocalImagePreview(null);
+
       onShowToast(`Section '${editingKey}' saved successfully!`, "success");
       setIsModalOpen(false);
       loadSections();
@@ -311,6 +382,7 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
     } catch (err: unknown) {
       onShowToast(err instanceof Error ? err.message : "Failed to save section", "error");
     } finally {
+      setIsUploadingImage(false);
       setIsSaving(false);
     }
   };
@@ -493,7 +565,7 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                 {isNewSection ? `Add New Section for /${selectedPage}` : `Edit Section '${editingKey}'`}
               </h3>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 className="text-[#98a2b3] hover:text-[#101828] text-lg font-bold cursor-pointer"
               >
                 &times;
@@ -627,18 +699,117 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                 />
               </div>
 
-              {/* Background Image */}
-              <div>
-                <label className="block text-xs font-bold text-[#344054] mb-1">
-                  Background / Hero Image URL
-                </label>
-                <input
-                  type="text"
-                  value={formData.bgImage || ""}
-                  onChange={(e) => setFormData({ ...formData, bgImage: e.target.value })}
-                  placeholder="/assets/home-hero-v2.png or /uploads/..."
-                  className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
-                />
+              {/* Background Image & Storage Upload */}
+              <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-[#1e293b]">
+                    Section Image / Hero Banner
+                  </label>
+                  {(formData.bgImage || pendingImageFile) && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="text-[11px] font-medium text-red-500 hover:text-red-700 transition-colors cursor-pointer"
+                    >
+                      Remove image
+                    </button>
+                  )}
+                </div>
+
+                {/* Staged File Banner */}
+                {pendingImageFile && (
+                  <div className="mb-3 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
+                      <p className="text-[11px] text-emerald-800 font-medium truncate">
+                        Selected: <span className="font-bold">{pendingImageFile.name}</span> ({(pendingImageFile.size / 1024).toFixed(0)} KB) — will upload to storage upon clicking Save Section.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (localImagePreview) URL.revokeObjectURL(localImagePreview);
+                        setPendingImageFile(null);
+                        setLocalImagePreview(null);
+                      }}
+                      className="text-[11px] font-bold text-gray-500 hover:text-gray-800 underline shrink-0 cursor-pointer"
+                    >
+                      Discard
+                    </button>
+                  </div>
+                )}
+
+                {/* Upload / Select Button */}
+                <div className="mb-3">
+                  <label
+                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-dashed text-xs font-medium cursor-pointer transition-all ${
+                      isUploadingImage || isSaving
+                        ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
+                        : "bg-white border-[#00bfff] text-[#008cb3] hover:bg-[#f0f9ff] hover:border-[#0099cc]"
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
+                    </svg>
+                    <span>
+                      {isUploadingImage
+                        ? "Uploading to MinIO / S3 Storage..."
+                        : pendingImageFile
+                        ? "Choose Different Image"
+                        : formData.bgImage
+                        ? "Replace Image with New Upload"
+                        : "Select Image File (uploads on save)"}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={isUploadingImage || isSaving}
+                      onChange={handleFileSelected}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Live Image Preview */}
+                {(localImagePreview || formData.bgImage) && (
+                  <div className="relative mb-3 rounded-xl overflow-hidden border border-[#e2e8f0] bg-[#f1f5f9] max-h-[160px] flex items-center justify-center">
+                    <img
+                      src={localImagePreview || formData.bgImage || undefined}
+                      alt="Section Preview"
+                      className="w-full h-[140px] object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                    <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-xs text-white text-[10px] font-medium px-2 py-0.5 rounded-md truncate max-w-[90%]">
+                      {localImagePreview ? `Local Preview: ${pendingImageFile?.name}` : formData.bgImage}
+                    </div>
+                  </div>
+                )}
+
+                {/* Direct URL / Path input */}
+                <div>
+                  <span className="block text-[11px] font-medium text-gray-500 mb-1">
+                    Or specify image path / URL:
+                  </span>
+                  <input
+                    type="text"
+                    value={formData.bgImage || ""}
+                    onChange={(e) => {
+                      if (localImagePreview) URL.revokeObjectURL(localImagePreview);
+                      setPendingImageFile(null);
+                      setLocalImagePreview(null);
+                      setFormData({ ...formData, bgImage: e.target.value });
+                    }}
+                    placeholder="http://localhost:9000/iilp-media/... or /assets/..."
+                    className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                  />
+                </div>
               </div>
 
               {/* CTA Action */}
@@ -725,7 +896,7 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={closeModal}
                     className="px-4 py-2 text-xs font-bold text-[#4a5565] hover:bg-[#f3f4f6] rounded-xl cursor-pointer"
                   >
                     Cancel

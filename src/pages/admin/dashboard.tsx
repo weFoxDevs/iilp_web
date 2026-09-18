@@ -8,6 +8,7 @@ import { PageContentManager } from "@/modules/admin/components/PageContentManage
 import { SiteMetricsManager } from "@/modules/admin/components/SiteMetricsManager";
 import { TestimonialsManager } from "@/modules/admin/components/TestimonialsManager";
 import { EventsManager } from "@/modules/admin/components/EventsManager";
+import { SiteLayoutManager } from "@/modules/admin/components/SiteLayoutManager";
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -70,6 +71,7 @@ const VALID_TABS = [
   "admin-manage",
   "role-manage",
   "events",
+  "site-layout",
   "page-content",
   "site-metrics",
   "testimonials",
@@ -883,14 +885,14 @@ export default function AdminDashboard() {
             <button
               onClick={() => setCmsMenuOpen(!cmsMenuOpen)}
               className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "page-content" || activeTab === "site-metrics" || activeTab === "testimonials"
+                activeTab === "site-layout" || activeTab === "page-content" || activeTab === "site-metrics" || activeTab === "testimonials"
                   ? "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
                   : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
               }`}
             >
               <div className="flex items-center gap-2 min-w-0">
                 <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                  activeTab === "page-content" || activeTab === "site-metrics" || activeTab === "testimonials"
+                  activeTab === "site-layout" || activeTab === "page-content" || activeTab === "site-metrics" || activeTab === "testimonials"
                     ? "bg-[#00bfff] text-white"
                     : "bg-[#f0f4f8] text-[#4a5565]"
                 }`}>
@@ -915,6 +917,20 @@ export default function AdminDashboard() {
 
             {cmsMenuOpen && (
               <div className="pl-2 pr-0 py-1 space-y-1 ml-2.5 border-l-2 border-[#b0ebff]">
+                <button
+                  onClick={() => handleTabChange("site-layout")}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === "site-layout"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "site-layout" ? "bg-[#00bfff]" : "bg-purple-500"}`}></span>
+                    <span className="truncate whitespace-nowrap">Site Layout &amp; Branding</span>
+                  </div>
+                </button>
+
                 <button
                   onClick={() => handleTabChange("page-content")}
                   className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
@@ -995,6 +1011,7 @@ export default function AdminDashboard() {
               {activeTab === "admin-manage" && "Administrator Management"}
               {activeTab === "role-manage" && "Role & RBAC Security"}
               {activeTab === "events" && "Events & Conferences Management"}
+              {activeTab === "site-layout" && "Global Layout, Navbar & Footer Branding"}
               {activeTab === "page-content" && "Page Content (CMS) Engine"}
               {activeTab === "site-metrics" && "Site Impact Metrics"}
               {activeTab === "testimonials" && "Student & Scholar Testimonials"}
@@ -1551,6 +1568,14 @@ export default function AdminDashboard() {
           {/* TAB: EVENTS & CONFERENCES */}
           {activeTab === "events" && token && (
             <EventsManager
+              token={token}
+              onShowToast={(msg, type) => setToast({ message: msg, type })}
+            />
+          )}
+
+          {/* TAB: SITE LAYOUT & BRANDING */}
+          {activeTab === "site-layout" && token && (
+            <SiteLayoutManager
               token={token}
               onShowToast={(msg, type) => setToast({ message: msg, type })}
             />

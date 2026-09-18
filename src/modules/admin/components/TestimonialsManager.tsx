@@ -5,6 +5,7 @@ import {
   createAdminTestimonial,
   updateAdminTestimonial,
   deleteAdminTestimonial,
+  uploadMediaFile,
   TestimonialItem,
 } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
@@ -31,6 +32,48 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
     isPublished: true,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
+  const [localAvatarPreview, setLocalAvatarPreview] = useState<string | null>(null);
+
+  const closeTestimonialModal = () => {
+    if (localAvatarPreview) {
+      URL.revokeObjectURL(localAvatarPreview);
+    }
+    setPendingAvatarFile(null);
+    setLocalAvatarPreview(null);
+    setIsModalOpen(false);
+  };
+
+  const handleAvatarSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      onShowToast("Avatar image must be less than 10MB", "error");
+      return;
+    }
+
+    if (localAvatarPreview) {
+      URL.revokeObjectURL(localAvatarPreview);
+    }
+
+    setPendingAvatarFile(file);
+    setLocalAvatarPreview(URL.createObjectURL(file));
+    e.target.value = "";
+  };
+
+  const handleRemoveAvatar = () => {
+    if (localAvatarPreview) {
+      URL.revokeObjectURL(localAvatarPreview);
+    }
+    setPendingAvatarFile(null);
+    setLocalAvatarPreview(null);
+    setFormData((prev) => ({
+      ...prev,
+      avatarUrl: "",
+    }));
+  };
 
   const loadTestimonials = useCallback(async () => {
     setIsLoading(true);
@@ -65,6 +108,11 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
   }, [token, onShowToast]);
 
   const handleOpenCreate = () => {
+    if (localAvatarPreview) {
+      URL.revokeObjectURL(localAvatarPreview);
+    }
+    setPendingAvatarFile(null);
+    setLocalAvatarPreview(null);
     setEditingId(null);
     setFormData({
       authorName: "",
@@ -79,6 +127,11 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
   };
 
   const handleOpenEdit = (t: TestimonialItem) => {
+    if (localAvatarPreview) {
+      URL.revokeObjectURL(localAvatarPreview);
+    }
+    setPendingAvatarFile(null);
+    setLocalAvatarPreview(null);
     setEditingId(t.id);
     setFormData({
       authorName: t.authorName,
@@ -101,18 +154,40 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
 
     setIsSubmitting(true);
     try {
+      let finalAvatarUrl = formData.avatarUrl;
+
+      if (pendingAvatarFile) {
+        setIsUploadingAvatar(true);
+        const res = await uploadMediaFile(token, pendingAvatarFile, "testimonials");
+        finalAvatarUrl = res.url;
+        setIsUploadingAvatar(false);
+      }
+
+      const payload = {
+        ...formData,
+        avatarUrl: finalAvatarUrl,
+      };
+
       if (editingId) {
-        await updateAdminTestimonial(token, editingId, formData);
+        await updateAdminTestimonial(token, editingId, payload);
         onShowToast("Testimonial updated successfully!", "success");
       } else {
-        await createAdminTestimonial(token, formData);
+        await createAdminTestimonial(token, payload);
         onShowToast("New testimonial created!", "success");
       }
+
+      if (localAvatarPreview) {
+        URL.revokeObjectURL(localAvatarPreview);
+      }
+      setPendingAvatarFile(null);
+      setLocalAvatarPreview(null);
+
       setIsModalOpen(false);
       loadTestimonials();
     } catch (err: unknown) {
       onShowToast(err instanceof Error ? err.message : "Failed to save testimonial", "error");
     } finally {
+      setIsUploadingAvatar(false);
       setIsSubmitting(false);
     }
   };
@@ -243,7 +318,7 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
                 {editingId ? "Edit Testimonial" : "Add Testimonial"}
               </h3>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeTestimonialModal}
                 className="text-[#98a2b3] hover:text-[#101828] text-lg font-bold cursor-pointer"
               >
                 &times;
@@ -254,26 +329,27 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-[#344054] mb-1">
-                    Author Name <span className="text-red-500">*</span>
+                    Author Full Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    value={formData.authorName || ""}
+                    value={formData.authorName}
                     onChange={(e) => setFormData({ ...formData, authorName: e.target.value })}
-                    placeholder="e.g. Sophia Lee"
+                    placeholder="e.g. Elena Rostova"
                     className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
                   />
                 </div>
+
                 <div>
                   <label className="block text-xs font-bold text-[#344054] mb-1">
-                    Title / Cohort
+                    Title / Position / Degree
                   </label>
                   <input
                     type="text"
                     value={formData.authorTitle || ""}
                     onChange={(e) => setFormData({ ...formData, authorTitle: e.target.value })}
-                    placeholder="e.g. BBA, Class of 2022"
+                    placeholder="e.g. Master of International Law '23"
                     className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
                   />
                 </div>
@@ -281,7 +357,7 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
 
               <div>
                 <label className="block text-xs font-bold text-[#344054] mb-1">
-                  Institution / Affiliation
+                  Institution / Organization / Affiliation
                 </label>
                 <input
                   type="text"
@@ -292,17 +368,110 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#344054] mb-1">
-                  Avatar Photo URL
-                </label>
-                <input
-                  type="text"
-                  value={formData.avatarUrl || ""}
-                  onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
-                  placeholder="/assets/testimonial-avatar.png"
-                  className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
-                />
+              {/* Avatar Photo & Storage Upload */}
+              <div className="bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-3.5">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-[#1e293b]">
+                    Author Avatar Photo
+                  </label>
+                  {(formData.avatarUrl || pendingAvatarFile) && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAvatar}
+                      className="text-[11px] font-medium text-red-500 hover:text-red-700 transition-colors cursor-pointer"
+                    >
+                      Remove photo
+                    </button>
+                  )}
+                </div>
+
+                {/* Staged Avatar Banner */}
+                {pendingAvatarFile && (
+                  <div className="mb-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-2">
+                    <p className="text-[11px] text-emerald-800 font-medium truncate">
+                      Selected: <span className="font-bold">{pendingAvatarFile.name}</span> — will upload on save
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (localAvatarPreview) URL.revokeObjectURL(localAvatarPreview);
+                        setPendingAvatarFile(null);
+                        setLocalAvatarPreview(null);
+                      }}
+                      className="text-[10px] font-bold text-gray-500 hover:text-gray-800 underline shrink-0 cursor-pointer"
+                    >
+                      Discard
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 mb-3">
+                  {/* Avatar Preview */}
+                  <div className="relative w-12 h-12 rounded-full overflow-hidden border border-[#e2e8f0] bg-white shrink-0 flex items-center justify-center">
+                    {(localAvatarPreview || formData.avatarUrl) ? (
+                      <img
+                        src={localAvatarPreview || formData.avatarUrl || undefined}
+                        alt="Avatar Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/assets/testimonial-avatar.png";
+                        }}
+                      />
+                    ) : (
+                      <span className="text-[10px] text-gray-400">No Photo</span>
+                    )}
+                  </div>
+
+                  {/* Upload Button */}
+                  <label
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-dashed text-xs font-medium cursor-pointer transition-all ${
+                      isUploadingAvatar || isSubmitting
+                        ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
+                        : "bg-white border-[#00bfff] text-[#008cb3] hover:bg-[#f0f9ff]"
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
+                    </svg>
+                    <span>
+                      {isUploadingAvatar
+                        ? "Uploading to Storage..."
+                        : pendingAvatarFile
+                        ? "Change Avatar File"
+                        : formData.avatarUrl
+                        ? "Replace Avatar File"
+                        : "Upload Avatar (uploads on save)"}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={isUploadingAvatar || isSubmitting}
+                      onChange={handleAvatarSelected}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Direct URL Input */}
+                <div>
+                  <input
+                    type="text"
+                    value={formData.avatarUrl || ""}
+                    onChange={(e) => {
+                      if (localAvatarPreview) URL.revokeObjectURL(localAvatarPreview);
+                      setPendingAvatarFile(null);
+                      setLocalAvatarPreview(null);
+                      setFormData({ ...formData, avatarUrl: e.target.value });
+                    }}
+                    placeholder="http://localhost:9000/iilp-media/... or /assets/..."
+                    className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                  />
+                </div>
               </div>
 
               <div>
@@ -346,7 +515,7 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e7eb]">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={closeTestimonialModal}
                   className="px-4 py-2 text-xs font-bold text-[#4a5565] hover:bg-[#f3f4f6] rounded-xl cursor-pointer"
                 >
                   Cancel
