@@ -1,14 +1,26 @@
 import React from "react";
 import Image from "next/image";
 
-export default function DepartmentDetailsHero() {
+import { DepartmentItem } from "@/common/services/departments.service";
+
+interface DepartmentDetailsHeroProps {
+  department?: DepartmentItem | null;
+}
+
+export default function DepartmentDetailsHero({ department }: DepartmentDetailsHeroProps) {
+  const title = department?.name || "Department of Law and International Legal Studies";
+  const subtitle =
+    department?.description ||
+    "The Department of Law and International Legal Studies is dedicated to advancing rigorous scholarship and education in international law, legal theory, and global governance.";
+  const image = department?.image || "/assets/department-details-hero.png";
+
   return (
     <section className="relative w-full min-h-[620px] lg:h-[750px] overflow-hidden flex flex-col items-center justify-end pb-[160px] sm:pb-[200px] lg:pb-[240px] pt-[160px] sm:pt-[180px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] text-center isolate">
       {/* Background Image with Dark and Soft Gradients */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
-          src="/assets/department-details-hero.png"
-          alt="Department of Law and International Legal Studies"
+          src={image}
+          alt={title}
           fill
           priority
           sizes="100vw"
@@ -31,14 +43,12 @@ export default function DepartmentDetailsHero() {
 
         {/* Heading */}
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-serif font-semibold text-white tracking-[-0.96px] leading-tight sm:leading-[1.2] lg:leading-[60px] max-w-[856px]">
-          Department of Law and International Legal Studies
+          {title}
         </h1>
 
         {/* Subtitle */}
         <p className="text-white/95 text-base sm:text-lg lg:text-[20px] font-sans font-normal leading-relaxed lg:leading-[30px] max-w-[978px] drop-shadow-xs">
-          The Department of Law and International Legal Studies is dedicated to
-          advancing rigorous scholarship and education in international law, legal theory,
-          and global governance.
+          {subtitle}
         </p>
       </div>
     </section>

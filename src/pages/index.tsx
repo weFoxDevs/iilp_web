@@ -20,7 +20,10 @@ export default function Home() {
       
       <main className="flex-grow overflow-x-hidden">
         <Hero data={getSection("hero")} />
-        <MissionVision data={getSection("mission_vision")} />
+        <MissionVision
+          missionData={getSection("our_mission")}
+          visionData={getSection("our_vision")}
+        />
         <AcademicPrograms data={getSection("academic_programs")} />
         <Events data={getSection("events")} />
         <Testimonial />

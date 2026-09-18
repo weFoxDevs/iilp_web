@@ -1,6 +1,8 @@
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PageSectionData } from '@/common/services/cms.service';
+import { fetchDepartments } from '@/common/services/departments.service';
 
 interface DepartmentItem {
   number: string;
@@ -8,6 +10,7 @@ interface DepartmentItem {
   description: string;
   image?: string;
   isActive: boolean;
+  slug?: string;
 }
 
 const defaultDepartments: DepartmentItem[] = [
@@ -17,6 +20,7 @@ const defaultDepartments: DepartmentItem[] = [
     description: "Advancing legal scholarship, international law, and justice systems in a changing global order.",
     image: "/assets/academic-thumbnail-1.png",
     isActive: false,
+    slug: "law-international-legal-studies",
   },
   {
     number: "02",
@@ -24,6 +28,7 @@ const defaultDepartments: DepartmentItem[] = [
     description: "Examining governance frameworks, democratic institutions, and political systems worldwide.",
     image: "/assets/academic-thumbnail-1.png",
     isActive: true,
+    slug: "political-science-governance",
   },
   {
     number: "03",
@@ -31,6 +36,7 @@ const defaultDepartments: DepartmentItem[] = [
     description: "Promoting human dignity, rights-based approaches, and humanitarian action globally.",
     image: "/assets/academic-thumbnail-1.png",
     isActive: false,
+    slug: "human-rights-humanitarian-studies",
   },
 ];
 
@@ -39,6 +45,34 @@ interface AcademicProgramsProps {
 }
 
 export function AcademicPrograms({ data }: AcademicProgramsProps) {
+  const [apiDepartments, setApiDepartments] = useState<DepartmentItem[] | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchDepartments({ limit: 3, activeOnly: true })
+      .then((items) => {
+        if (isMounted && Array.isArray(items) && items.length > 0) {
+          setApiDepartments(
+            items.slice(0, 3).map((d, idx) => ({
+              number: d.number || String(idx + 1).padStart(2, "0"),
+              title: d.name,
+              description: d.description,
+              image: d.image || "/assets/academic-thumbnail-1.png",
+              isActive: Boolean(d.isHighlighted),
+              slug: d.slug,
+            }))
+          );
+        }
+      })
+      .catch(() => {
+        // graceful fallback to section metadata or defaults
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const section = {
     badge: data?.badge ?? 'Academic Programs',
     title: data?.title ?? 'Six Academic Departments',
@@ -52,8 +86,12 @@ export function AcademicPrograms({ data }: AcademicProgramsProps) {
     },
   };
 
-  const departments =
-    ((section.metadata || {}).departments as DepartmentItem[]) || defaultDepartments;
+  const rawDepartments =
+    apiDepartments ||
+    ((section.metadata || {}).departments as DepartmentItem[]) ||
+    defaultDepartments;
+
+  const departments = (Array.isArray(rawDepartments) ? rawDepartments : defaultDepartments).slice(0, 3);
 
   return (
     <section className="w-full bg-[#e6f9ff] py-16 lg:py-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">
@@ -83,7 +121,7 @@ export function AcademicPrograms({ data }: AcademicProgramsProps) {
           {departments.map((dept, index) => (
             <Link 
               key={index} 
-              href={section.actionUrl || "/academics"} 
+              href={dept.slug ? `/academics/${dept.slug}` : (section.actionUrl || "/academics")} 
               className="flex flex-col gap-[30px] items-center w-full group cursor-pointer"
             >
               <div className="relative w-full aspect-[413/390] overflow-visible">

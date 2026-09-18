@@ -7,6 +7,7 @@ import Toast, { ToastType } from "@/common/components/Toast";
 import { PageContentManager } from "@/modules/admin/components/PageContentManager";
 import { SiteMetricsManager } from "@/modules/admin/components/SiteMetricsManager";
 import { TestimonialsManager } from "@/modules/admin/components/TestimonialsManager";
+import { DepartmentsManager } from "@/modules/admin/components/DepartmentsManager";
 import { EventsManager } from "@/modules/admin/components/EventsManager";
 import { SiteLayoutManager } from "@/modules/admin/components/SiteLayoutManager";
 
@@ -73,6 +74,7 @@ const VALID_TABS = [
   "events",
   "site-layout",
   "page-content",
+  "departments",
   "site-metrics",
   "testimonials",
 ] as const;
@@ -302,6 +304,7 @@ export default function AdminDashboard() {
         setAdminMenuOpen(true);
       } else if (
         newTab === "page-content" ||
+        newTab === "departments" ||
         newTab === "site-metrics" ||
         newTab === "testimonials"
       ) {
@@ -336,6 +339,7 @@ export default function AdminDashboard() {
             setAdminMenuOpen(true);
           } else if (
             queryTab === "page-content" ||
+            queryTab === "departments" ||
             queryTab === "site-metrics" ||
             queryTab === "testimonials"
           ) {
@@ -885,14 +889,18 @@ export default function AdminDashboard() {
             <button
               onClick={() => setCmsMenuOpen(!cmsMenuOpen)}
               className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "site-layout" || activeTab === "page-content" || activeTab === "site-metrics" || activeTab === "testimonials"
+                activeTab === "site-layout" ||
+                activeTab === "page-content" ||
+                activeTab === "departments" ||
+                activeTab === "site-metrics" ||
+                activeTab === "testimonials"
                   ? "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
                   : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
               }`}
             >
               <div className="flex items-center gap-2 min-w-0">
                 <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                  activeTab === "site-layout" || activeTab === "page-content" || activeTab === "site-metrics" || activeTab === "testimonials"
+                  activeTab === "site-layout" || activeTab === "page-content" || activeTab === "departments" || activeTab === "site-metrics" || activeTab === "testimonials"
                     ? "bg-[#00bfff] text-white"
                     : "bg-[#f0f4f8] text-[#4a5565]"
                 }`}>
@@ -905,7 +913,14 @@ export default function AdminDashboard() {
               
               <svg
                 className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ml-1.5 ${
-                  cmsMenuOpen ? "rotate-180 text-[#00698c]" : "text-[#4a5565]"
+                  cmsMenuOpen ||
+                  activeTab === "site-layout" ||
+                  activeTab === "page-content" ||
+                  activeTab === "departments" ||
+                  activeTab === "site-metrics" ||
+                  activeTab === "testimonials"
+                    ? "rotate-180 text-[#00698c]"
+                    : "text-[#4a5565]"
                 }`}
                 fill="none"
                 viewBox="0 0 24 24"
@@ -972,6 +987,20 @@ export default function AdminDashboard() {
                     <span className="truncate whitespace-nowrap">Testimonials</span>
                   </div>
                 </button>
+
+                <button
+                  onClick={() => handleTabChange("departments")}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === "departments"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "departments" ? "bg-[#00bfff]" : "bg-purple-500"}`}></span>
+                    <span className="truncate whitespace-nowrap">Academic Departments</span>
+                  </div>
+                </button>
               </div>
             )}
           </div>
@@ -1015,6 +1044,7 @@ export default function AdminDashboard() {
               {activeTab === "page-content" && "Page Content (CMS) Engine"}
               {activeTab === "site-metrics" && "Site Impact Metrics"}
               {activeTab === "testimonials" && "Student & Scholar Testimonials"}
+              {activeTab === "departments" && "Academic Departments & Disciplines"}
             </h1>
           </div>
 
@@ -1600,6 +1630,14 @@ export default function AdminDashboard() {
           {/* TAB 6: TESTIMONIALS */}
           {activeTab === "testimonials" && token && (
             <TestimonialsManager
+              token={token}
+              onShowToast={(msg, type) => setToast({ message: msg, type })}
+            />
+          )}
+
+          {/* TAB 7: DEPARTMENTS */}
+          {activeTab === "departments" && token && (
+            <DepartmentsManager
               token={token}
               onShowToast={(msg, type) => setToast({ message: msg, type })}
             />

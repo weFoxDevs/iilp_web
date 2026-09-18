@@ -40,12 +40,42 @@ export interface SectionDefinition {
   label: string;
   defaultTitle?: string;
   defaultBadge?: string;
+  defaultSubtitle?: string;
+  defaultBgImage?: string;
+  defaultMetadata?: Record<string, any>;
 }
 
 export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
   home: [
     { key: "hero", label: "Hero Banner", defaultTitle: "International Institute for Law and Politics (IILP)", defaultBadge: "Knowledge, Justice, and Leadership" },
-    { key: "mission_vision", label: "Mission & Vision", defaultTitle: "Advancing Interdisciplinary Scholarship", defaultBadge: "Our Mission" },
+    {
+      key: "our_mission",
+      label: "Our Mission",
+      defaultTitle: "Advancing Interdisciplinary Scholarship",
+      defaultBadge: "Our Mission",
+      defaultSubtitle:
+        "The mission of the International Institute for Law and Politics is to advance interdisciplinary scholarship, strengthen evidence-based policymaking, foster ethical leadership, and contribute to the development of informed and resilient institutions capable of addressing contemporary global challenges.",
+      defaultBgImage: "/assets/about-vision-students.png",
+    },
+    {
+      key: "our_vision",
+      label: "Our Vision",
+      defaultTitle: "A Globally Respected Centre of Excellence",
+      defaultBadge: "Our Vision",
+      defaultSubtitle:
+        "To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace.",
+      defaultBgImage: "/assets/about-mission-student.png",
+      defaultMetadata: {
+        studentRatingsCount: "5000",
+        studentRatingsLabel: "Student ratings",
+        stats: [
+          { number: "6+", label: "Academic Departments", progress: "58%" },
+          { number: "18+", label: "Leadership Positions", progress: "58%" },
+          { number: "3+", label: "Fellowship Types", progress: "58%" },
+          { number: "5+", label: "Partnership Tracks", progress: "58%" },
+        ],
+      },
+    },
     { key: "academic_programs", label: "Academic Programs", defaultTitle: "Six Academic Departments", defaultBadge: "Academic Programs" },
     { key: "events", label: "Upcoming Events", defaultTitle: "Upcoming Events & Activities", defaultBadge: "Stay Updated" },
     { key: "testimonials", label: "Student Testimonials", defaultTitle: "Happy students sharing experiences", defaultBadge: "Testimonials" },
@@ -302,16 +332,16 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
     setEditingKey(initialKey);
     setFormData({
       title: initialDef?.defaultTitle || "",
-      subtitle: "",
+      subtitle: initialDef?.defaultSubtitle || "",
       badge: initialDef?.defaultBadge || "",
-      bgImage: "",
+      bgImage: initialDef?.defaultBgImage || "",
       bodyContent: "",
       actionText: "",
       actionUrl: "",
       sortOrder: sections.length * 10,
       isActive: true,
     });
-    setMetadataJson("{}");
+    setMetadataJson(initialDef?.defaultMetadata ? JSON.stringify(initialDef.defaultMetadata, null, 2) : "{}");
     setIsModalOpen(true);
   };
 
@@ -329,7 +359,12 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
           ...prev,
           title: prev.title || match.defaultTitle || "",
           badge: prev.badge || match.defaultBadge || "",
+          subtitle: prev.subtitle || match.defaultSubtitle || "",
+          bgImage: prev.bgImage || match.defaultBgImage || "",
         }));
+        if (match.defaultMetadata && (metadataJson === "{}" || !metadataJson.trim())) {
+          setMetadataJson(JSON.stringify(match.defaultMetadata, null, 2));
+        }
       }
     }
   };
@@ -853,6 +888,72 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                   className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
                 />
               </div>
+
+              {/* Vision Specific Helper for our_vision */}
+              {editingKey === "our_vision" && (
+                <div className="bg-[#f0f9ff] border border-[#b9e6fe] rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#00bfff]"></span>
+                    <h4 className="text-xs font-bold text-[#00698c] uppercase tracking-wider">
+                      Vision Floating Ratings Card
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                        Student Ratings Count
+                      </label>
+                      <input
+                        type="text"
+                        value={(() => {
+                          try {
+                            return JSON.parse(metadataJson || "{}").studentRatingsCount ?? "5000";
+                          } catch {
+                            return "5000";
+                          }
+                        })()}
+                        onChange={(e) => {
+                          try {
+                            const cur = JSON.parse(metadataJson || "{}");
+                            cur.studentRatingsCount = e.target.value;
+                            setMetadataJson(JSON.stringify(cur, null, 2));
+                          } catch {
+                            setMetadataJson(JSON.stringify({ studentRatingsCount: e.target.value }, null, 2));
+                          }
+                        }}
+                        placeholder="5000"
+                        className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-1.5 text-xs text-[#101828]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                        Student Ratings Label
+                      </label>
+                      <input
+                        type="text"
+                        value={(() => {
+                          try {
+                            return JSON.parse(metadataJson || "{}").studentRatingsLabel ?? "Student ratings";
+                          } catch {
+                            return "Student ratings";
+                          }
+                        })()}
+                        onChange={(e) => {
+                          try {
+                            const cur = JSON.parse(metadataJson || "{}");
+                            cur.studentRatingsLabel = e.target.value;
+                            setMetadataJson(JSON.stringify(cur, null, 2));
+                          } catch {
+                            setMetadataJson(JSON.stringify({ studentRatingsLabel: e.target.value }, null, 2));
+                          }
+                        }}
+                        placeholder="Student ratings"
+                        className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-1.5 text-xs text-[#101828]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Metadata JSON */}
               <div>

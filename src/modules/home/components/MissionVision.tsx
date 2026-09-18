@@ -16,40 +16,66 @@ const defaultStats: StatItem[] = [
 
 interface MissionVisionProps {
   data?: Partial<PageSectionData>;
+  missionData?: Partial<PageSectionData>;
+  visionData?: Partial<PageSectionData>;
 }
 
-export function MissionVision({ data }: MissionVisionProps) {
-  const section = {
-    badge: data?.badge ?? "Our Mission",
-    title: data?.title ?? "Advancing Interdisciplinary Scholarship",
+export function MissionVision({ data, missionData, visionData }: MissionVisionProps) {
+  // Mission resolution (prefers missionData, falls back to legacy data or defaults)
+  const mission = {
+    badge: missionData?.badge ?? data?.badge ?? "Our Mission",
+    title: missionData?.title ?? data?.title ?? "Advancing Interdisciplinary Scholarship",
     subtitle:
+      missionData?.subtitle ??
       data?.subtitle ??
       "The mission of the International Institute for Law and Politics is to advance interdisciplinary scholarship, strengthen evidence-based policymaking, foster ethical leadership, and contribute to the development of informed and resilient institutions capable of addressing contemporary global challenges.",
-    metadata: data?.metadata ?? {
-      visionBadge: "Our Vision",
-      visionTitle: "A Globally Respected Centre of Excellence",
-      visionSubtitle:
-        "To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace.",
-      missionImage: "/assets/about-vision-students.png",
-      visionImage: "/assets/about-mission-student.png",
-      studentRatingsCount: "5000",
-      studentRatingsLabel: "Student ratings",
-      stats: defaultStats,
-    },
+    image:
+      ((missionData?.bgImage as string) ||
+      (missionData?.metadata?.missionImage as string) ||
+      (data?.metadata?.missionImage as string) ||
+      "/assets/about-vision-students.png") as string,
   };
 
-  const meta = (section.metadata || {}) as {
-    visionBadge?: string;
-    visionTitle?: string;
-    visionSubtitle?: string;
-    missionImage?: string;
-    visionImage?: string;
-    studentRatingsCount?: string;
-    studentRatingsLabel?: string;
-    stats?: StatItem[];
+  // Vision resolution (prefers visionData, falls back to legacy metadata or defaults)
+  const legacyMeta = (data?.metadata || {}) as Record<string, any>;
+  const visionMeta = (visionData?.metadata || {}) as Record<string, any>;
+
+  const vision = {
+    badge:
+      (visionData?.badge as string) ||
+      (visionMeta.visionBadge as string) ||
+      (legacyMeta.visionBadge as string) ||
+      "Our Vision",
+    title:
+      (visionData?.title as string) ||
+      (visionMeta.visionTitle as string) ||
+      (legacyMeta.visionTitle as string) ||
+      "A Globally Respected Centre of Excellence",
+    subtitle:
+      (visionData?.subtitle as string) ||
+      (visionMeta.visionSubtitle as string) ||
+      (legacyMeta.visionSubtitle as string) ||
+      "To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace.",
+    image:
+      ((visionData?.bgImage as string) ||
+      (visionMeta.visionImage as string) ||
+      (legacyMeta.visionImage as string) ||
+      "/assets/about-mission-student.png") as string,
+    studentRatingsCount:
+      visionMeta.studentRatingsCount ||
+      legacyMeta.studentRatingsCount ||
+      "5000",
+    studentRatingsLabel:
+      visionMeta.studentRatingsLabel ||
+      legacyMeta.studentRatingsLabel ||
+      "Student ratings",
+    stats:
+      (visionMeta.stats as StatItem[]) ||
+      (legacyMeta.stats as StatItem[]) ||
+      defaultStats,
   };
 
-  const stats = meta.stats || defaultStats;
+  const stats = vision.stats;
 
   return (
     <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">
@@ -63,7 +89,7 @@ export function MissionVision({ data }: MissionVisionProps) {
             {/* Top: Image with Overlapping Badges */}
             <div className="relative w-full aspect-[540/600] overflow-hidden">
               <Image
-                src={meta.missionImage || "/assets/about-vision-students.png"}
+                src={mission.image}
                 alt="IILP Students on campus"
                 fill
                 sizes="(max-width: 1024px) 100vw, 540px"
@@ -101,20 +127,20 @@ export function MissionVision({ data }: MissionVisionProps) {
 
             {/* Bottom: Our Mission Content */}
             <div className="flex flex-col gap-[30px] items-start">
-              {section.badge && (
+              {mission.badge && (
                 <div className="inline-flex items-center border border-[#00698c] rounded-[1000px] px-[12px] py-[8px]">
                   <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
-                    {section.badge}
+                    {mission.badge}
                   </span>
                 </div>
               )}
 
               <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] tracking-[-0.72px] text-[#0a0d12]">
-                {section.title}
+                {mission.title}
               </h2>
 
               <p className="font-source font-normal text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12]/70">
-                {section.subtitle}
+                {mission.subtitle}
               </p>
             </div>
           </div>
@@ -123,28 +149,27 @@ export function MissionVision({ data }: MissionVisionProps) {
           <div className="flex flex-col gap-12 lg:gap-[120px] self-stretch justify-between">
             {/* Top: Our Vision Content */}
             <div className="flex flex-col gap-[30px] items-start">
-              {meta.visionBadge && (
+              {vision.badge && (
                 <div className="inline-flex items-center border border-[#00698c] rounded-[1000px] px-[12px] py-[8px]">
                   <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
-                    {meta.visionBadge}
+                    {vision.badge}
                   </span>
                 </div>
               )}
 
               <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] tracking-[-0.72px] text-[#0a0d12]">
-                {meta.visionTitle || "A Globally Respected Centre of Excellence"}
+                {vision.title}
               </h2>
 
               <p className="font-source font-normal text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12]/70">
-                {meta.visionSubtitle ||
-                  "To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace."}
+                {vision.subtitle}
               </p>
             </div>
 
             {/* Bottom: Image with Student Ratings Card */}
             <div className="relative w-full aspect-[540/600] lg:aspect-[580/690] overflow-hidden">
               <Image
-                src={meta.visionImage || "/assets/about-mission-student.png"}
+                src={vision.image}
                 alt="Student with laptop and phone"
                 fill
                 sizes="(max-width: 1024px) 100vw, 580px"
@@ -185,10 +210,10 @@ export function MissionVision({ data }: MissionVisionProps) {
                 {/* Rating details */}
                 <div className="flex flex-col font-inter text-white">
                   <span className="font-normal text-[16px] leading-[16px]">
-                    {meta.studentRatingsCount || "5000"}
+                    {vision.studentRatingsCount}
                   </span>
                   <span className="font-normal text-[16px] leading-[16px] text-white/90 mt-[5px]">
-                    {meta.studentRatingsLabel || "Student ratings"}
+                    {vision.studentRatingsLabel}
                   </span>
                 </div>
               </div>

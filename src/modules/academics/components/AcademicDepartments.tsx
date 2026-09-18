@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PageSectionData } from "@/common/services/cms.service";
+import { fetchDepartments } from "@/common/services/departments.service";
 
 interface Department {
   id: string;
@@ -11,6 +12,7 @@ interface Department {
   image: string;
   hasActionButton?: boolean;
   highlighted?: boolean;
+  slug?: string;
 }
 
 const defaultDepartments: Department[] = [
@@ -21,6 +23,7 @@ const defaultDepartments: Department[] = [
     description:
       "Advancing legal scholarship, international law, and justice systems in a changing global order.",
     image: "/assets/academic-thumbnail-1.png",
+    slug: "law-international-legal-studies",
   },
   {
     id: "political-science",
@@ -31,6 +34,7 @@ const defaultDepartments: Department[] = [
     image: "/assets/academic-thumbnail-1.png",
     hasActionButton: true,
     highlighted: true,
+    slug: "political-science-governance",
   },
   {
     id: "human-rights",
@@ -39,32 +43,36 @@ const defaultDepartments: Department[] = [
     description:
       "Promoting human dignity, rights-based approaches, and humanitarian action globally.",
     image: "/assets/academic-thumbnail-1.png",
+    slug: "human-rights-humanitarian-studies",
   },
   {
-    id: "law-2",
+    id: "refugee-studies",
     number: "04",
-    title: "Law & International Legal Studies",
+    title: "Refugee & Forced Displacement Studies",
     description:
-      "Advancing legal scholarship, international law, and justice systems in a changing global order.",
+      "Focuses on international migration, refugee law, statelessness, and issues of forced displacement.",
     image: "/assets/academic-thumbnail-1.png",
+    slug: "refugee-forced-displacement-studies",
   },
   {
-    id: "political-science-2",
+    id: "social-development",
     number: "05",
-    title: "Political Science & Governance",
+    title: "Social & Development Studies",
     description:
-      "Examining governance frameworks, democratic institutions, and political systems worldwide.",
+      "Studies socioeconomic development, sustainable development goals (SDGs), and social equity.",
     image: "/assets/academic-thumbnail-1.png",
     hasActionButton: true,
     highlighted: true,
+    slug: "social-development-studies",
   },
   {
-    id: "human-rights-2",
+    id: "peace-conflict",
     number: "06",
-    title: "Human Rights & Humanitarian Studies",
+    title: "Peace & Conflict Studies",
     description:
-      "Promoting human dignity, rights-based approaches, and humanitarian action globally.",
+      "Analyzes the root causes of conflict, peacebuilding techniques, mediation, and resolution processes.",
     image: "/assets/academic-thumbnail-1.png",
+    slug: "peace-conflict-studies",
   },
 ];
 
@@ -73,6 +81,36 @@ interface AcademicDepartmentsProps {
 }
 
 export default function AcademicDepartments({ data }: AcademicDepartmentsProps) {
+  const [apiDepartments, setApiDepartments] = useState<Department[] | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchDepartments({ activeOnly: true })
+      .then((items) => {
+        if (isMounted && Array.isArray(items) && items.length > 0) {
+          setApiDepartments(
+            items.map((d, idx) => ({
+              id: d.slug || d.id || `dept-${idx}`,
+              number: d.number || String(idx + 1).padStart(2, "0"),
+              title: d.name,
+              description: d.description,
+              image: d.image || "/assets/academic-thumbnail-1.png",
+              hasActionButton: d.hasActionButton ?? true,
+              highlighted: Boolean(d.isHighlighted),
+              slug: d.slug,
+            }))
+          );
+        }
+      })
+      .catch(() => {
+        // Fallback silently to CMS metadata or defaultDepartments
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const badge = data?.badge ?? "Our Disciplines";
   const title = data?.title ?? "Six Academic Departments";
   const subtitle =
@@ -82,9 +120,10 @@ export default function AcademicDepartments({ data }: AcademicDepartmentsProps) 
   const actionUrl = data?.actionUrl ?? "/contact";
 
   const departmentsList: Department[] =
-    Array.isArray(data?.metadata?.departments) && data.metadata.departments.length > 0
+    apiDepartments ||
+    (Array.isArray(data?.metadata?.departments) && data.metadata.departments.length > 0
       ? (data.metadata.departments as Department[])
-      : defaultDepartments;
+      : defaultDepartments);
 
   return (
     <section className="bg-white py-16 md:py-24 lg:py-[140px] px-6 sm:px-10 lg:px-16 xl:px-[240px]">
@@ -132,7 +171,7 @@ export default function AcademicDepartments({ data }: AcademicDepartmentsProps) 
           {departmentsList.map((dept) => (
             <Link
               key={dept.id}
-              href="/department-details"
+              href={`/departments/${dept.slug || dept.id}`}
               className="flex flex-col gap-[30px] group cursor-pointer"
             >
               {/* Image Container with Badge */}

@@ -2,7 +2,13 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-const researchAreas = [
+import { DepartmentItem } from "@/common/services/departments.service";
+
+interface DepartmentOverviewProps {
+  department?: DepartmentItem | null;
+}
+
+const defaultResearchAreas = [
   "Provide strategic advice on institutional growth and long-term development.",
   "Support the advancement of academic excellence and research quality.",
   "Strengthen the Institute's international reputation and visibility.",
@@ -12,7 +18,20 @@ const researchAreas = [
   "Contribute expertise on emerging global legal, political, and humanitarian issues.",
 ];
 
-export default function DepartmentOverview() {
+export default function DepartmentOverview({ department }: DepartmentOverviewProps) {
+  const overviewText =
+    department?.description ||
+    "The Department of Law and International Legal Studies is dedicated to advancing rigorous scholarship and education in law, legal systems, and international legal frameworks. It examines how laws shape societies, govern relations between states, protect individuals, and provide the foundation for justice and order in the global community.";
+
+  const missionText =
+    department?.mission ||
+    "To advance legal scholarship, foster critical thinking, and equip students and researchers with the knowledge and analytical tools necessary to navigate and contribute to the development of local, national, and international legal systems in service of justice, human rights, and good governance.";
+
+  const researchAreas =
+    department?.researchAreas && department.researchAreas.length > 0
+      ? department.researchAreas
+      : defaultResearchAreas;
+
   return (
     <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start gap-12 lg:gap-[80px]">
@@ -31,11 +50,7 @@ export default function DepartmentOverview() {
               </h2>
             </div>
             <p className="font-sans text-base sm:text-[20px] text-[#0a0d12]/70 leading-relaxed sm:leading-[30px]">
-              The Department of Law and International Legal Studies is dedicated to
-              advancing rigorous scholarship and education in law, legal systems, and
-              international legal frameworks. It examines how laws shape societies,
-              govern relations between states, protect individuals, and provide the
-              foundation for justice and order in the global community.
+              {overviewText}
             </p>
           </div>
 
@@ -52,11 +67,7 @@ export default function DepartmentOverview() {
               </h2>
             </div>
             <p className="font-sans text-base sm:text-[20px] text-[#0a0d12]/70 leading-relaxed sm:leading-[30px]">
-              To advance legal scholarship, foster critical thinking, and equip students
-              and researchers with the knowledge and analytical tools necessary to
-              navigate and contribute to the development of local, national, and
-              international legal systems in service of justice, human rights, and good
-              governance.
+              {missionText}
             </p>
           </div>
 
