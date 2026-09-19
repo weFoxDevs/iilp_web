@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   fetchAdminPageSlugs,
   fetchAdminSections,
   upsertAdminSection,
   deleteAdminSection,
   uploadMediaFile,
+  deleteMediaFile,
   PageSectionData,
 } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
@@ -24,8 +25,8 @@ const COMMON_PAGES = [
   { slug: "academics", label: "Academics (/academics)" },
   { slug: "fellowships", label: "Fellowships (/fellowships)" },
   { slug: "governance", label: "Governance (/governance)" },
-  { slug: "leadership-directory", label: "Leadership Directory (/leadership-directory)" },
-  { slug: "research-publications", label: "Research & Publications (/research-publications)" },
+  { slug: "leadership-directory", label: "Leadership (/leadership-directory)" },
+  { slug: "research-publications", label: "Research (/research-publications)" },
   { slug: "news-media", label: "News & Media (/news-media)" },
   { slug: "partnerships", label: "Partnerships (/partnerships)" },
   { slug: "careers", label: "Careers (/careers)" },
@@ -47,20 +48,20 @@ export interface SectionDefinition {
 
 export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
   home: [
-    { key: "hero", label: "Hero Banner", defaultTitle: "International Institute for Law and Politics (IILP)", defaultBadge: "Knowledge, Justice, and Leadership" },
+    { key: "hero", label: "Hero Banner", defaultTitle: "International Institute for Law and Politics (IILP)", defaultBadge: "Global Academic Network", defaultBgImage: "/assets/home-hero-v2.png" },
     {
       key: "our_mission",
       label: "Our Mission",
-      defaultTitle: "Advancing Interdisciplinary Scholarship",
+      defaultTitle: "Our Mission & Commitment",
       defaultBadge: "Our Mission",
       defaultSubtitle:
-        "The mission of the International Institute for Law and Politics is to advance interdisciplinary scholarship, strengthen evidence-based policymaking, foster ethical leadership, and contribute to the development of informed and resilient institutions capable of addressing contemporary global challenges.",
-      defaultBgImage: "/assets/about-vision-students.png",
+        "To cultivate a dynamic international ecosystem of legal scholars, political analysts, and policy innovators dedicated to academic rigor, institutional integrity, and transformative scholarship that impacts societies worldwide.",
+      defaultBgImage: "/assets/about-mission-law.png",
     },
     {
       key: "our_vision",
       label: "Our Vision",
-      defaultTitle: "A Globally Respected Centre of Excellence",
+      defaultTitle: "Our Global Vision",
       defaultBadge: "Our Vision",
       defaultSubtitle:
         "To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace.",
@@ -79,10 +80,74 @@ export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
     { key: "academic_programs", label: "Academic Programs", defaultTitle: "Six Academic Departments", defaultBadge: "Academic Programs" },
     { key: "events", label: "Upcoming Events", defaultTitle: "Upcoming Events & Activities", defaultBadge: "Stay Updated" },
     { key: "testimonials", label: "Student Testimonials", defaultTitle: "Happy students sharing experiences", defaultBadge: "Testimonials" },
-    { key: "image_gallery", label: "Campus Image Gallery", defaultTitle: "Campus Life & Global Academic Engagement" },
+    {
+      key: "image_gallery",
+      label: "Campus Image Gallery",
+      defaultTitle: "Campus Life & Global Academic Engagement",
+      defaultMetadata: {
+        images: [
+          { src: "/assets/gallery-student-stairs.png", alt: "Students walking down campus stairs", size: "lg" },
+          { src: "/assets/gallery-students-park.png", alt: "Students walking in campus park", size: "sm" },
+          { src: "/assets/gallery-walking-stairs.png", alt: "Students walking down brick steps on campus", size: "lg" },
+          { src: "/assets/gallery-sunset-campus.png", alt: "Campus park bench at sunset", size: "sm" },
+        ],
+      },
+    },
     { key: "fellowship_network", label: "Global Fellowship Network", defaultTitle: "Join the IILP Fellowship Network", defaultBadge: "Global Fellowship Network" },
     { key: "founder_message", label: "Founder's Message", defaultTitle: "Founder's Message", defaultBadge: "From the Founder" },
-    { key: "news_media", label: "News & Media Center", defaultTitle: "News & Media Center", defaultBadge: "Stay Updated" },
+    {
+      key: "news_media",
+      label: "News & Media Center",
+      defaultTitle: "News & Media Center",
+      defaultBadge: "Stay Updated",
+      defaultSubtitle:
+        "Interdisciplinary programs advancing law, governance, human rights, and development through rigorous research and scholarship.",
+      defaultMetadata: {
+        tabs: ["Programs", "News", "Events"],
+        featured: {
+          id: "featured",
+          category: "News",
+          date: "May 20, 2025",
+          title: "Technological Advancements",
+          image: "/assets/news-main.png",
+          link: "/news",
+        },
+        articles: [
+          {
+            id: 1,
+            category: "News",
+            date: "May 20, 2025",
+            title: "Technological Advancements",
+            image: "/assets/news-small-1.png",
+            link: "/news",
+          },
+          {
+            id: 2,
+            category: "News",
+            date: "May 20, 2025",
+            title: "Technological Advancements",
+            image: "/assets/news-small-2.png",
+            link: "/news",
+          },
+          {
+            id: 3,
+            category: "News",
+            date: "May 20, 2025",
+            title: "Technological Advancements",
+            image: "/assets/news-small-3.png",
+            link: "/news",
+          },
+          {
+            id: 4,
+            category: "News",
+            date: "May 20, 2025",
+            title: "Technological Advancements",
+            image: "/assets/news-small-4.png",
+            link: "/news",
+          },
+        ],
+      },
+    },
   ],
   about: [
     { key: "hero", label: "About Hero Banner", defaultTitle: "About the Institute" },
@@ -92,7 +157,19 @@ export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
     { key: "institutional_values", label: "Institutional Values", defaultTitle: "Core Values & Principles" },
     { key: "global_engagement", label: "Global Engagement & Impact", defaultTitle: "Global Engagement & Impact" },
     { key: "founder_message", label: "President & Founder Message", defaultTitle: "Message from the Leadership" },
-    { key: "gallery", label: "About Photo Gallery", defaultTitle: "Institutional Photo Gallery" },
+    {
+      key: "gallery",
+      label: "About Photo Gallery",
+      defaultTitle: "Institutional Photo Gallery",
+      defaultMetadata: {
+        images: [
+          { src: "/assets/gallery-1.png", alt: "Campus life 1", size: "lg" },
+          { src: "/assets/gallery-2.png", alt: "Campus life 2", size: "sm" },
+          { src: "/assets/gallery-3.png", alt: "Campus life 3", size: "lg" },
+          { src: "/assets/gallery-4.png", alt: "Campus life 4", size: "sm" },
+        ],
+      },
+    },
   ],
   academics: [
     { key: "hero", label: "Academics Hero Banner", defaultTitle: "Academic Programs & Rigor" },
@@ -219,16 +296,141 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
     e.target.value = "";
   };
 
-  const handleRemoveImage = () => {
+  // Gallery Visual Manager Helpers
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const galleryFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const getGalleryImages = (): Array<{ src: string; alt?: string; size?: string }> => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed.images)) {
+        return parsed.images;
+      }
+    } catch {}
+    return [];
+  };
+
+  const updateGalleryImages = (
+    newImages: Array<{ src: string; alt?: string; size?: string }>
+  ) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      cur.images = newImages;
+      setMetadataJson(JSON.stringify(cur, null, 2));
+    } catch {
+      setMetadataJson(JSON.stringify({ images: newImages }, null, 2));
+    }
+  };
+
+  const handleGalleryFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingGallery(true);
+    try {
+      const currentList = [...getGalleryImages()];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const res = await uploadMediaFile(token, file, "gallery");
+        currentList.push({
+          src: res.url,
+          alt: file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "),
+          size: currentList.length % 2 === 0 ? "lg" : "sm",
+        });
+      }
+      updateGalleryImages(currentList);
+      onShowToast(`${files.length} image(s) uploaded and added to gallery!`, "success");
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to upload image", "error");
+    } finally {
+      setIsUploadingGallery(false);
+      if (e.target) e.target.value = "";
+    }
+  };
+
+  // News & Media Visual Helpers
+  const [uploadingNewsKey, setUploadingNewsKey] = useState<string | null>(null);
+
+  const getNewsMetadata = () => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      return {
+        tabs: Array.isArray(parsed.tabs) ? parsed.tabs : ["Programs", "News", "Events"],
+        featured: parsed.featured || {
+          category: "News",
+          date: "May 20, 2025",
+          title: "Technological Advancements",
+          image: "/assets/news-main.png",
+          link: "/news",
+        },
+        articles: Array.isArray(parsed.articles) ? parsed.articles : [],
+      };
+    } catch {
+      return {
+        tabs: ["Programs", "News", "Events"],
+        featured: {
+          category: "News",
+          date: "May 20, 2025",
+          title: "Technological Advancements",
+          image: "/assets/news-main.png",
+          link: "/news",
+        },
+        articles: [],
+      };
+    }
+  };
+
+  const updateNewsMetadata = (updater: (prev: any) => any) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const updated = updater(cur);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    } catch {
+      const base = getNewsMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const handleNewsImageUpload = async (file: File, onUploaded: (url: string) => void, uploadKey: string) => {
+    setUploadingNewsKey(uploadKey);
+    try {
+      const res = await uploadMediaFile(token, file, "news");
+      onUploaded(res.url);
+      onShowToast("Image uploaded to news media!", "success");
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to upload image", "error");
+    } finally {
+      setUploadingNewsKey(null);
+    }
+  };
+
+  const handleRemoveImage = async () => {
     if (localImagePreview) {
       URL.revokeObjectURL(localImagePreview);
     }
+    const currentBgImage = formData.bgImage;
     setPendingImageFile(null);
     setLocalImagePreview(null);
     setFormData((prev) => ({
       ...prev,
       bgImage: "",
     }));
+
+    if (
+      currentBgImage &&
+      (currentBgImage.includes('/storage/') ||
+        currentBgImage.includes(':9000') ||
+        currentBgImage.includes('amazonaws.com') ||
+        currentBgImage.startsWith('pages/'))
+    ) {
+      try {
+        await deleteMediaFile(token, currentBgImage);
+        onShowToast("Image removed from storage.", "info");
+      } catch {
+        // Quiet fallback
+      }
+    }
   };
 
   // Load unique slugs from DB
@@ -950,6 +1152,490 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                         placeholder="Student ratings"
                         className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-1.5 text-xs text-[#101828]"
                       />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Gallery Specific Visual Manager for image_gallery or gallery */}
+              {(editingKey === "image_gallery" || editingKey === "gallery") && (
+                <div className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#16a34a]"></span>
+                      <h4 className="text-xs font-bold text-[#166534] uppercase tracking-wider">
+                        Gallery Photos Manager ({getGalleryImages().length} Images)
+                      </h4>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        ref={galleryFileInputRef}
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handleGalleryFileUpload}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => galleryFileInputRef.current?.click()}
+                        disabled={isUploadingGallery}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#16a34a] hover:bg-[#15803d] text-white text-xs font-semibold rounded-xl transition shadow-xs disabled:opacity-50 cursor-pointer"
+                      >
+                        {isUploadingGallery ? (
+                          <>
+                            <span className="animate-spin text-xs">⏳</span> Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <span>+</span> Upload New Images
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = prompt("Enter image URL or asset path (e.g. /assets/gallery-1.png or https://...):");
+                          if (!url || !url.trim()) return;
+                          const currentList = [...getGalleryImages()];
+                          currentList.push({
+                            src: url.trim(),
+                            alt: "Campus Photo",
+                            size: currentList.length % 2 === 0 ? "lg" : "sm",
+                          });
+                          updateGalleryImages(currentList);
+                        }}
+                        className="px-2.5 py-1.5 bg-white border border-[#bbf7d0] hover:bg-[#dcfce7] text-[#166534] text-xs font-medium rounded-xl transition cursor-pointer"
+                      >
+                        + Add by URL
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* List of images */}
+                  {getGalleryImages().length === 0 ? (
+                    <div className="text-center py-6 border-2 border-dashed border-[#bbf7d0] rounded-xl bg-white/60">
+                      <p className="text-xs text-[#166534] font-medium">No images in this gallery yet.</p>
+                      <p className="text-[11px] text-[#4b5563] mt-1">Click &quot;Upload New Images&quot; above to add photos directly from your device.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-2.5 max-h-[360px] overflow-y-auto pr-1">
+                      {getGalleryImages().map((img, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-[#dcfce7] shadow-2xs hover:border-[#86efac] transition"
+                        >
+                          {/* Thumbnail */}
+                          <div className="w-16 h-16 shrink-0 bg-[#f3f4f6] rounded-lg overflow-hidden relative border border-[#e5e7eb]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={img.src}
+                              alt={img.alt || "preview"}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = "/assets/gallery-student-stairs.png";
+                              }}
+                            />
+                            <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-[9px] text-white text-center font-bold uppercase py-0.5">
+                              {img.size === "sm" ? "Small" : "Large"}
+                            </span>
+                          </div>
+
+                          {/* Inputs: Alt and Size */}
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={img.alt || ""}
+                                onChange={(e) => {
+                                  const list = [...getGalleryImages()];
+                                  list[idx] = { ...list[idx], alt: e.target.value };
+                                  updateGalleryImages(list);
+                                }}
+                                placeholder="Photo alt text / caption"
+                                className="flex-1 bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                              />
+                              <select
+                                value={img.size || "lg"}
+                                onChange={(e) => {
+                                  const list = [...getGalleryImages()];
+                                  list[idx] = { ...list[idx], size: e.target.value };
+                                  updateGalleryImages(list);
+                                }}
+                                className="w-28 bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs text-[#101828]"
+                              >
+                                <option value="lg">Large (lg)</option>
+                                <option value="sm">Small (sm)</option>
+                              </select>
+                            </div>
+
+                            <p className="text-[10px] font-mono text-[#6b7280] truncate" title={img.src}>
+                              {img.src}
+                            </p>
+                          </div>
+
+                          {/* Actions: Reorder & Delete */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                if (idx === 0) return;
+                                const list = [...getGalleryImages()];
+                                const temp = list[idx - 1];
+                                list[idx - 1] = list[idx];
+                                list[idx] = temp;
+                                updateGalleryImages(list);
+                              }}
+                              className="p-1 text-gray-500 hover:text-gray-800 disabled:opacity-30 rounded hover:bg-gray-100 cursor-pointer"
+                              title="Move Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === getGalleryImages().length - 1}
+                              onClick={() => {
+                                const list = [...getGalleryImages()];
+                                if (idx >= list.length - 1) return;
+                                const temp = list[idx + 1];
+                                list[idx + 1] = list[idx];
+                                list[idx] = temp;
+                                updateGalleryImages(list);
+                              }}
+                              className="p-1 text-gray-500 hover:text-gray-800 disabled:opacity-30 rounded hover:bg-gray-100 cursor-pointer"
+                              title="Move Down"
+                            >
+                              ▼
+                            </button>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const list = [...getGalleryImages()];
+                                const targetImg = list[idx];
+                                list.splice(idx, 1);
+                                updateGalleryImages(list);
+
+                                if (
+                                  targetImg?.src &&
+                                  (targetImg.src.includes('/storage/') ||
+                                    targetImg.src.includes(':9000') ||
+                                    targetImg.src.includes('amazonaws.com') ||
+                                    targetImg.src.startsWith('gallery/'))
+                                ) {
+                                  try {
+                                    await deleteMediaFile(token, targetImg.src);
+                                    onShowToast("Image removed from gallery and storage.", "info");
+                                  } catch {
+                                    // Quiet fallback
+                                  }
+                                }
+                              }}
+                              className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded cursor-pointer"
+                              title="Remove"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* News & Media Specific Visual Manager for news_media */}
+              {editingKey === "news_media" && (
+                <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
+                    <h4 className="text-xs font-bold text-[#0369a1] uppercase tracking-wider">
+                      News & Media Center Content Manager
+                    </h4>
+                  </div>
+
+                  {/* Filter Tabs Config */}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                      Filter Tabs (Comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={getNewsMetadata().tabs.join(", ")}
+                      onChange={(e) => {
+                        const tabs = e.target.value.split(",").map((t) => t.trim()).filter(Boolean);
+                        updateNewsMetadata((prev: any) => ({ ...prev, tabs }));
+                      }}
+                      placeholder="e.g. Programs, News, Events"
+                      className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-1.5 text-xs text-[#101828]"
+                    />
+                  </div>
+
+                  {/* Featured Main Story (Left Big Card) */}
+                  <div className="bg-white border border-[#e0f2fe] rounded-xl p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h5 className="text-xs font-bold text-[#0284c7]">
+                        Featured Main Story (Left Large Card)
+                      </h5>
+                      <span className="text-[10px] bg-[#e0f2fe] text-[#0369a1] font-semibold px-2 py-0.5 rounded-full">
+                        Hero Story
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#475467] mb-1">Headline / Title</label>
+                        <input
+                          type="text"
+                          value={getNewsMetadata().featured.title || ""}
+                          onChange={(e) => {
+                            updateNewsMetadata((prev: any) => ({
+                              ...prev,
+                              featured: { ...(prev.featured || {}), title: e.target.value },
+                            }));
+                          }}
+                          placeholder="e.g. Technological Advancements"
+                          className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#475467] mb-1">Category Badge</label>
+                        <input
+                          type="text"
+                          value={getNewsMetadata().featured.category || ""}
+                          onChange={(e) => {
+                            updateNewsMetadata((prev: any) => ({
+                              ...prev,
+                              featured: { ...(prev.featured || {}), category: e.target.value },
+                            }));
+                          }}
+                          placeholder="e.g. News or Programs"
+                          className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#475467] mb-1">Date</label>
+                        <input
+                          type="text"
+                          value={getNewsMetadata().featured.date || ""}
+                          onChange={(e) => {
+                            updateNewsMetadata((prev: any) => ({
+                              ...prev,
+                              featured: { ...(prev.featured || {}), date: e.target.value },
+                            }));
+                          }}
+                          placeholder="e.g. May 20, 2025"
+                          className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#475467] mb-1">Target Link</label>
+                        <input
+                          type="text"
+                          value={getNewsMetadata().featured.link || ""}
+                          onChange={(e) => {
+                            updateNewsMetadata((prev: any) => ({
+                              ...prev,
+                              featured: { ...(prev.featured || {}), link: e.target.value },
+                            }));
+                          }}
+                          placeholder="e.g. /news or /news-details"
+                          className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Featured Image Upload */}
+                    <div className="flex items-center gap-3 pt-2 border-t border-[#f1f5f9]">
+                      <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-[#e2e8f0] bg-gray-50 relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={getNewsMetadata().featured.image || "/assets/news-main.png"}
+                          alt="featured preview"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/assets/news-main.png";
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-medium rounded-lg cursor-pointer transition">
+                          {uploadingNewsKey === "featured" ? "Uploading..." : "Upload Featured Image"}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={uploadingNewsKey === "featured"}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              handleNewsImageUpload(
+                                file,
+                                (url) => {
+                                  updateNewsMetadata((prev: any) => ({
+                                    ...prev,
+                                    featured: { ...(prev.featured || {}), image: url },
+                                  }));
+                                },
+                                "featured"
+                              );
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
+                        <p className="text-[10px] font-mono text-gray-500 truncate mt-1">
+                          {getNewsMetadata().featured.image || "/assets/news-main.png"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Smaller Grid Articles */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h5 className="text-xs font-bold text-[#0369a1]">
+                        Articles Grid ({getNewsMetadata().articles.length} Stories)
+                      </h5>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const data = getNewsMetadata();
+                          data.articles.push({
+                            id: Date.now(),
+                            category: "News",
+                            date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                            title: "New Article Story",
+                            image: "/assets/news-small-1.png",
+                            link: "/news",
+                          });
+                          updateNewsMetadata(() => data);
+                        }}
+                        className="px-2.5 py-1 bg-white border border-[#bae6fd] hover:bg-[#e0f2fe] text-[#0369a1] text-xs font-semibold rounded-lg transition cursor-pointer"
+                      >
+                        + Add Article
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2.5 max-h-[300px] overflow-y-auto pr-1">
+                      {getNewsMetadata().articles.map((item: any, idx: number) => (
+                        <div
+                          key={item.id || idx}
+                          className="bg-white p-2.5 rounded-xl border border-[#e0f2fe] shadow-2xs space-y-2"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 relative">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={item.image || "/assets/news-small-1.png"}
+                                alt="article preview"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "/assets/news-small-1.png";
+                                }}
+                              />
+                            </div>
+
+                            <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <input
+                                type="text"
+                                value={item.title || ""}
+                                onChange={(e) => {
+                                  const data = getNewsMetadata();
+                                  data.articles[idx].title = e.target.value;
+                                  updateNewsMetadata(() => data);
+                                }}
+                                placeholder="Article Title"
+                                className="bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs text-[#101828]"
+                              />
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={item.category || ""}
+                                  onChange={(e) => {
+                                    const data = getNewsMetadata();
+                                    data.articles[idx].category = e.target.value;
+                                    updateNewsMetadata(() => data);
+                                  }}
+                                  placeholder="Category (e.g. News, Programs)"
+                                  className="w-1/2 bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs text-[#101828]"
+                                />
+                                <input
+                                  type="text"
+                                  value={item.date || ""}
+                                  onChange={(e) => {
+                                    const data = getNewsMetadata();
+                                    data.articles[idx].date = e.target.value;
+                                    updateNewsMetadata(() => data);
+                                  }}
+                                  placeholder="Date"
+                                  className="w-1/2 bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs text-[#101828]"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <label
+                                className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-medium rounded cursor-pointer"
+                                title="Change photo"
+                              >
+                                {uploadingNewsKey === `article-${idx}` ? "..." : "Photo"}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  disabled={uploadingNewsKey === `article-${idx}`}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    handleNewsImageUpload(
+                                      file,
+                                      (url) => {
+                                        const data = getNewsMetadata();
+                                        data.articles[idx].image = url;
+                                        updateNewsMetadata(() => data);
+                                      },
+                                      `article-${idx}`
+                                    );
+                                    e.target.value = "";
+                                  }}
+                                />
+                              </label>
+
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const data = getNewsMetadata();
+                                  const removed = data.articles[idx];
+                                  data.articles.splice(idx, 1);
+                                  updateNewsMetadata(() => data);
+
+                                  if (
+                                    removed?.image &&
+                                    (removed.image.includes('/storage/') ||
+                                      removed.image.includes(':9000') ||
+                                      removed.image.includes('amazonaws.com') ||
+                                      removed.image.startsWith('news/'))
+                                  ) {
+                                    try {
+                                      await deleteMediaFile(token, removed.image);
+                                      onShowToast("Image removed from storage.", "info");
+                                    } catch {}
+                                  }
+                                }}
+                                className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded cursor-pointer"
+                                title="Delete article"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>

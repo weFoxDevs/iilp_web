@@ -217,6 +217,28 @@ export async function uploadSectionImage(
   return res.json();
 }
 
+export async function deleteMediaFile(
+  token: string,
+  filePathOrUrl: string
+): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(
+    `${getApiUrl()}/uploads?path=${encodeURIComponent(filePathOrUrl)}`,
+    {
+      method: 'DELETE',
+      headers: getAuthHeaders(token),
+    }
+  );
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(
+      errorData.message || `File deletion failed with status ${res.status}`
+    );
+  }
+
+  return res.json();
+}
+
 export async function deleteAdminSection(
   token: string,
   pageSlug: string,

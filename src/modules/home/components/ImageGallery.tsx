@@ -35,14 +35,19 @@ interface ImageGalleryProps {
 }
 
 export function ImageGallery({ data }: ImageGalleryProps) {
-  const section = {
-    metadata: data?.metadata ?? {
-      images: defaultImages,
-    },
-  };
+  if (data?.isActive === false) {
+    return null;
+  }
 
-  const images =
-    ((section.metadata || {}).images as GalleryImageItem[]) || defaultImages;
+  const rawImages = (data?.metadata?.images as GalleryImageItem[] | undefined) || [];
+  const validImages = Array.isArray(rawImages)
+    ? rawImages.filter(
+        (img): img is GalleryImageItem =>
+          Boolean(img && typeof img.src === 'string' && img.src.trim() !== '')
+      )
+    : [];
+
+  const images = validImages.length > 0 ? validImages : defaultImages;
 
   // Duplicate to create seamless infinite scrolling marquee
   const marqueeImages = [...images, ...images, ...images];
@@ -64,7 +69,7 @@ export function ImageGallery({ data }: ImageGalleryProps) {
             >
               <Image 
                 src={img.src}
-                alt={img.alt}
+                alt={img.alt || "Campus Gallery"}
                 fill
                 sizes="(max-width: 640px) 280px, (max-width: 1024px) 420px, 650px"
                 className="object-cover"

@@ -10,6 +10,7 @@ import { TestimonialsManager } from "@/modules/admin/components/TestimonialsMana
 import { DepartmentsManager } from "@/modules/admin/components/DepartmentsManager";
 import { EventsManager } from "@/modules/admin/components/EventsManager";
 import { SiteLayoutManager } from "@/modules/admin/components/SiteLayoutManager";
+import { NewsManager } from "@/modules/admin/components/NewsManager";
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -72,6 +73,7 @@ const VALID_TABS = [
   "admin-manage",
   "role-manage",
   "events",
+  "news",
   "site-layout",
   "page-content",
   "departments",
@@ -303,7 +305,9 @@ export default function AdminDashboard() {
       if (newTab === "admin-manage" || newTab === "role-manage") {
         setAdminMenuOpen(true);
       } else if (
+        newTab === "site-layout" ||
         newTab === "page-content" ||
+        newTab === "news" ||
         newTab === "departments" ||
         newTab === "site-metrics" ||
         newTab === "testimonials"
@@ -338,7 +342,9 @@ export default function AdminDashboard() {
           if (queryTab === "admin-manage" || queryTab === "role-manage") {
             setAdminMenuOpen(true);
           } else if (
+            queryTab === "site-layout" ||
             queryTab === "page-content" ||
+            queryTab === "news" ||
             queryTab === "departments" ||
             queryTab === "site-metrics" ||
             queryTab === "testimonials"
@@ -891,6 +897,7 @@ export default function AdminDashboard() {
               className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === "site-layout" ||
                 activeTab === "page-content" ||
+                activeTab === "news" ||
                 activeTab === "departments" ||
                 activeTab === "site-metrics" ||
                 activeTab === "testimonials"
@@ -900,7 +907,7 @@ export default function AdminDashboard() {
             >
               <div className="flex items-center gap-2 min-w-0">
                 <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                  activeTab === "site-layout" || activeTab === "page-content" || activeTab === "departments" || activeTab === "site-metrics" || activeTab === "testimonials"
+                  activeTab === "site-layout" || activeTab === "page-content" || activeTab === "news" || activeTab === "departments" || activeTab === "site-metrics" || activeTab === "testimonials"
                     ? "bg-[#00bfff] text-white"
                     : "bg-[#f0f4f8] text-[#4a5565]"
                 }`}>
@@ -916,6 +923,7 @@ export default function AdminDashboard() {
                   cmsMenuOpen ||
                   activeTab === "site-layout" ||
                   activeTab === "page-content" ||
+                  activeTab === "news" ||
                   activeTab === "departments" ||
                   activeTab === "site-metrics" ||
                   activeTab === "testimonials"
@@ -957,6 +965,20 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-2 min-w-0">
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "page-content" ? "bg-[#00bfff]" : "bg-[#00698c]"}`}></span>
                     <span className="truncate whitespace-nowrap">Page Content (CMS)</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleTabChange("news")}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === "news"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "news" ? "bg-[#00bfff]" : "bg-amber-500"}`}></span>
+                    <span className="truncate whitespace-nowrap">News &amp; Media Articles</span>
                   </div>
                 </button>
 
@@ -1042,6 +1064,7 @@ export default function AdminDashboard() {
               {activeTab === "events" && "Events & Conferences Management"}
               {activeTab === "site-layout" && "Global Layout, Navbar & Footer Branding"}
               {activeTab === "page-content" && "Page Content (CMS) Engine"}
+              {activeTab === "news" && "News & Media Articles"}
               {activeTab === "site-metrics" && "Site Impact Metrics"}
               {activeTab === "testimonials" && "Student & Scholar Testimonials"}
               {activeTab === "departments" && "Academic Departments & Disciplines"}
@@ -1614,6 +1637,14 @@ export default function AdminDashboard() {
           {/* TAB 4: PAGE CONTENT (CMS) */}
           {activeTab === "page-content" && token && (
             <PageContentManager
+              token={token}
+              onShowToast={(msg, type) => setToast({ message: msg, type })}
+            />
+          )}
+
+          {/* TAB: NEWS & ARTICLES */}
+          {activeTab === "news" && token && (
+            <NewsManager
               token={token}
               onShowToast={(msg, type) => setToast({ message: msg, type })}
             />
