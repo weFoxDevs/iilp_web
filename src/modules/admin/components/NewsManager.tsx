@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { RichTextEditor } from "./RichTextEditor";
 import Image from "next/image";
 import {
   fetchAdminNews,
@@ -646,15 +647,17 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
                 </div>
               </div>
 
-              {/* Full Content */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-gray-700">Full Content (HTML or Markdown)</label>
-                <textarea
-                  rows={6}
+              {/* Full Content – Rich Text Editor */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-700">
+                  Full Content
+                  <span className="ml-1.5 font-normal text-gray-400">(Rich Text Editor – outputs HTML)</span>
+                </label>
+                <RichTextEditor
                   value={formData.content || ""}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  placeholder="<p>Full article body with headings, paragraphs, and list items...</p>"
-                  className="w-full px-3 py-2 text-xs font-mono rounded-lg border border-gray-300 focus:border-[#000080] outline-hidden"
+                  onChange={(html) => setFormData((prev) => ({ ...prev, content: html }))}
+                  placeholder="Write the full article body here. Use headings, lists, blockquotes…"
+                  minHeight={280}
                 />
               </div>
 

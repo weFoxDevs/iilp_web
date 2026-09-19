@@ -4,6 +4,7 @@ import { AuthProvider } from "@/common/components/AuthContext";
 import { SiteLayoutProvider } from "@/common/components/SiteLayoutContext";
 import "@/assets/style/globals.css";
 import "lenis/dist/lenis.css";
+import "quill/dist/quill.snow.css";
 import { useEffect } from 'react';
 import Lenis from 'lenis';
 import { useRouter } from 'next/router';
