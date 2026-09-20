@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PageSectionData } from '@/common/services/cms.service';
+import { fetchHomeNews, HomeNewsResponse } from '@/common/services/news.service';
 
 interface NewsItem {
   id: number | string;
@@ -22,8 +23,24 @@ interface NewsMediaProps {
   data?: Partial<PageSectionData>;
 }
 
+function formatDisplayDate(dateStr: string): string {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
 export function NewsMedia({ data }: NewsMediaProps) {
   const [activeTab, setActiveTab] = useState('Programs');
+  const [apiNews, setApiNews] = useState<HomeNewsResponse | null>(null);
 
   const defaultNewsData = {
     badge: 'Stay Updated',
@@ -79,6 +96,22 @@ export function NewsMedia({ data }: NewsMediaProps) {
     } as NewsMetadata,
   };
 
+  // Fetch live articles from public News API on mount
+  useEffect(() => {
+    let isMounted = true;
+    fetchHomeNews().then((res) => {
+      if (isMounted && res && (res.featured || res.articles?.length > 0)) {
+        setApiNews(res);
+        if (res.tabs && res.tabs.length > 0) {
+          setActiveTab(res.tabs[0]);
+        }
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const section = {
     badge: data?.badge ?? defaultNewsData.badge,
     title: data?.title ?? defaultNewsData.title,
@@ -90,9 +123,43 @@ export function NewsMedia({ data }: NewsMediaProps) {
 
   const metadata = (section.metadata as NewsMetadata) || defaultNewsData.metadata;
 
-  const tabs = metadata.tabs && metadata.tabs.length > 0 ? metadata.tabs : defaultNewsData.metadata.tabs;
-  const featured = metadata.featured || defaultNewsData.metadata.featured;
-  const articles = metadata.articles && metadata.articles.length > 0 ? metadata.articles : defaultNewsData.metadata.articles;
+  // Prefer dynamic public API articles if available, fall back to page section metadata
+  const tabs = apiNews?.tabs && apiNews.tabs.length > 0
+    ? apiNews.tabs
+    : metadata.tabs && metadata.tabs.length > 0
+    ? metadata.tabs
+    : defaultNewsData.metadata.tabs;
+
+  const featured: NewsItem | undefined = apiNews?.featured
+    ? {
+        id: apiNews.featured.id,
+        category: apiNews.featured.categoryName || 'News',
+        date: formatDisplayDate(apiNews.featured.publishedDate),
+        title: apiNews.featured.title,
+        image: apiNews.featured.featuredImage || '/assets/news-main.png',
+        link: `/news/${apiNews.featured.slug}`,
+      }
+    : metadata.featured || defaultNewsData.metadata.featured;
+
+  const articles: NewsItem[] = (apiNews?.articles && apiNews.articles.length > 0
+    ? apiNews.articles.map((a) => ({
+        id: a.id,
+        category: a.categoryName || 'News',
+        date: formatDisplayDate(a.publishedDate),
+        title: a.title,
+        image: a.featuredImage || '/assets/news-small-1.png',
+        link: `/news/${a.slug}`,
+      }))
+    : metadata.articles && metadata.articles.length > 0
+    ? metadata.articles
+    : defaultNewsData.metadata.articles) || [];
+
+  const filteredArticles = (articles || []).filter((item) => {
+    if (!activeTab || activeTab.toLowerCase() === 'all') return true;
+    return item.category?.toLowerCase() === activeTab.toLowerCase();
+  });
+
+  const displayArticles = filteredArticles.length > 0 ? filteredArticles : articles || [];
 
   return (
     <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">
@@ -121,7 +188,7 @@ export function NewsMedia({ data }: NewsMediaProps) {
 
           {/* Filter Tabs */}
           {tabs && tabs.length > 0 && (
-            <div className="bg-[#e6f9ff] border border-[#e6f9ff] p-[4px] rounded-full flex gap-[4px] items-center self-start lg:self-end">
+            <div className="bg-[#e6f9ff] border border-[#e6f9ff] p-[4px] rounded-full flex gap-[4px] items-center self-start lg:self-end flex-wrap">
               {tabs.map((tab) => (
                 <button
                   key={tab}
@@ -150,6 +217,7 @@ export function NewsMedia({ data }: NewsMediaProps) {
                   src={featured.image} 
                   alt={featured.title} 
                   fill 
+                  unoptimized
                   sizes="(max-width: 1024px) 100vw, 606px"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                   priority
@@ -175,13 +243,14 @@ export function NewsMedia({ data }: NewsMediaProps) {
 
           {/* Smaller Articles Grid (Right) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-[32px] flex-1 w-full">
-            {(articles || []).map((item) => (
-              <Link href={item.link || '/news'} key={item.id} className="flex flex-col gap-[16px] items-start w-full group cursor-pointer">
+            {displayArticles.map((item) => (
+              <Link href={item.link || section.actionUrl || '/news'} key={item.id} className="flex flex-col gap-[16px] items-start w-full group cursor-pointer">
                 <div className="relative w-full aspect-[339/245] overflow-hidden">
                   <Image 
                     src={item.image} 
                     alt={item.title} 
                     fill 
+                    unoptimized
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
@@ -206,6 +275,19 @@ export function NewsMedia({ data }: NewsMediaProps) {
           </div>
 
         </div>
+
+        {/* Action Button CTA */}
+        {section.actionText && (
+          <div className="flex justify-center w-full pt-2">
+            <Link
+              href={section.actionUrl || '/news'}
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#1e2939] hover:bg-[#0a0d12] text-white font-inter font-semibold text-sm transition-all shadow-sm hover:shadow-md cursor-pointer"
+            >
+              <span>{section.actionText}</span>
+              <span>→</span>
+            </Link>
+          </div>
+        )}
         
       </div>
     </section>

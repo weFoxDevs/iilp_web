@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   fetchAdminPageSlugs,
   fetchAdminSections,
   upsertAdminSection,
   deleteAdminSection,
   uploadMediaFile,
+  deleteMediaFile,
   PageSectionData,
 } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
@@ -24,8 +25,8 @@ const COMMON_PAGES = [
   { slug: "academics", label: "Academics (/academics)" },
   { slug: "fellowships", label: "Fellowships (/fellowships)" },
   { slug: "governance", label: "Governance (/governance)" },
-  { slug: "leadership-directory", label: "Leadership Directory (/leadership-directory)" },
-  { slug: "research-publications", label: "Research & Publications (/research-publications)" },
+  { slug: "leadership-directory", label: "Leadership (/leadership-directory)" },
+  { slug: "research-publications", label: "Research (/research-publications)" },
   { slug: "news-media", label: "News & Media (/news-media)" },
   { slug: "partnerships", label: "Partnerships (/partnerships)" },
   { slug: "careers", label: "Careers (/careers)" },
@@ -40,29 +41,462 @@ export interface SectionDefinition {
   label: string;
   defaultTitle?: string;
   defaultBadge?: string;
+  defaultSubtitle?: string;
+  defaultBgImage?: string;
+  defaultMetadata?: Record<string, any>;
 }
+
+export interface FellowshipPathwayItem {
+  id: string;
+  name: string;
+  icon: string;
+  title: string;
+  description: string;
+  eligibility: string[];
+  benefits: string[];
+}
+
+export interface PathwaysIntroMetadata {
+  pathways: FellowshipPathwayItem[];
+}
+
+export const defaultPathwaysIntroMetadata: PathwaysIntroMetadata = {
+  pathways: [
+    {
+      id: "research",
+      icon: "/assets/tab-planet.svg",
+      name: "Research Fellows",
+      title: "Research Fellows",
+      benefits: [
+        "Institutional affiliation with IILP",
+        "Access to IILP's research network and resources",
+        "Co-authorship opportunities on IILP publications",
+        "Participation in IILP conferences and events",
+        "Recognition in IILP's Global Fellowship Directory",
+      ],
+      description:
+        "For established researchers and academics advancing IILP's scholarly agenda. Research Fellows lead institutional research initiatives, contribute to publications, and participate in academic governance.",
+      eligibility: [
+        "PhD or equivalent in a relevant field",
+        "Established research record with publications",
+        "Demonstrated expertise in IILP's areas of focus",
+        "Commitment to advancing evidence-based policy",
+      ],
+    },
+    {
+      id: "junior",
+      icon: "/assets/tab-hat.svg",
+      name: "Junior Fellows",
+      title: "Junior Fellows",
+      benefits: [
+        "Mentorship from senior IILP researchers",
+        "Institutional affiliation and profile",
+        "Research support and publishing opportunities",
+        "Training and capacity development programs",
+        "Access to IILP's academic network",
+      ],
+      description:
+        "For emerging scholars and early-career professionals committed to impactful research. Junior Fellows contribute to research projects under senior mentorship and develop their scholarly profile.",
+      eligibility: [
+        "Master's degree or equivalent in a relevant field",
+        "Strong academic record and research potential",
+        "Interest in IILP's thematic areas",
+        "Commitment to interdisciplinary scholarship",
+      ],
+    },
+    {
+      id: "honorary",
+      icon: "/assets/tab-trophy.svg",
+      name: "Honorary Fellows",
+      title: "Honorary Fellows",
+      benefits: [
+        "Recognition as an Honorary Fellow of IILP",
+        "Listing in IILP's Official Fellowship Directory",
+        "Invitation to IILP events and dialogues",
+        "Association with IILP's global institutional network",
+      ],
+      description:
+        "Recognizing distinguished individuals who have made exceptional contributions to the fields IILP serves. Honorary Fellows receive recognition without service obligations.",
+      eligibility: [
+        "Distinguished record of contributions to law, politics, human rights, or related fields",
+        "National or international recognition in their domain",
+        "Alignment with IILP's values and mission",
+        "Nomination by IILP leadership or existing fellows",
+      ],
+    },
+  ],
+};
 
 export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
   home: [
-    { key: "hero", label: "Hero Banner", defaultTitle: "International Institute for Law and Politics (IILP)", defaultBadge: "Knowledge, Justice, and Leadership" },
-    { key: "mission_vision", label: "Mission & Vision", defaultTitle: "Advancing Interdisciplinary Scholarship", defaultBadge: "Our Mission" },
+    { key: "hero", label: "Hero Banner", defaultTitle: "International Institute for Law and Politics (IILP)", defaultBadge: "Global Academic Network", defaultBgImage: "/assets/home-hero-v2.png" },
+    {
+      key: "our_mission",
+      label: "Our Mission",
+      defaultTitle: "Our Mission & Commitment",
+      defaultBadge: "Our Mission",
+      defaultSubtitle:
+        "To cultivate a dynamic international ecosystem of legal scholars, political analysts, and policy innovators dedicated to academic rigor, institutional integrity, and transformative scholarship that impacts societies worldwide.",
+      defaultBgImage: "/assets/about-mission-law.png",
+    },
+    {
+      key: "our_vision",
+      label: "Our Vision",
+      defaultTitle: "Our Global Vision",
+      defaultBadge: "Our Vision",
+      defaultSubtitle:
+        "To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace.",
+      defaultBgImage: "/assets/about-mission-student.png",
+      defaultMetadata: {
+        studentRatingsCount: "5000",
+        studentRatingsLabel: "Student ratings",
+        stats: [
+          { number: "6+", label: "Academic Departments", progress: "58%" },
+          { number: "18+", label: "Leadership Positions", progress: "58%" },
+          { number: "3+", label: "Fellowship Types", progress: "58%" },
+          { number: "5+", label: "Partnership Tracks", progress: "58%" },
+        ],
+      },
+    },
     { key: "academic_programs", label: "Academic Programs", defaultTitle: "Six Academic Departments", defaultBadge: "Academic Programs" },
     { key: "events", label: "Upcoming Events", defaultTitle: "Upcoming Events & Activities", defaultBadge: "Stay Updated" },
     { key: "testimonials", label: "Student Testimonials", defaultTitle: "Happy students sharing experiences", defaultBadge: "Testimonials" },
-    { key: "image_gallery", label: "Campus Image Gallery", defaultTitle: "Campus Life & Global Academic Engagement" },
+    {
+      key: "image_gallery",
+      label: "Campus Image Gallery",
+      defaultTitle: "Campus Life & Global Academic Engagement",
+      defaultMetadata: {
+        images: [
+          { src: "/assets/gallery-student-stairs.png", alt: "Students walking down campus stairs", size: "lg" },
+          { src: "/assets/gallery-students-park.png", alt: "Students walking in campus park", size: "sm" },
+          { src: "/assets/gallery-walking-stairs.png", alt: "Students walking down brick steps on campus", size: "lg" },
+          { src: "/assets/gallery-sunset-campus.png", alt: "Campus park bench at sunset", size: "sm" },
+        ],
+      },
+    },
     { key: "fellowship_network", label: "Global Fellowship Network", defaultTitle: "Join the IILP Fellowship Network", defaultBadge: "Global Fellowship Network" },
     { key: "founder_message", label: "Founder's Message", defaultTitle: "Founder's Message", defaultBadge: "From the Founder" },
-    { key: "news_media", label: "News & Media Center", defaultTitle: "News & Media Center", defaultBadge: "Stay Updated" },
+    {
+      key: "news_media",
+      label: "News & Media Center",
+      defaultTitle: "News & Media Center",
+      defaultBadge: "Stay Updated",
+      defaultSubtitle:
+        "Interdisciplinary programs advancing law, governance, human rights, and development through rigorous research and scholarship.",
+      defaultMetadata: {
+        tabs: ["Programs", "News", "Events"],
+        featured: {
+          id: "featured",
+          category: "News",
+          date: "May 20, 2025",
+          title: "Technological Advancements",
+          image: "/assets/news-main.png",
+          link: "/news",
+        },
+        articles: [
+          {
+            id: 1,
+            category: "News",
+            date: "May 20, 2025",
+            title: "Technological Advancements",
+            image: "/assets/news-small-1.png",
+            link: "/news",
+          },
+          {
+            id: 2,
+            category: "News",
+            date: "May 20, 2025",
+            title: "Technological Advancements",
+            image: "/assets/news-small-2.png",
+            link: "/news",
+          },
+          {
+            id: 3,
+            category: "News",
+            date: "May 20, 2025",
+            title: "Technological Advancements",
+            image: "/assets/news-small-3.png",
+            link: "/news",
+          },
+          {
+            id: 4,
+            category: "News",
+            date: "May 20, 2025",
+            title: "Technological Advancements",
+            image: "/assets/news-small-4.png",
+            link: "/news",
+          },
+        ],
+      },
+    },
   ],
   about: [
     { key: "hero", label: "About Hero Banner", defaultTitle: "About the Institute" },
-    { key: "institutional_profile", label: "Institutional Profile", defaultTitle: "Our Institutional Profile" },
-    { key: "mission_vision", label: "Mission & Vision Statement", defaultTitle: "Mission, Vision & Core Purpose" },
-    { key: "strategic_objectives", label: "Strategic Objectives", defaultTitle: "Strategic Goals & Priorities" },
-    { key: "institutional_values", label: "Institutional Values", defaultTitle: "Core Values & Principles" },
-    { key: "global_engagement", label: "Global Engagement & Impact", defaultTitle: "Global Engagement & Impact" },
-    { key: "founder_message", label: "President & Founder Message", defaultTitle: "Message from the Leadership" },
-    { key: "gallery", label: "About Photo Gallery", defaultTitle: "Institutional Photo Gallery" },
+    {
+      key: "profile",
+      label: "Institutional Profile",
+      defaultTitle: "Our Institutional Profile",
+      defaultMetadata: {
+        image1: "/assets/about-institutional-1.png",
+        image2: "/assets/about-institutional-2.png",
+        badgeIcon: "/assets/about-badge-icon.svg",
+        badgeText: "/assets/about-badge-text.png",
+        profileDetails: [
+          {
+            label: "Established",
+            value: "1 January 2026",
+          },
+          {
+            label: "Type",
+            value: "Independent, Non-Profit",
+          },
+          {
+            label: "Focus",
+            value: "Law, Politics & Governance",
+          },
+          {
+            label: "Motto",
+            value: '"Knowledge, Justice, and Leadership for Global Change."',
+          },
+        ],
+        secondaryActionUrl: "/about",
+        secondaryActionText: "Learn More",
+      },
+    },
+    {
+      key: "institutional_profile",
+      label: "Institutional Profile (Alt Key)",
+      defaultTitle: "Our Institutional Profile",
+      defaultMetadata: {
+        image1: "/assets/about-institutional-1.png",
+        image2: "/assets/about-institutional-2.png",
+        badgeIcon: "/assets/about-badge-icon.svg",
+        badgeText: "/assets/about-badge-text.png",
+        profileDetails: [
+          {
+            label: "Established",
+            value: "1 January 2026",
+          },
+          {
+            label: "Type",
+            value: "Independent, Non-Profit",
+          },
+          {
+            label: "Focus",
+            value: "Law, Politics & Governance",
+          },
+          {
+            label: "Motto",
+            value: '"Knowledge, Justice, and Leadership for Global Change."',
+          },
+        ],
+        secondaryActionUrl: "/about",
+        secondaryActionText: "Learn More",
+      },
+    },
+    {
+      key: "our_mission",
+      label: "Our Mission",
+      defaultTitle: "Advancing Interdisciplinary Scholarship",
+      defaultBadge: "Our Mission",
+      defaultSubtitle:
+        "The mission of the International Institute for Law and Politics is to advance interdisciplinary scholarship, strengthen evidence-based policymaking, foster ethical leadership, and contribute to the development of informed and resilient institutions capable of addressing contemporary global challenges.",
+      defaultBgImage: "/assets/about-vision-students.png",
+    },
+    {
+      key: "our_vision",
+      label: "Our Vision",
+      defaultTitle: "A Globally Respected Centre of Excellence",
+      defaultBadge: "Our Vision",
+      defaultSubtitle:
+        "To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace.",
+      defaultBgImage: "/assets/about-mission-student.png",
+      defaultMetadata: {
+        studentRatingsCount: "5000",
+        studentRatingsLabel: "Student ratings",
+        stats: [
+          { number: "6+", label: "Academic Departments", progress: "58%" },
+          { number: "18+", label: "Leadership Positions", progress: "58%" },
+          { number: "3+", label: "Fellowship Types", progress: "58%" },
+          { number: "5+", label: "Partnership Tracks", progress: "58%" },
+        ],
+      },
+    },
+    {
+      key: "objectives",
+      label: "Strategic Objectives",
+      defaultTitle: "A Globally Respected Centre of Excellence",
+      defaultBadge: "Our Vision",
+      defaultSubtitle:
+        "To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace.",
+      defaultBgImage: "/assets/about-objectives-graduation.png",
+      defaultMetadata: {
+        objectives: [
+          {
+            num: "01",
+            text: "Provide academic programs, training programs, and certificate courses, and establish partnerships with universities, international organizations, and civil society organizations.",
+          },
+          {
+            num: "02",
+            text: "Advance high-quality academic and policy research in law, politics, governance, human rights, forced displacement and statelessness, humanitarian affairs, and social development.",
+          },
+          {
+            num: "03",
+            text: "Promote intellectual inquiry and critical thinking through rigorous scholarship and interdisciplinary collaboration.",
+          },
+          {
+            num: "04",
+            text: "Develop future scholars, researchers, policymakers, public servants, and leaders committed to ethical responsibility and public service.",
+          },
+          {
+            num: "05",
+            text: "Encourage evidence-based policymaking and informed public dialogue on issues of national, regional, and global significance.",
+          },
+          {
+            num: "06",
+            text: "Promote human rights, justice, accountability, inclusion, and democratic values.",
+          },
+          {
+            num: "07",
+            text: "Strengthen collaboration among universities, research institutions, civil society organizations, international organizations, and policy networks.",
+          },
+          {
+            num: "08",
+            text: "Support innovative approaches to addressing complex legal, political, and humanitarian challenges.",
+          },
+          {
+            num: "09",
+            text: "Bridge the gap between research and practice by transforming knowledge into practical policy recommendations and institutional solutions.",
+          },
+          {
+            num: "10",
+            text: "Foster international cooperation and intellectual exchange across cultures, disciplines, and regions.",
+          },
+        ],
+      },
+    },
+    {
+      key: "strategic_objectives",
+      label: "Strategic Objectives (Alt Key)",
+      defaultTitle: "Strategic Goals & Priorities",
+    },
+    {
+      key: "values",
+      label: "Institutional Values",
+      defaultTitle: "Institutional Values",
+      defaultBadge: "What We Stand For",
+      defaultMetadata: {
+        values: [
+          {
+            desc: "Commitment to the highest standards of scholarship, research, and intellectual inquiry.",
+            icon: "🎓",
+            title: "Academic Excellence",
+          },
+          {
+            desc: "Dedication to honesty, transparency, professionalism, and responsible institutional conduct.",
+            icon: "🔍",
+            title: "Integrity and Accountability",
+          },
+          {
+            desc: "Respect for the inherent worth, rights, and dignity of all individuals.",
+            icon: "⚖️",
+            title: "Justice and Human Dignity",
+          },
+          {
+            desc: "Promotion of leadership grounded in responsibility, service, integrity, and ethical principles.",
+            icon: "🏅",
+            title: "Ethical Leadership",
+          },
+          {
+            desc: "Recognition of diverse perspectives, experiences, and backgrounds as sources of intellectual strength.",
+            icon: "🌈",
+            title: "Inclusiveness and Diversity",
+          },
+          {
+            desc: "Commitment to academic freedom and objective inquiry free from undue influence.",
+            icon: "🧠",
+            title: "Intellectual Independence",
+          },
+          {
+            desc: "Support for rigorous, methodologically sound, and policy-relevant scholarship.",
+            icon: "📊",
+            title: "Evidence-Based Research",
+          },
+          {
+            desc: "Encouragement of constructive dialogue, civic participation, and respect for democratic principles.",
+            icon: "🗳️",
+            title: "Democratic Engagement",
+          },
+          {
+            desc: "Commitment to collaboration across borders in pursuit of shared knowledge and common solutions.",
+            icon: "🌐",
+            title: "International Cooperation",
+          },
+          {
+            desc: "Recognition of the responsibility of academic institutions to contribute positively to society and the public good.",
+            icon: "🤲",
+            title: "Social Responsibility",
+          },
+        ],
+      },
+    },
+    {
+      key: "institutional_values",
+      label: "Institutional Values (Alt Key)",
+      defaultTitle: "Institutional Values",
+      defaultBadge: "What We Stand For",
+    },
+    {
+      key: "global_engagement",
+      label: "Global Engagement & Impact",
+      defaultTitle: "Global Engagement",
+      defaultBadge: "Our Global Reach",
+      defaultBgImage: "/assets/about-mission-student.png",
+      defaultMetadata: {
+        commitmentTitle: "Institutional Commitment",
+        commitmentContent:
+          "The International Institute for Law and Politics is committed to serving as a platform where ideas are transformed into knowledge, knowledge is translated into policy, and policy contributes to positive social change.\n\nBy bringing together scholarship, leadership, and public engagement, the Institute seeks to make a meaningful contribution to the advancement of justice, responsible governance, human rights, humanitarian values, and sustainable development for present and future generations.",
+        studentRatingsCount: "5000",
+        studentRatingsLabel: "Student ratings",
+        ratingAvatars: [
+          "/assets/about-rating-avatar-1.png",
+          "/assets/about-rating-avatar-2.png",
+          "/assets/about-rating-avatar-3.png",
+        ],
+      },
+    },
+    {
+      key: "founder_message",
+      label: "President & Founder Message",
+      defaultTitle: "Founder's Message",
+      defaultBadge: "From the Founder",
+      defaultBgImage: "/assets/about-institutional-2.png",
+      defaultMetadata: {
+        founderName: "Mohammed Siraj",
+        founderRole: "Founder & President, IILP",
+        founderInitials: "MS",
+        signatureImage: "/assets/about-founder-signature.png",
+        paragraphs: [
+          "It is with profound pleasure and immense honor that I welcome you to the International Institute for Law and Politics (IILP) — a vibrant community committed to the creation of knowledge, rigorous scholarship, profound insights, and impactful engagement with the critical legal, political, humanitarian, and socio-economic issues defining our times. IILP was established upon a straightforward yet ambitious principle: knowledge must serve humanity. Knowledge is power, and that power cannot be siloed within academia or confined to intellectual discussions alone. It must be applied effectively to fight injustice, foster democracy, uphold human dignity, and seek solutions to the global challenges impacting communities across the globe, with a dedicated focus on displaced and refugee populations.",
+          "My own experience — having lived through the Rohingya genocide and experienced life as a refugee — impelled me to create IILP. I profoundly understand the consequences of institution failure to protect the vulnerable, and the transformative potential of knowledge in service of justice. We live in times of immense change and uncertainty. Conflict, war, genocide, persecution, political violence, displacement, statelessness, inequity, failed governance, humanitarian crises, and violations of basic human rights continue to challenge communities worldwide. Addressing these complexities cannot be solely a matter of good intentions; it demands rigorous scholarship, responsible leadership, data-driven policies, interdisciplinary approaches, and an unyielding dedication to ethical public service. IILP serves as a central hub where scholars, researchers, students, policymakers, practitioners, and leaders, including young activists and future leaders, come together to exchange knowledge, build capacity, and contribute to a more just, equitable, and sustainable global future for all, particularly for those displaced or seeking refuge.",
+          "IILP operates under the highest standards of research, intellectual inquiry, and academic integrity, complemented by an unwavering commitment to professionalism and excellence. We foster a culture that celebrates learning, creativity, collaboration, and civic engagement through our programs, publications, conferences, workshops, policy dialogues, training sessions, and partnerships. We firmly believe that law, politics, governance, human rights, and societal development are inextricably linked and that lasting change arises from integrative strategies that draw upon diverse perspectives and dialogue across academic disciplines, geographic regions, and cultural diversities.",
+          "I encourage you to join our collective mission. Whether you are an esteemed professor, an aspiring scholar or student, a dedicated researcher, a seasoned policy practitioner, a grassroots activist, a collaborating organization or institution, a funding partner, or simply a concerned individual passionate about making a difference in the world, your involvement is invaluable to creating a better, more informed, more equitable, and more compassionate future. Together, we will convert knowledge into impactful action, bright ideas into lasting solutions, and devoted leadership into transformative and sustainable change.",
+        ],
+      },
+    },
+    {
+      key: "gallery",
+      label: "About Photo Gallery",
+      defaultTitle: "Institutional Photo Gallery",
+      defaultMetadata: {
+        images: [
+          { src: "/assets/gallery-1.png", alt: "Campus life 1", size: "lg" },
+          { src: "/assets/gallery-2.png", alt: "Campus life 2", size: "sm" },
+          { src: "/assets/gallery-3.png", alt: "Campus life 3", size: "lg" },
+          { src: "/assets/gallery-4.png", alt: "Campus life 4", size: "sm" },
+        ],
+      },
+    },
   ],
   academics: [
     { key: "hero", label: "Academics Hero Banner", defaultTitle: "Academic Programs & Rigor" },
@@ -70,10 +504,32 @@ export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
     { key: "apply", label: "Apply to Academic Programs", defaultTitle: "Admissions & Applications" },
   ],
   fellowships: [
-    { key: "hero", label: "Fellowship Hero Banner", defaultTitle: "Global Fellowship Opportunities" },
-    { key: "categories", label: "Fellowship Categories", defaultTitle: "Fellowship Tracks & Eligibility" },
-    { key: "application", label: "Fellowship Application", defaultTitle: "How to Apply" },
-    { key: "cta", label: "Call to Action Banner", defaultTitle: "Ready to Apply for Fellowship?" },
+    {
+      key: "hero",
+      label: "Fellowship Hero Banner",
+      defaultTitle: "Connecting Scholars & Leaders Worldwide",
+      defaultBadge: "Global Fellowship Network",
+      defaultSubtitle:
+        "Join the IILP Global Fellowship Network — connecting researchers, professionals, and emerging leaders around the world committed to advancing justice, governance, and human rights.",
+      defaultBgImage: "/assets/fellowship-hero-bg.png",
+    },
+    {
+      key: "pathways_intro",
+      label: "Three Fellowship Pathways",
+      defaultTitle: "Three Fellowship Pathways",
+      defaultBadge: "Fellowship Categories",
+      defaultSubtitle:
+        "IILP offers three fellowship categories designed to engage scholars and professionals at different stages of their careers.",
+      defaultMetadata: defaultPathwaysIntroMetadata,
+    },
+    {
+      key: "application_cta",
+      label: "Fellowship Application & CTA",
+      defaultTitle: "Apply for Fellowship",
+      defaultBadge: "Fellowship Application",
+      defaultSubtitle:
+        "Complete the form below to apply for the IILP Global Fellowship Network.",
+    },
   ],
   governance: [
     { key: "hero", label: "Governance Hero", defaultTitle: "Institutional Governance & Integrity" },
@@ -189,16 +645,547 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
     e.target.value = "";
   };
 
-  const handleRemoveImage = () => {
+  // Gallery Visual Manager Helpers
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const galleryFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const getGalleryImages = (): Array<{ src: string; alt?: string; size?: string }> => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed.images)) {
+        return parsed.images;
+      }
+    } catch {}
+    return [];
+  };
+
+  const updateGalleryImages = (
+    newImages: Array<{ src: string; alt?: string; size?: string }>
+  ) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      cur.images = newImages;
+      setMetadataJson(JSON.stringify(cur, null, 2));
+    } catch {
+      setMetadataJson(JSON.stringify({ images: newImages }, null, 2));
+    }
+  };
+
+  const handleGalleryFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingGallery(true);
+    try {
+      const currentList = [...getGalleryImages()];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const res = await uploadMediaFile(token, file, "gallery");
+        currentList.push({
+          src: res.url,
+          alt: file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "),
+          size: currentList.length % 2 === 0 ? "lg" : "sm",
+        });
+      }
+      updateGalleryImages(currentList);
+      onShowToast(`${files.length} image(s) uploaded and added to gallery!`, "success");
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to upload image", "error");
+    } finally {
+      setIsUploadingGallery(false);
+      if (e.target) e.target.value = "";
+    }
+  };
+
+  // News & Media Visual Helpers
+  const [uploadingNewsKey, setUploadingNewsKey] = useState<string | null>(null);
+
+  const getNewsMetadata = () => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      return {
+        tabs: Array.isArray(parsed.tabs) ? parsed.tabs : ["Programs", "News", "Events"],
+        featured: parsed.featured || {
+          category: "News",
+          date: "May 20, 2025",
+          title: "Technological Advancements",
+          image: "/assets/news-main.png",
+          link: "/news",
+        },
+        articles: Array.isArray(parsed.articles) ? parsed.articles : [],
+      };
+    } catch {
+      return {
+        tabs: ["Programs", "News", "Events"],
+        featured: {
+          category: "News",
+          date: "May 20, 2025",
+          title: "Technological Advancements",
+          image: "/assets/news-main.png",
+          link: "/news",
+        },
+        articles: [],
+      };
+    }
+  };
+
+  const updateNewsMetadata = (updater: (prev: any) => any) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const updated = updater(cur);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    } catch {
+      const base = getNewsMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const handleNewsImageUpload = async (file: File, onUploaded: (url: string) => void, uploadKey: string) => {
+    setUploadingNewsKey(uploadKey);
+    try {
+      const res = await uploadMediaFile(token, file, "news");
+      onUploaded(res.url);
+      onShowToast("Image uploaded to news media!", "success");
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to upload image", "error");
+    } finally {
+      setUploadingNewsKey(null);
+    }
+  };
+
+  // Institutional Profile Visual Helpers (About Page)
+  const [uploadingProfileKey, setUploadingProfileKey] = useState<string | null>(null);
+
+  const getProfileMetadata = () => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      return {
+        image1: parsed.image1 ?? "/assets/about-institutional-1.png",
+        image2: parsed.image2 ?? "/assets/about-institutional-2.png",
+        badgeIcon: parsed.badgeIcon ?? "/assets/about-badge-icon.svg",
+        badgeText: parsed.badgeText ?? "/assets/about-badge-text.png",
+        profileDetails: Array.isArray(parsed.profileDetails)
+          ? parsed.profileDetails
+          : [
+              { label: "Established", value: "1 January 2026" },
+              { label: "Type", value: "Independent, Non-Profit" },
+              { label: "Focus", value: "Law, Politics & Governance" },
+              { label: "Motto", value: '"Knowledge, Justice, and Leadership for Global Change."' },
+            ],
+        secondaryActionUrl: parsed.secondaryActionUrl ?? "/about",
+        secondaryActionText: parsed.secondaryActionText ?? "Learn More",
+      };
+    } catch {
+      return {
+        image1: "/assets/about-institutional-1.png",
+        image2: "/assets/about-institutional-2.png",
+        badgeIcon: "/assets/about-badge-icon.svg",
+        badgeText: "/assets/about-badge-text.png",
+        profileDetails: [
+          { label: "Established", value: "1 January 2026" },
+          { label: "Type", value: "Independent, Non-Profit" },
+          { label: "Focus", value: "Law, Politics & Governance" },
+          { label: "Motto", value: '"Knowledge, Justice, and Leadership for Global Change."' },
+        ],
+        secondaryActionUrl: "/about",
+        secondaryActionText: "Learn More",
+      };
+    }
+  };
+
+  const updateProfileMetadata = (updater: (prev: any) => any) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const updated = updater({ ...getProfileMetadata(), ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    } catch {
+      const base = getProfileMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const defaultObjectivesList: Array<{ num: string; text: string }> = [
+    {
+      num: "01",
+      text: "Provide academic programs, training programs, and certificate courses, and establish partnerships with universities, international organizations, and civil society organizations.",
+    },
+    {
+      num: "02",
+      text: "Advance high-quality academic and policy research in law, politics, governance, human rights, forced displacement and statelessness, humanitarian affairs, and social development.",
+    },
+    {
+      num: "03",
+      text: "Promote intellectual inquiry and critical thinking through rigorous scholarship and interdisciplinary collaboration.",
+    },
+    {
+      num: "04",
+      text: "Develop future scholars, researchers, policymakers, public servants, and leaders committed to ethical responsibility and public service.",
+    },
+    {
+      num: "05",
+      text: "Encourage evidence-based policymaking and informed public dialogue on issues of national, regional, and global significance.",
+    },
+    {
+      num: "06",
+      text: "Promote human rights, justice, accountability, inclusion, and democratic values.",
+    },
+    {
+      num: "07",
+      text: "Strengthen collaboration among universities, research institutions, civil society organizations, international organizations, and policy networks.",
+    },
+    {
+      num: "08",
+      text: "Support innovative approaches to addressing complex legal, political, and humanitarian challenges.",
+    },
+    {
+      num: "09",
+      text: "Bridge the gap between research and practice by transforming knowledge into practical policy recommendations and institutional solutions.",
+    },
+    {
+      num: "10",
+      text: "Foster international cooperation and intellectual exchange across cultures, disciplines, and regions.",
+    },
+  ];
+
+  const getObjectivesMetadata = (): Array<{ num: string; text: string }> => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed.objectives)) {
+        return parsed.objectives;
+      }
+      return defaultObjectivesList;
+    } catch {
+      return defaultObjectivesList;
+    }
+  };
+
+  const updateObjectivesMetadata = (newObjectives: Array<{ num: string; text: string }>) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      cur.objectives = newObjectives;
+      setMetadataJson(JSON.stringify(cur, null, 2));
+    } catch {
+      setMetadataJson(JSON.stringify({ objectives: newObjectives }, null, 2));
+    }
+  };
+
+  const defaultValuesList: Array<{ icon: string; title: string; desc: string }> = [
+    {
+      desc: "Commitment to the highest standards of scholarship, research, and intellectual inquiry.",
+      icon: "🎓",
+      title: "Academic Excellence",
+    },
+    {
+      desc: "Dedication to honesty, transparency, professionalism, and responsible institutional conduct.",
+      icon: "🔍",
+      title: "Integrity and Accountability",
+    },
+    {
+      desc: "Respect for the inherent worth, rights, and dignity of all individuals.",
+      icon: "⚖️",
+      title: "Justice and Human Dignity",
+    },
+    {
+      desc: "Promotion of leadership grounded in responsibility, service, integrity, and ethical principles.",
+      icon: "🏅",
+      title: "Ethical Leadership",
+    },
+    {
+      desc: "Recognition of diverse perspectives, experiences, and backgrounds as sources of intellectual strength.",
+      icon: "🌈",
+      title: "Inclusiveness and Diversity",
+    },
+    {
+      desc: "Commitment to academic freedom and objective inquiry free from undue influence.",
+      icon: "🧠",
+      title: "Intellectual Independence",
+    },
+    {
+      desc: "Support for rigorous, methodologically sound, and policy-relevant scholarship.",
+      icon: "📊",
+      title: "Evidence-Based Research",
+    },
+    {
+      desc: "Encouragement of constructive dialogue, civic participation, and respect for democratic principles.",
+      icon: "🗳️",
+      title: "Democratic Engagement",
+    },
+    {
+      desc: "Commitment to collaboration across borders in pursuit of shared knowledge and common solutions.",
+      icon: "🌐",
+      title: "International Cooperation",
+    },
+    {
+      desc: "Recognition of the responsibility of academic institutions to contribute positively to society and the public good.",
+      icon: "🤲",
+      title: "Social Responsibility",
+    },
+  ];
+
+  const getValuesMetadata = (): Array<{ icon: string; title: string; desc: string }> => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed.values)) {
+        return parsed.values;
+      }
+      return defaultValuesList;
+    } catch {
+      return defaultValuesList;
+    }
+  };
+
+  const updateValuesMetadata = (newValues: Array<{ icon: string; title: string; desc: string }>) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      cur.values = newValues;
+      setMetadataJson(JSON.stringify(cur, null, 2));
+    } catch {
+      setMetadataJson(JSON.stringify({ values: newValues }, null, 2));
+    }
+  };
+
+  interface GlobalEngagementMetadata {
+    commitmentTitle: string;
+    commitmentContent: string;
+    studentRatingsCount: string;
+    studentRatingsLabel: string;
+    ratingAvatars: string[];
+  }
+
+  const defaultGlobalEngagementMetadata: GlobalEngagementMetadata = {
+    commitmentTitle: "Institutional Commitment",
+    commitmentContent:
+      "The International Institute for Law and Politics is committed to serving as a platform where ideas are transformed into knowledge, knowledge is translated into policy, and policy contributes to positive social change.\n\nBy bringing together scholarship, leadership, and public engagement, the Institute seeks to make a meaningful contribution to the advancement of justice, responsible governance, human rights, humanitarian values, and sustainable development for present and future generations.",
+    studentRatingsCount: "5000",
+    studentRatingsLabel: "Student ratings",
+    ratingAvatars: [
+      "/assets/about-rating-avatar-1.png",
+      "/assets/about-rating-avatar-2.png",
+      "/assets/about-rating-avatar-3.png",
+    ],
+  };
+
+  const [uploadingAvatarIdx, setUploadingAvatarIdx] = useState<number | null>(null);
+
+  const getGlobalEngagementMetadata = (): GlobalEngagementMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      return {
+        commitmentTitle: parsed.commitmentTitle ?? defaultGlobalEngagementMetadata.commitmentTitle,
+        commitmentContent: parsed.commitmentContent ?? defaultGlobalEngagementMetadata.commitmentContent,
+        studentRatingsCount: parsed.studentRatingsCount ?? defaultGlobalEngagementMetadata.studentRatingsCount,
+        studentRatingsLabel: parsed.studentRatingsLabel ?? defaultGlobalEngagementMetadata.studentRatingsLabel,
+        ratingAvatars: Array.isArray(parsed.ratingAvatars)
+          ? parsed.ratingAvatars
+          : defaultGlobalEngagementMetadata.ratingAvatars,
+      };
+    } catch {
+      return defaultGlobalEngagementMetadata;
+    }
+  };
+
+  const updateGlobalEngagementMetadata = (updater: (prev: GlobalEngagementMetadata) => GlobalEngagementMetadata) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const base = getGlobalEngagementMetadata();
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    } catch {
+      const base = getGlobalEngagementMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const handleAvatarUpload = async (file: File, idx: number) => {
+    setUploadingAvatarIdx(idx);
+    try {
+      const res = await uploadMediaFile(token, file, "about");
+      updateGlobalEngagementMetadata((prev) => {
+        const nextAvatars = [...prev.ratingAvatars];
+        nextAvatars[idx] = res.url;
+        return { ...prev, ratingAvatars: nextAvatars };
+      });
+      onShowToast("Avatar image uploaded successfully!", "success");
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to upload avatar", "error");
+    } finally {
+      setUploadingAvatarIdx(null);
+    }
+  };
+
+  interface FounderMessageMetadata {
+    founderName: string;
+    founderRole: string;
+    founderInitials: string;
+    signatureImage: string;
+    paragraphs: string[];
+  }
+
+  const defaultFounderMessageMetadata: FounderMessageMetadata = {
+    founderName: "Mohammed Siraj",
+    founderRole: "Founder & President, IILP",
+    founderInitials: "MS",
+    signatureImage: "/assets/about-founder-signature.png",
+    paragraphs: [
+      "It is with profound pleasure and immense honor that I welcome you to the International Institute for Law and Politics (IILP) — a vibrant community committed to the creation of knowledge, rigorous scholarship, profound insights, and impactful engagement with the critical legal, political, humanitarian, and socio-economic issues defining our times. IILP was established upon a straightforward yet ambitious principle: knowledge must serve humanity. Knowledge is power, and that power cannot be siloed within academia or confined to intellectual discussions alone. It must be applied effectively to fight injustice, foster democracy, uphold human dignity, and seek solutions to the global challenges impacting communities across the globe, with a dedicated focus on displaced and refugee populations.",
+      "My own experience — having lived through the Rohingya genocide and experienced life as a refugee — impelled me to create IILP. I profoundly understand the consequences of institution failure to protect the vulnerable, and the transformative potential of knowledge in service of justice. We live in times of immense change and uncertainty. Conflict, war, genocide, persecution, political violence, displacement, statelessness, inequity, failed governance, humanitarian crises, and violations of basic human rights continue to challenge communities worldwide. Addressing these complexities cannot be solely a matter of good intentions; it demands rigorous scholarship, responsible leadership, data-driven policies, interdisciplinary approaches, and an unyielding dedication to ethical public service. IILP serves as a central hub where scholars, researchers, students, policymakers, practitioners, and leaders, including young activists and future leaders, come together to exchange knowledge, build capacity, and contribute to a more just, equitable, and sustainable global future for all, particularly for those displaced or seeking refuge.",
+      "IILP operates under the highest standards of research, intellectual inquiry, and academic integrity, complemented by an unwavering commitment to professionalism and excellence. We foster a culture that celebrates learning, creativity, collaboration, and civic engagement through our programs, publications, conferences, workshops, policy dialogues, training sessions, and partnerships. We firmly believe that law, politics, governance, human rights, and societal development are inextricably linked and that lasting change arises from integrative strategies that draw upon diverse perspectives and dialogue across academic disciplines, geographic regions, and cultural diversities.",
+      "I encourage you to join our collective mission. Whether you are an esteemed professor, an aspiring scholar or student, a dedicated researcher, a seasoned policy practitioner, a grassroots activist, a collaborating organization or institution, a funding partner, or simply a concerned individual passionate about making a difference in the world, your involvement is invaluable to creating a better, more informed, more equitable, and more compassionate future. Together, we will convert knowledge into impactful action, bright ideas into lasting solutions, and devoted leadership into transformative and sustainable change.",
+    ],
+  };
+
+  const [isUploadingSignature, setIsUploadingSignature] = useState(false);
+
+  const getFounderMessageMetadata = (): FounderMessageMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      return {
+        founderName: parsed.founderName ?? defaultFounderMessageMetadata.founderName,
+        founderRole: parsed.founderRole ?? defaultFounderMessageMetadata.founderRole,
+        founderInitials: parsed.founderInitials ?? defaultFounderMessageMetadata.founderInitials,
+        signatureImage: parsed.signatureImage ?? defaultFounderMessageMetadata.signatureImage,
+        paragraphs: Array.isArray(parsed.paragraphs)
+          ? parsed.paragraphs
+          : defaultFounderMessageMetadata.paragraphs,
+      };
+    } catch {
+      return defaultFounderMessageMetadata;
+    }
+  };
+
+  const updateFounderMessageMetadata = (updater: (prev: FounderMessageMetadata) => FounderMessageMetadata) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const base = getFounderMessageMetadata();
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    } catch {
+      const base = getFounderMessageMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const handleSignatureUpload = async (file: File) => {
+    setIsUploadingSignature(true);
+    try {
+      const res = await uploadMediaFile(token, file, "about");
+      updateFounderMessageMetadata((prev) => ({
+        ...prev,
+        signatureImage: res.url,
+      }));
+      onShowToast("Founder signature uploaded successfully!", "success");
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to upload signature", "error");
+    } finally {
+      setIsUploadingSignature(false);
+    }
+  };
+
+  const [uploadingPathwayIdx, setUploadingPathwayIdx] = useState<number | null>(null);
+
+  const getPathwaysMetadata = (): PathwaysIntroMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed.pathways)) {
+        return {
+          pathways: parsed.pathways.map((p: any, idx: number) => ({
+            id: String(p.id || `pathway-${idx + 1}`),
+            name: String(p.name || `Pathway ${idx + 1}`),
+            icon: String(p.icon || "/assets/tab-planet.svg"),
+            title: String(p.title || p.name || ""),
+            description: String(p.description || ""),
+            eligibility: Array.isArray(p.eligibility) ? p.eligibility.map(String) : [],
+            benefits: Array.isArray(p.benefits) ? p.benefits.map(String) : [],
+          })),
+        };
+      }
+      return defaultPathwaysIntroMetadata;
+    } catch {
+      return defaultPathwaysIntroMetadata;
+    }
+  };
+
+  const updatePathwaysMetadata = (
+    updater: (prev: PathwaysIntroMetadata) => PathwaysIntroMetadata
+  ) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const base = getPathwaysMetadata();
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    } catch {
+      const base = getPathwaysMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const handlePathwayIconUpload = async (file: File, pathwayIdx: number) => {
+    setUploadingPathwayIdx(pathwayIdx);
+    try {
+      const res = await uploadMediaFile(token, file, "fellowships");
+      updatePathwaysMetadata((prev) => {
+        const list = [...prev.pathways];
+        list[pathwayIdx] = { ...list[pathwayIdx], icon: res.url };
+        return { ...prev, pathways: list };
+      });
+      onShowToast("Pathway icon uploaded successfully!", "success");
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to upload icon", "error");
+    } finally {
+      setUploadingPathwayIdx(null);
+    }
+  };
+
+  const handleProfileImageUpload = async (
+    file: File,
+    fieldKey: "image1" | "image2" | "badgeIcon" | "badgeText"
+  ) => {
+    setUploadingProfileKey(fieldKey);
+    try {
+      const res = await uploadMediaFile(token, file, "about");
+      updateProfileMetadata((prev: any) => ({
+        ...prev,
+        [fieldKey]: res.url,
+      }));
+      onShowToast("Image uploaded to institutional profile!", "success");
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to upload image", "error");
+    } finally {
+      setUploadingProfileKey(null);
+    }
+  };
+
+  const handleRemoveImage = async () => {
     if (localImagePreview) {
       URL.revokeObjectURL(localImagePreview);
     }
+    const currentBgImage = formData.bgImage;
     setPendingImageFile(null);
     setLocalImagePreview(null);
     setFormData((prev) => ({
       ...prev,
       bgImage: "",
     }));
+
+    if (
+      currentBgImage &&
+      (currentBgImage.includes('/storage/') ||
+        currentBgImage.includes(':9000') ||
+        currentBgImage.includes('amazonaws.com') ||
+        currentBgImage.startsWith('pages/'))
+    ) {
+      try {
+        await deleteMediaFile(token, currentBgImage);
+        onShowToast("Image removed from storage.", "info");
+      } catch {
+        // Quiet fallback
+      }
+    }
   };
 
   // Load unique slugs from DB
@@ -302,16 +1289,16 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
     setEditingKey(initialKey);
     setFormData({
       title: initialDef?.defaultTitle || "",
-      subtitle: "",
+      subtitle: initialDef?.defaultSubtitle || "",
       badge: initialDef?.defaultBadge || "",
-      bgImage: "",
+      bgImage: initialDef?.defaultBgImage || "",
       bodyContent: "",
       actionText: "",
       actionUrl: "",
       sortOrder: sections.length * 10,
       isActive: true,
     });
-    setMetadataJson("{}");
+    setMetadataJson(initialDef?.defaultMetadata ? JSON.stringify(initialDef.defaultMetadata, null, 2) : "{}");
     setIsModalOpen(true);
   };
 
@@ -329,7 +1316,12 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
           ...prev,
           title: prev.title || match.defaultTitle || "",
           badge: prev.badge || match.defaultBadge || "",
+          subtitle: prev.subtitle || match.defaultSubtitle || "",
+          bgImage: prev.bgImage || match.defaultBgImage || "",
         }));
+        if (match.defaultMetadata && (metadataJson === "{}" || !metadataJson.trim())) {
+          setMetadataJson(JSON.stringify(match.defaultMetadata, null, 2));
+        }
       }
     }
   };
@@ -558,21 +1550,26 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
 
       {/* Edit / Create Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl border border-[#e5e7eb] max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#e5e7eb]">
-              <h3 className="text-base font-bold text-[#101828]">
-                {isNewSection ? `Add New Section for /${selectedPage}` : `Edit Section '${editingKey}'`}
-              </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full shadow-xl border border-[#e5e7eb] flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-4 shrink-0">
+              <div>
+                <h3 className="text-base font-bold text-[#101828]">
+                  {isNewSection ? `Add New Section for /${selectedPage}` : `Edit Section '${editingKey}'`}
+                </h3>
+                <p className="text-xs text-gray-400 mt-0.5">Configure section content, layout, and visibility settings.</p>
+              </div>
               <button
                 onClick={closeModal}
-                className="text-[#98a2b3] hover:text-[#101828] text-lg font-bold cursor-pointer"
+                className="text-[#98a2b3] hover:text-[#101828] text-lg font-bold cursor-pointer p-1 rounded-lg hover:bg-gray-100"
               >
                 &times;
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-4">
+            <form onSubmit={handleSave} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              {/* Scrollable Body */}
+              <div className="flex-1 overflow-y-auto modal-scroll p-6 space-y-4 text-xs">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Section Key */}
                 <div>
@@ -854,6 +1851,2112 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                 />
               </div>
 
+              {/* Vision Specific Helper for our_vision */}
+              {editingKey === "our_vision" && (
+                <div className="bg-[#f0f9ff] border border-[#b9e6fe] rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#00bfff]"></span>
+                    <h4 className="text-xs font-bold text-[#00698c] uppercase tracking-wider">
+                      Vision Floating Ratings Card
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                        Student Ratings Count
+                      </label>
+                      <input
+                        type="text"
+                        value={(() => {
+                          try {
+                            return JSON.parse(metadataJson || "{}").studentRatingsCount ?? "5000";
+                          } catch {
+                            return "5000";
+                          }
+                        })()}
+                        onChange={(e) => {
+                          try {
+                            const cur = JSON.parse(metadataJson || "{}");
+                            cur.studentRatingsCount = e.target.value;
+                            setMetadataJson(JSON.stringify(cur, null, 2));
+                          } catch {
+                            setMetadataJson(JSON.stringify({ studentRatingsCount: e.target.value }, null, 2));
+                          }
+                        }}
+                        placeholder="5000"
+                        className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-1.5 text-xs text-[#101828]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                        Student Ratings Label
+                      </label>
+                      <input
+                        type="text"
+                        value={(() => {
+                          try {
+                            return JSON.parse(metadataJson || "{}").studentRatingsLabel ?? "Student ratings";
+                          } catch {
+                            return "Student ratings";
+                          }
+                        })()}
+                        onChange={(e) => {
+                          try {
+                            const cur = JSON.parse(metadataJson || "{}");
+                            cur.studentRatingsLabel = e.target.value;
+                            setMetadataJson(JSON.stringify(cur, null, 2));
+                          } catch {
+                            setMetadataJson(JSON.stringify({ studentRatingsLabel: e.target.value }, null, 2));
+                          }
+                        }}
+                        placeholder="Student ratings"
+                        className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-1.5 text-xs text-[#101828]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-[#b9e6fe]/60">
+                    <label className="block text-[11px] font-bold text-[#00698c] uppercase tracking-wider mb-2">
+                      Key Metrics / Stats Cards
+                    </label>
+                    <div className="space-y-2">
+                      {(() => {
+                        let currentStats: Array<{ number: string; label: string; progress: string }> = [];
+                        try {
+                          const parsed = JSON.parse(metadataJson || "{}");
+                          currentStats = parsed.stats || [
+                            { number: "6+", label: "Academic Departments", progress: "58%" },
+                            { number: "18+", label: "Leadership Positions", progress: "58%" },
+                            { number: "3+", label: "Fellowship Types", progress: "58%" },
+                            { number: "5+", label: "Partnership Tracks", progress: "58%" },
+                          ];
+                        } catch {
+                          currentStats = [];
+                        }
+                        return currentStats.map((stat, idx) => (
+                          <div key={idx} className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-white/70 p-2.5 rounded-xl border border-[#b9e6fe]/50">
+                            <div>
+                              <span className="text-[10px] text-[#475467] font-semibold block mb-0.5">Value (e.g. 6+)</span>
+                              <input
+                                type="text"
+                                value={stat.number || ""}
+                                onChange={(e) => {
+                                  try {
+                                    const cur = JSON.parse(metadataJson || "{}");
+                                    const list = [...(cur.stats || currentStats)];
+                                    list[idx] = { ...list[idx], number: e.target.value };
+                                    cur.stats = list;
+                                    setMetadataJson(JSON.stringify(cur, null, 2));
+                                  } catch {}
+                                }}
+                                className="w-full bg-white border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs text-[#101828]"
+                                placeholder="6+"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-[#475467] font-semibold block mb-0.5">Label</span>
+                              <input
+                                type="text"
+                                value={stat.label || ""}
+                                onChange={(e) => {
+                                  try {
+                                    const cur = JSON.parse(metadataJson || "{}");
+                                    const list = [...(cur.stats || currentStats)];
+                                    list[idx] = { ...list[idx], label: e.target.value };
+                                    cur.stats = list;
+                                    setMetadataJson(JSON.stringify(cur, null, 2));
+                                  } catch {}
+                                }}
+                                className="w-full bg-white border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs text-[#101828]"
+                                placeholder="Academic Departments"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-[#475467] font-semibold block mb-0.5">Progress Bar (e.g. 58%)</span>
+                              <input
+                                type="text"
+                                value={stat.progress || ""}
+                                onChange={(e) => {
+                                  try {
+                                    const cur = JSON.parse(metadataJson || "{}");
+                                    const list = [...(cur.stats || currentStats)];
+                                    list[idx] = { ...list[idx], progress: e.target.value };
+                                    cur.stats = list;
+                                    setMetadataJson(JSON.stringify(cur, null, 2));
+                                  } catch {}
+                                }}
+                                className="w-full bg-white border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs text-[#101828]"
+                                placeholder="58%"
+                              />
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Gallery Specific Visual Manager for image_gallery or gallery */}
+              {(editingKey === "image_gallery" || editingKey === "gallery") && (
+                <div className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#16a34a]"></span>
+                      <h4 className="text-xs font-bold text-[#166534] uppercase tracking-wider">
+                        Gallery Photos Manager ({getGalleryImages().length} Images)
+                      </h4>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        ref={galleryFileInputRef}
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handleGalleryFileUpload}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => galleryFileInputRef.current?.click()}
+                        disabled={isUploadingGallery}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#16a34a] hover:bg-[#15803d] text-white text-xs font-semibold rounded-xl transition shadow-xs disabled:opacity-50 cursor-pointer"
+                      >
+                        {isUploadingGallery ? (
+                          <>
+                            <span className="animate-spin text-xs">⏳</span> Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <span>+</span> Upload New Images
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = prompt("Enter image URL or asset path (e.g. /assets/gallery-1.png or https://...):");
+                          if (!url || !url.trim()) return;
+                          const currentList = [...getGalleryImages()];
+                          currentList.push({
+                            src: url.trim(),
+                            alt: "Campus Photo",
+                            size: currentList.length % 2 === 0 ? "lg" : "sm",
+                          });
+                          updateGalleryImages(currentList);
+                        }}
+                        className="px-2.5 py-1.5 bg-white border border-[#bbf7d0] hover:bg-[#dcfce7] text-[#166534] text-xs font-medium rounded-xl transition cursor-pointer"
+                      >
+                        + Add by URL
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* List of images */}
+                  {getGalleryImages().length === 0 ? (
+                    <div className="text-center py-6 border-2 border-dashed border-[#bbf7d0] rounded-xl bg-white/60">
+                      <p className="text-xs text-[#166534] font-medium">No images in this gallery yet.</p>
+                      <p className="text-[11px] text-[#4b5563] mt-1">Click &quot;Upload New Images&quot; above to add photos directly from your device.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-2.5 max-h-[360px] overflow-y-auto pr-1">
+                      {getGalleryImages().map((img, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 bg-white p-2.5 rounded-xl border border-[#dcfce7] shadow-2xs hover:border-[#86efac] transition"
+                        >
+                          {/* Thumbnail */}
+                          <div className="w-16 h-16 shrink-0 bg-[#f3f4f6] rounded-lg overflow-hidden relative border border-[#e5e7eb]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={img.src}
+                              alt={img.alt || "preview"}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = "/assets/gallery-student-stairs.png";
+                              }}
+                            />
+                            <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-[9px] text-white text-center font-bold uppercase py-0.5">
+                              {img.size === "sm" ? "Small" : "Large"}
+                            </span>
+                          </div>
+
+                          {/* Inputs: Alt and Size */}
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={img.alt || ""}
+                                onChange={(e) => {
+                                  const list = [...getGalleryImages()];
+                                  list[idx] = { ...list[idx], alt: e.target.value };
+                                  updateGalleryImages(list);
+                                }}
+                                placeholder="Photo alt text / caption"
+                                className="flex-1 bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                              />
+                              <select
+                                value={img.size || "lg"}
+                                onChange={(e) => {
+                                  const list = [...getGalleryImages()];
+                                  list[idx] = { ...list[idx], size: e.target.value };
+                                  updateGalleryImages(list);
+                                }}
+                                className="w-28 bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs text-[#101828]"
+                              >
+                                <option value="lg">Large (lg)</option>
+                                <option value="sm">Small (sm)</option>
+                              </select>
+                            </div>
+
+                            <p className="text-[10px] font-mono text-[#6b7280] truncate" title={img.src}>
+                              {img.src}
+                            </p>
+                          </div>
+
+                          {/* Actions: Reorder & Delete */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                if (idx === 0) return;
+                                const list = [...getGalleryImages()];
+                                const temp = list[idx - 1];
+                                list[idx - 1] = list[idx];
+                                list[idx] = temp;
+                                updateGalleryImages(list);
+                              }}
+                              className="p-1 text-gray-500 hover:text-gray-800 disabled:opacity-30 rounded hover:bg-gray-100 cursor-pointer"
+                              title="Move Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === getGalleryImages().length - 1}
+                              onClick={() => {
+                                const list = [...getGalleryImages()];
+                                if (idx >= list.length - 1) return;
+                                const temp = list[idx + 1];
+                                list[idx + 1] = list[idx];
+                                list[idx] = temp;
+                                updateGalleryImages(list);
+                              }}
+                              className="p-1 text-gray-500 hover:text-gray-800 disabled:opacity-30 rounded hover:bg-gray-100 cursor-pointer"
+                              title="Move Down"
+                            >
+                              ▼
+                            </button>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const list = [...getGalleryImages()];
+                                const targetImg = list[idx];
+                                list.splice(idx, 1);
+                                updateGalleryImages(list);
+
+                                if (
+                                  targetImg?.src &&
+                                  (targetImg.src.includes('/storage/') ||
+                                    targetImg.src.includes(':9000') ||
+                                    targetImg.src.includes('amazonaws.com') ||
+                                    targetImg.src.startsWith('gallery/'))
+                                ) {
+                                  try {
+                                    await deleteMediaFile(token, targetImg.src);
+                                    onShowToast("Image removed from gallery and storage.", "info");
+                                  } catch {
+                                    // Quiet fallback
+                                  }
+                                }
+                              }}
+                              className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded cursor-pointer"
+                              title="Remove"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* News & Media Specific Visual Manager for news_media */}
+              {editingKey === "news_media" && (
+                <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
+                    <h4 className="text-xs font-bold text-[#0369a1] uppercase tracking-wider">
+                      News & Media Center Content Manager
+                    </h4>
+                  </div>
+
+                  {/* Filter Tabs Config */}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                      Filter Tabs (Comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={getNewsMetadata().tabs.join(", ")}
+                      onChange={(e) => {
+                        const tabs = e.target.value.split(",").map((t) => t.trim()).filter(Boolean);
+                        updateNewsMetadata((prev: any) => ({ ...prev, tabs }));
+                      }}
+                      placeholder="e.g. Programs, News, Events"
+                      className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-1.5 text-xs text-[#101828]"
+                    />
+                  </div>
+
+                  {/* Featured Main Story (Left Big Card) */}
+                  <div className="bg-white border border-[#e0f2fe] rounded-xl p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h5 className="text-xs font-bold text-[#0284c7]">
+                        Featured Main Story (Left Large Card)
+                      </h5>
+                      <span className="text-[10px] bg-[#e0f2fe] text-[#0369a1] font-semibold px-2 py-0.5 rounded-full">
+                        Hero Story
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#475467] mb-1">Headline / Title</label>
+                        <input
+                          type="text"
+                          value={getNewsMetadata().featured.title || ""}
+                          onChange={(e) => {
+                            updateNewsMetadata((prev: any) => ({
+                              ...prev,
+                              featured: { ...(prev.featured || {}), title: e.target.value },
+                            }));
+                          }}
+                          placeholder="e.g. Technological Advancements"
+                          className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#475467] mb-1">Category Badge</label>
+                        <input
+                          type="text"
+                          value={getNewsMetadata().featured.category || ""}
+                          onChange={(e) => {
+                            updateNewsMetadata((prev: any) => ({
+                              ...prev,
+                              featured: { ...(prev.featured || {}), category: e.target.value },
+                            }));
+                          }}
+                          placeholder="e.g. News or Programs"
+                          className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#475467] mb-1">Date</label>
+                        <input
+                          type="text"
+                          value={getNewsMetadata().featured.date || ""}
+                          onChange={(e) => {
+                            updateNewsMetadata((prev: any) => ({
+                              ...prev,
+                              featured: { ...(prev.featured || {}), date: e.target.value },
+                            }));
+                          }}
+                          placeholder="e.g. May 20, 2025"
+                          className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#475467] mb-1">Target Link</label>
+                        <input
+                          type="text"
+                          value={getNewsMetadata().featured.link || ""}
+                          onChange={(e) => {
+                            updateNewsMetadata((prev: any) => ({
+                              ...prev,
+                              featured: { ...(prev.featured || {}), link: e.target.value },
+                            }));
+                          }}
+                          placeholder="e.g. /news or /news-details"
+                          className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Featured Image Upload */}
+                    <div className="flex items-center gap-3 pt-2 border-t border-[#f1f5f9]">
+                      <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-[#e2e8f0] bg-gray-50 relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={getNewsMetadata().featured.image || "/assets/news-main.png"}
+                          alt="featured preview"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/assets/news-main.png";
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-medium rounded-lg cursor-pointer transition">
+                          {uploadingNewsKey === "featured" ? "Uploading..." : "Upload Featured Image"}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={uploadingNewsKey === "featured"}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              handleNewsImageUpload(
+                                file,
+                                (url) => {
+                                  updateNewsMetadata((prev: any) => ({
+                                    ...prev,
+                                    featured: { ...(prev.featured || {}), image: url },
+                                  }));
+                                },
+                                "featured"
+                              );
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
+                        <p className="text-[10px] font-mono text-gray-500 truncate mt-1">
+                          {getNewsMetadata().featured.image || "/assets/news-main.png"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Smaller Grid Articles */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h5 className="text-xs font-bold text-[#0369a1]">
+                        Articles Grid ({getNewsMetadata().articles.length} Stories)
+                      </h5>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const data = getNewsMetadata();
+                          data.articles.push({
+                            id: Date.now(),
+                            category: "News",
+                            date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                            title: "New Article Story",
+                            image: "/assets/news-small-1.png",
+                            link: "/news",
+                          });
+                          updateNewsMetadata(() => data);
+                        }}
+                        className="px-2.5 py-1 bg-white border border-[#bae6fd] hover:bg-[#e0f2fe] text-[#0369a1] text-xs font-semibold rounded-lg transition cursor-pointer"
+                      >
+                        + Add Article
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2.5 max-h-[300px] overflow-y-auto pr-1">
+                      {getNewsMetadata().articles.map((item: any, idx: number) => (
+                        <div
+                          key={item.id || idx}
+                          className="bg-white p-2.5 rounded-xl border border-[#e0f2fe] shadow-2xs space-y-2"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 relative">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={item.image || "/assets/news-small-1.png"}
+                                alt="article preview"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "/assets/news-small-1.png";
+                                }}
+                              />
+                            </div>
+
+                            <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <input
+                                type="text"
+                                value={item.title || ""}
+                                onChange={(e) => {
+                                  const data = getNewsMetadata();
+                                  data.articles[idx].title = e.target.value;
+                                  updateNewsMetadata(() => data);
+                                }}
+                                placeholder="Article Title"
+                                className="bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs text-[#101828]"
+                              />
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={item.category || ""}
+                                  onChange={(e) => {
+                                    const data = getNewsMetadata();
+                                    data.articles[idx].category = e.target.value;
+                                    updateNewsMetadata(() => data);
+                                  }}
+                                  placeholder="Category (e.g. News, Programs)"
+                                  className="w-1/2 bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs text-[#101828]"
+                                />
+                                <input
+                                  type="text"
+                                  value={item.date || ""}
+                                  onChange={(e) => {
+                                    const data = getNewsMetadata();
+                                    data.articles[idx].date = e.target.value;
+                                    updateNewsMetadata(() => data);
+                                  }}
+                                  placeholder="Date"
+                                  className="w-1/2 bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs text-[#101828]"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <label
+                                className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-medium rounded cursor-pointer"
+                                title="Change photo"
+                              >
+                                {uploadingNewsKey === `article-${idx}` ? "..." : "Photo"}
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  disabled={uploadingNewsKey === `article-${idx}`}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    handleNewsImageUpload(
+                                      file,
+                                      (url) => {
+                                        const data = getNewsMetadata();
+                                        data.articles[idx].image = url;
+                                        updateNewsMetadata(() => data);
+                                      },
+                                      `article-${idx}`
+                                    );
+                                    e.target.value = "";
+                                  }}
+                                />
+                              </label>
+
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const data = getNewsMetadata();
+                                  const removed = data.articles[idx];
+                                  data.articles.splice(idx, 1);
+                                  updateNewsMetadata(() => data);
+
+                                  if (
+                                    removed?.image &&
+                                    (removed.image.includes('/storage/') ||
+                                      removed.image.includes(':9000') ||
+                                      removed.image.includes('amazonaws.com') ||
+                                      removed.image.startsWith('news/'))
+                                  ) {
+                                    try {
+                                      await deleteMediaFile(token, removed.image);
+                                      onShowToast("Image removed from storage.", "info");
+                                    } catch {}
+                                  }
+                                }}
+                                className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded cursor-pointer"
+                                title="Delete article"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Institutional Profile Specific Visual Manager */}
+              {(editingKey === "profile" || editingKey === "institutional_profile") && (
+                <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
+                    <h4 className="text-xs font-bold text-[#0369a1] uppercase tracking-wider">
+                      Institutional Profile Media &amp; Metadata Manager
+                    </h4>
+                  </div>
+
+                  {/* 4 Images & Badges Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* image1 */}
+                    <div className="bg-white p-3 rounded-xl border border-[#e0f2fe] space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold text-[#344054]">
+                          Main Showcase Image (Left)
+                        </label>
+                        <span className="text-[10px] text-gray-400 font-mono">image1</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={getProfileMetadata().image1 || "/assets/about-institutional-1.png"}
+                            alt="image1 preview"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/assets/about-institutional-1.png";
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <label className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#0284c7] hover:bg-[#0369a1] text-white text-[11px] font-medium rounded-lg cursor-pointer transition">
+                            {uploadingProfileKey === "image1" ? "Uploading..." : "Upload Image"}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={uploadingProfileKey === "image1"}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                handleProfileImageUpload(file, "image1");
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                          <input
+                            type="text"
+                            value={getProfileMetadata().image1 || ""}
+                            onChange={(e) => {
+                              updateProfileMetadata((prev) => ({ ...prev, image1: e.target.value }));
+                            }}
+                            placeholder="/assets/about-institutional-1.png"
+                            className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2 py-1 text-[11px] font-mono text-[#101828]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* image2 */}
+                    <div className="bg-white p-3 rounded-xl border border-[#e0f2fe] space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold text-[#344054]">
+                          Overlapping Image (Right)
+                        </label>
+                        <span className="text-[10px] text-gray-400 font-mono">image2</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={getProfileMetadata().image2 || "/assets/about-institutional-2.png"}
+                            alt="image2 preview"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/assets/about-institutional-2.png";
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <label className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#0284c7] hover:bg-[#0369a1] text-white text-[11px] font-medium rounded-lg cursor-pointer transition">
+                            {uploadingProfileKey === "image2" ? "Uploading..." : "Upload Image"}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={uploadingProfileKey === "image2"}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                handleProfileImageUpload(file, "image2");
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                          <input
+                            type="text"
+                            value={getProfileMetadata().image2 || ""}
+                            onChange={(e) => {
+                              updateProfileMetadata((prev) => ({ ...prev, image2: e.target.value }));
+                            }}
+                            placeholder="/assets/about-institutional-2.png"
+                            className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2 py-1 text-[11px] font-mono text-[#101828]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* badgeIcon */}
+                    <div className="bg-white p-3 rounded-xl border border-[#e0f2fe] space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold text-[#344054]">
+                          Badge Center Emblem (SVG / Icon)
+                        </label>
+                        <span className="text-[10px] text-gray-400 font-mono">badgeIcon</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-[#f8fafc] flex items-center justify-center relative p-1.5">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={getProfileMetadata().badgeIcon || "/assets/about-badge-icon.svg"}
+                            alt="badgeIcon preview"
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/assets/about-badge-icon.svg";
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <label className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#0284c7] hover:bg-[#0369a1] text-white text-[11px] font-medium rounded-lg cursor-pointer transition">
+                            {uploadingProfileKey === "badgeIcon" ? "Uploading..." : "Upload Icon"}
+                            <input
+                              type="file"
+                              accept="image/*,.svg"
+                              className="hidden"
+                              disabled={uploadingProfileKey === "badgeIcon"}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                handleProfileImageUpload(file, "badgeIcon");
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                          <input
+                            type="text"
+                            value={getProfileMetadata().badgeIcon || ""}
+                            onChange={(e) => {
+                              updateProfileMetadata((prev) => ({ ...prev, badgeIcon: e.target.value }));
+                            }}
+                            placeholder="/assets/about-badge-icon.svg"
+                            className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2 py-1 text-[11px] font-mono text-[#101828]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* badgeText */}
+                    <div className="bg-white p-3 rounded-xl border border-[#e0f2fe] space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold text-[#344054]">
+                          Badge Circular Text
+                        </label>
+                        <span className="text-[10px] text-gray-400 font-mono">badgeText</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-[#f8fafc] flex items-center justify-center relative p-1">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={getProfileMetadata().badgeText || "/assets/about-badge-text.png"}
+                            alt="badgeText preview"
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/assets/about-badge-text.png";
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <label className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#0284c7] hover:bg-[#0369a1] text-white text-[11px] font-medium rounded-lg cursor-pointer transition">
+                            {uploadingProfileKey === "badgeText" ? "Uploading..." : "Upload Stamp"}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={uploadingProfileKey === "badgeText"}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                handleProfileImageUpload(file, "badgeText");
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                          <input
+                            type="text"
+                            value={getProfileMetadata().badgeText || ""}
+                            onChange={(e) => {
+                              updateProfileMetadata((prev) => ({ ...prev, badgeText: e.target.value }));
+                            }}
+                            placeholder="/assets/about-badge-text.png"
+                            className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2 py-1 text-[11px] font-mono text-[#101828]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Profile Details List */}
+                  <div className="bg-white p-3 rounded-xl border border-[#e0f2fe] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-[#0369a1]">
+                        Profile Key Details ({getProfileMetadata().profileDetails.length} facts)
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const data = getProfileMetadata();
+                          data.profileDetails.push({ label: "Key", value: "Value" });
+                          updateProfileMetadata(() => data);
+                        }}
+                        className="px-2.5 py-1 bg-white border border-[#bae6fd] hover:bg-[#e0f2fe] text-[#0369a1] text-xs font-semibold rounded-lg transition cursor-pointer"
+                      >
+                        + Add Fact Row
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      {getProfileMetadata().profileDetails.map((item: any, idx: number) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={item.label || ""}
+                            onChange={(e) => {
+                              const data = getProfileMetadata();
+                              data.profileDetails[idx].label = e.target.value;
+                              updateProfileMetadata(() => data);
+                            }}
+                            placeholder="Label (e.g. Established)"
+                            className="w-1/3 bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                          />
+                          <input
+                            type="text"
+                            value={item.value || ""}
+                            onChange={(e) => {
+                              const data = getProfileMetadata();
+                              data.profileDetails[idx].value = e.target.value;
+                              updateProfileMetadata(() => data);
+                            }}
+                            placeholder="Value (e.g. 1 January 2026)"
+                            className="flex-1 bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const data = getProfileMetadata();
+                              data.profileDetails.splice(idx, 1);
+                              updateProfileMetadata(() => data);
+                            }}
+                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded cursor-pointer"
+                            title="Remove row"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Secondary Action */}
+                  <div className="bg-white p-3 rounded-xl border border-[#e0f2fe] space-y-2">
+                    <label className="block text-xs font-bold text-[#0369a1]">
+                      Secondary Action Button
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#475467] mb-1">
+                          Button Text
+                        </label>
+                        <input
+                          type="text"
+                          value={getProfileMetadata().secondaryActionText || ""}
+                          onChange={(e) => {
+                            updateProfileMetadata((prev) => ({ ...prev, secondaryActionText: e.target.value }));
+                          }}
+                          placeholder="e.g. Learn More"
+                          className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-medium text-[#475467] mb-1">
+                          Target URL / Link
+                        </label>
+                        <input
+                          type="text"
+                          value={getProfileMetadata().secondaryActionUrl || ""}
+                          onChange={(e) => {
+                            updateProfileMetadata((prev) => ({ ...prev, secondaryActionUrl: e.target.value }));
+                          }}
+                          placeholder="e.g. /about"
+                          className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs text-[#101828]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Strategic Objectives Specific Visual Manager */}
+              {(editingKey === "objectives" || editingKey === "strategic_objectives") && (
+                <div className="bg-[#f0fdfa] border border-[#99f6e4] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#0d9488]"></span>
+                      <h4 className="text-xs font-bold text-[#0f766e] uppercase tracking-wider">
+                        Strategic Objectives Manager ({getObjectivesMetadata().length} Goals)
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const list = getObjectivesMetadata();
+                          const nextNum = String(list.length + 1).padStart(2, "0");
+                          updateObjectivesMetadata([...list, { num: nextNum, text: "" }]);
+                        }}
+                        className="px-3 py-1 bg-[#0d9488] hover:bg-[#0f766e] text-white text-[11px] font-semibold rounded-lg shadow-sm transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>+ Add Objective</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#134e4a]/80">
+                    Each objective card displays a numbered sequence and descriptive institutional mission text on the About page.
+                  </p>
+
+                  <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                    {getObjectivesMetadata().map((obj, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-white p-3 rounded-xl border border-[#ccfbf1] shadow-xs flex flex-col sm:flex-row gap-3 items-start"
+                      >
+                        {/* Number Input & Reorder Controls */}
+                        <div className="flex sm:flex-col items-center gap-1 shrink-0 w-full sm:w-20">
+                          <div className="w-full">
+                            <label className="block text-[9px] font-bold text-[#475467] uppercase mb-0.5">
+                              Number
+                            </label>
+                            <input
+                              type="text"
+                              value={obj.num}
+                              onChange={(e) => {
+                                const list = [...getObjectivesMetadata()];
+                                list[idx] = { ...list[idx], num: e.target.value };
+                                updateObjectivesMetadata(list);
+                              }}
+                              placeholder="01"
+                              className="w-full bg-[#f0fdfa] border border-[#99f6e4] text-[#0f766e] font-bold text-center rounded-lg px-1.5 py-1 text-xs"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1 mt-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                if (idx === 0) return;
+                                const list = [...getObjectivesMetadata()];
+                                const temp = list[idx - 1];
+                                list[idx - 1] = list[idx];
+                                list[idx] = temp;
+                                updateObjectivesMetadata(list);
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === getObjectivesMetadata().length - 1}
+                              onClick={() => {
+                                const list = [...getObjectivesMetadata()];
+                                if (idx >= list.length - 1) return;
+                                const temp = list[idx + 1];
+                                list[idx + 1] = list[idx];
+                                list[idx] = temp;
+                                updateObjectivesMetadata(list);
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Down"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Description Textarea */}
+                        <div className="flex-1 w-full">
+                          <label className="block text-[10px] font-semibold text-[#344054] mb-1">
+                            Objective Description
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={obj.text}
+                            onChange={(e) => {
+                              const list = [...getObjectivesMetadata()];
+                              list[idx] = { ...list[idx], text: e.target.value };
+                              updateObjectivesMetadata(list);
+                            }}
+                            placeholder="Enter detailed objective statement..."
+                            className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#0d9488]"
+                          />
+                        </div>
+
+                        {/* Delete Button */}
+                        <div className="shrink-0 self-end sm:self-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const list = [...getObjectivesMetadata()];
+                              list.splice(idx, 1);
+                              updateObjectivesMetadata(list);
+                            }}
+                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer transition"
+                            title="Delete Objective"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {getObjectivesMetadata().length === 0 && (
+                    <div className="text-center py-6 bg-white rounded-xl border border-dashed border-[#99f6e4]">
+                      <p className="text-xs text-gray-500 mb-2">No objectives currently configured.</p>
+                      <button
+                        type="button"
+                        onClick={() => updateObjectivesMetadata(defaultObjectivesList)}
+                        className="text-xs text-[#0d9488] font-semibold hover:underline cursor-pointer"
+                      >
+                        Reset to Default 10 Objectives
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Institutional Values Specific Visual Manager */}
+              {(editingKey === "values" || editingKey === "institutional_values") && (
+                <div className="bg-[#eef2ff] border border-[#c7d2fe] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#4f46e5]"></span>
+                      <h4 className="text-xs font-bold text-[#3730a3] uppercase tracking-wider">
+                        Institutional Values Manager ({getValuesMetadata().length} Values)
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const list = getValuesMetadata();
+                          updateValuesMetadata([...list, { icon: "⭐", title: "", desc: "" }]);
+                        }}
+                        className="px-3 py-1 bg-[#4f46e5] hover:bg-[#4338ca] text-white text-[11px] font-semibold rounded-lg shadow-sm transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>+ Add Value</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#312e81]/80">
+                    Define the core institutional principles, icons, and descriptions displayed on the About page values grid.
+                  </p>
+
+                  <div className="space-y-3 max-h-[440px] overflow-y-auto pr-1">
+                    {getValuesMetadata().map((val, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-white p-3.5 rounded-xl border border-[#e0e7ff] shadow-xs flex flex-col gap-2.5"
+                      >
+                        <div className="flex items-center justify-between gap-3 border-b border-[#f1f5f9] pb-2">
+                          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                            {/* Icon picker / preview */}
+                            <div className="w-10 h-10 shrink-0 bg-[#f5f3ff] border border-[#ddd6fe] rounded-lg flex items-center justify-center text-xl">
+                              {val.icon || "🏛️"}
+                            </div>
+                            <div className="w-24 shrink-0">
+                              <label className="block text-[9px] font-bold text-[#475467] uppercase mb-0.5">
+                                Icon / Emoji
+                              </label>
+                              <input
+                                type="text"
+                                value={val.icon}
+                                onChange={(e) => {
+                                  const list = [...getValuesMetadata()];
+                                  list[idx] = { ...list[idx], icon: e.target.value };
+                                  updateValuesMetadata(list);
+                                }}
+                                placeholder="🎓"
+                                className="w-full bg-[#f8fafc] border border-[#d0d5dd] text-center rounded-lg px-2 py-1 text-xs"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <label className="block text-[9px] font-bold text-[#475467] uppercase mb-0.5">
+                                Title
+                              </label>
+                              <input
+                                type="text"
+                                value={val.title}
+                                onChange={(e) => {
+                                  const list = [...getValuesMetadata()];
+                                  list[idx] = { ...list[idx], title: e.target.value };
+                                  updateValuesMetadata(list);
+                                }}
+                                placeholder="Value Title"
+                                className="w-full bg-[#f8fafc] border border-[#d0d5dd] rounded-lg px-2.5 py-1 text-xs font-semibold text-[#1e1b4b]"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                if (idx === 0) return;
+                                const list = [...getValuesMetadata()];
+                                const temp = list[idx - 1];
+                                list[idx - 1] = list[idx];
+                                list[idx] = temp;
+                                updateValuesMetadata(list);
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === getValuesMetadata().length - 1}
+                              onClick={() => {
+                                const list = [...getValuesMetadata()];
+                                if (idx >= list.length - 1) return;
+                                const temp = list[idx + 1];
+                                list[idx + 1] = list[idx];
+                                list[idx] = temp;
+                                updateValuesMetadata(list);
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Down"
+                            >
+                              ▼
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const list = [...getValuesMetadata()];
+                                list.splice(idx, 1);
+                                updateValuesMetadata(list);
+                              }}
+                              className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer ml-1"
+                              title="Delete Value"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-semibold text-[#344054] mb-1">
+                            Description
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={val.desc}
+                            onChange={(e) => {
+                              const list = [...getValuesMetadata()];
+                              list[idx] = { ...list[idx], desc: e.target.value };
+                              updateValuesMetadata(list);
+                            }}
+                            placeholder="Detailed description of this core value..."
+                            className="w-full bg-[#f8fafc] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#4f46e5]"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {getValuesMetadata().length === 0 && (
+                    <div className="text-center py-6 bg-white rounded-xl border border-dashed border-[#c7d2fe]">
+                      <p className="text-xs text-gray-500 mb-2">No institutional values currently configured.</p>
+                      <button
+                        type="button"
+                        onClick={() => updateValuesMetadata(defaultValuesList)}
+                        className="text-xs text-[#4f46e5] font-semibold hover:underline cursor-pointer"
+                      >
+                        Reset to Default 10 Values
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Global Engagement Specific Visual Manager */}
+              {editingKey === "global_engagement" && (
+                <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
+                    <h4 className="text-xs font-bold text-[#0369a1] uppercase tracking-wider">
+                      Global Engagement Card &amp; Ratings Manager
+                    </h4>
+                  </div>
+
+                  <p className="text-[11px] text-[#0c4a6e]/80">
+                    Configure the Institutional Commitment card and the Floating Student Ratings counter displayed on the Global Engagement section.
+                  </p>
+
+                  {/* Institutional Commitment Card Settings */}
+                  <div className="bg-white p-3.5 rounded-xl border border-[#e0f2fe] space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#0284c7]"></span>
+                      <h5 className="text-[11px] font-bold text-[#0369a1] uppercase tracking-wider">
+                        Institutional Commitment Card
+                      </h5>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                        Commitment Title
+                      </label>
+                      <input
+                        type="text"
+                        value={getGlobalEngagementMetadata().commitmentTitle}
+                        onChange={(e) => {
+                          updateGlobalEngagementMetadata((prev) => ({
+                            ...prev,
+                            commitmentTitle: e.target.value,
+                          }));
+                        }}
+                        placeholder="Institutional Commitment"
+                        className="w-full bg-[#f8fafc] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] font-semibold"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                        Commitment Paragraphs (Separate paragraphs with double newlines)
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={getGlobalEngagementMetadata().commitmentContent}
+                        onChange={(e) => {
+                          updateGlobalEngagementMetadata((prev) => ({
+                            ...prev,
+                            commitmentContent: e.target.value,
+                          }));
+                        }}
+                        placeholder="The International Institute for Law and Politics is committed to..."
+                        className="w-full bg-[#f8fafc] border border-[#d0d5dd] rounded-lg px-2.5 py-2 text-xs text-[#101828] leading-relaxed focus:bg-white focus:outline-hidden focus:border-[#0284c7]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Floating Student Ratings Card Settings */}
+                  <div className="bg-white p-3.5 rounded-xl border border-[#e0f2fe] space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#0284c7]"></span>
+                      <h5 className="text-[11px] font-bold text-[#0369a1] uppercase tracking-wider">
+                        Floating Student Ratings Card
+                      </h5>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                          Student Ratings Count
+                        </label>
+                        <input
+                          type="text"
+                          value={getGlobalEngagementMetadata().studentRatingsCount}
+                          onChange={(e) => {
+                            updateGlobalEngagementMetadata((prev) => ({
+                              ...prev,
+                              studentRatingsCount: e.target.value,
+                            }));
+                          }}
+                          placeholder="5000"
+                          className="w-full bg-[#f8fafc] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                          Student Ratings Label
+                        </label>
+                        <input
+                          type="text"
+                          value={getGlobalEngagementMetadata().studentRatingsLabel}
+                          onChange={(e) => {
+                            updateGlobalEngagementMetadata((prev) => ({
+                              ...prev,
+                              studentRatingsLabel: e.target.value,
+                            }));
+                          }}
+                          placeholder="Student ratings"
+                          className="w-full bg-[#f8fafc] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Rating Avatars Manager */}
+                    <div className="pt-2 border-t border-[#f1f5f9] space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold text-[#344054]">
+                          Reviewer Avatars ({getGlobalEngagementMetadata().ratingAvatars.length} Avatars)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateGlobalEngagementMetadata((prev) => ({
+                              ...prev,
+                              ratingAvatars: [...prev.ratingAvatars, "/assets/about-rating-avatar-1.png"],
+                            }));
+                          }}
+                          className="text-[11px] text-[#0284c7] font-semibold hover:underline cursor-pointer"
+                        >
+                          + Add Avatar
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {getGlobalEngagementMetadata().ratingAvatars.map((avatarUrl, aIdx) => (
+                          <div key={aIdx} className="flex items-center gap-2.5 bg-[#f8fafc] p-2 rounded-lg border border-[#e2e8f0]">
+                            <div className="w-9 h-9 shrink-0 rounded-full overflow-hidden border border-gray-300 bg-gray-100">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={avatarUrl || "/assets/about-rating-avatar-1.png"}
+                                alt={`Avatar ${aIdx + 1}`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "/assets/about-rating-avatar-1.png";
+                                }}
+                              />
+                            </div>
+
+                            <input
+                              type="text"
+                              value={avatarUrl}
+                              onChange={(e) => {
+                                updateGlobalEngagementMetadata((prev) => {
+                                  const list = [...prev.ratingAvatars];
+                                  list[aIdx] = e.target.value;
+                                  return { ...prev, ratingAvatars: list };
+                                });
+                              }}
+                              placeholder="/assets/about-rating-avatar-1.png"
+                              className="flex-1 min-w-0 bg-white border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs font-mono text-[#101828]"
+                            />
+
+                            <label className="px-2.5 py-1 bg-[#0284c7] hover:bg-[#0369a1] text-white text-[11px] font-semibold rounded-lg cursor-pointer transition shrink-0">
+                              {uploadingAvatarIdx === aIdx ? "..." : "Upload"}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                disabled={uploadingAvatarIdx === aIdx}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  handleAvatarUpload(file, aIdx);
+                                  e.target.value = "";
+                                }}
+                              />
+                            </label>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateGlobalEngagementMetadata((prev) => {
+                                  const list = [...prev.ratingAvatars];
+                                  list.splice(aIdx, 1);
+                                  return { ...prev, ratingAvatars: list };
+                                });
+                              }}
+                              className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded cursor-pointer shrink-0"
+                              title="Delete Avatar"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Founder's Message Specific Visual Manager */}
+              {editingKey === "founder_message" && (
+                <div className="bg-[#faf5ff] border border-[#e9d5ff] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#9333ea]"></span>
+                    <h4 className="text-xs font-bold text-[#6b21a8] uppercase tracking-wider">
+                      President &amp; Founder Message Settings
+                    </h4>
+                  </div>
+
+                  <p className="text-[11px] text-[#581c87]/80">
+                    Manage the founder attribution details, signature overlay image, and the full multi-paragraph letter.
+                  </p>
+
+                  {/* Founder Profile Details Card */}
+                  <div className="bg-white p-3.5 rounded-xl border border-[#f3e8ff] space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#9333ea]"></span>
+                      <h5 className="text-[11px] font-bold text-[#6b21a8] uppercase tracking-wider">
+                        Author Attribution &amp; Signature
+                      </h5>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                          Founder Name
+                        </label>
+                        <input
+                          type="text"
+                          value={getFounderMessageMetadata().founderName}
+                          onChange={(e) => {
+                            updateFounderMessageMetadata((prev) => ({
+                              ...prev,
+                              founderName: e.target.value,
+                            }));
+                          }}
+                          placeholder="Mohammed Siraj"
+                          className="w-full bg-[#fcfaff] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] font-semibold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                          Role / Title
+                        </label>
+                        <input
+                          type="text"
+                          value={getFounderMessageMetadata().founderRole}
+                          onChange={(e) => {
+                            updateFounderMessageMetadata((prev) => ({
+                              ...prev,
+                              founderRole: e.target.value,
+                            }));
+                          }}
+                          placeholder="Founder & President, IILP"
+                          className="w-full bg-[#fcfaff] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                          Badge Initials
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-xs text-white text-xs font-serif font-bold"
+                            style={{ background: 'linear-gradient(135deg, rgb(0, 0, 128) 0%, rgb(0, 191, 255) 100%)' }}
+                          >
+                            {getFounderMessageMetadata().founderInitials || "MS"}
+                          </div>
+                          <input
+                            type="text"
+                            maxLength={4}
+                            value={getFounderMessageMetadata().founderInitials}
+                            onChange={(e) => {
+                              updateFounderMessageMetadata((prev) => ({
+                                ...prev,
+                                founderInitials: e.target.value,
+                              }));
+                            }}
+                            placeholder="MS"
+                            className="w-full bg-[#fcfaff] border border-[#d0d5dd] text-center font-serif font-bold rounded-lg px-2 py-1 text-xs text-[#101828]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Signature Image */}
+                    <div className="pt-2 border-t border-[#f3e8ff]">
+                      <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                        Signature Overlay Image
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <div className="w-24 h-12 shrink-0 bg-[#f8fafc] border border-gray-300 rounded-lg flex items-center justify-center p-1 relative overflow-hidden">
+                          {getFounderMessageMetadata().signatureImage ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={getFounderMessageMetadata().signatureImage}
+                              alt="Signature preview"
+                              className="max-h-full max-w-full object-contain"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <span className="text-[10px] text-gray-400">No Signature</span>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <input
+                            type="text"
+                            value={getFounderMessageMetadata().signatureImage}
+                            onChange={(e) => {
+                              updateFounderMessageMetadata((prev) => ({
+                                ...prev,
+                                signatureImage: e.target.value,
+                              }));
+                            }}
+                            placeholder="/assets/about-founder-signature.png"
+                            className="w-full bg-[#fcfaff] border border-[#d0d5dd] rounded-lg px-2 py-1 text-xs font-mono text-[#101828]"
+                          />
+                        </div>
+
+                        <label className="px-3 py-1.5 bg-[#9333ea] hover:bg-[#7e22ce] text-white text-[11px] font-semibold rounded-lg cursor-pointer transition shrink-0">
+                          {isUploadingSignature ? "Uploading..." : "Upload Signature"}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={isUploadingSignature}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              handleSignatureUpload(file);
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Letter Paragraphs Manager */}
+                  <div className="bg-white p-3.5 rounded-xl border border-[#f3e8ff] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#9333ea]"></span>
+                        <h5 className="text-[11px] font-bold text-[#6b21a8] uppercase tracking-wider">
+                          Letter Paragraphs ({getFounderMessageMetadata().paragraphs.length} Paragraphs)
+                        </h5>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateFounderMessageMetadata((prev) => ({
+                            ...prev,
+                            paragraphs: [...prev.paragraphs, ""],
+                          }));
+                        }}
+                        className="px-3 py-1 bg-[#9333ea] hover:bg-[#7e22ce] text-white text-[11px] font-semibold rounded-lg shadow-sm transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>+ Add Paragraph</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                      {getFounderMessageMetadata().paragraphs.map((pText, pIdx) => (
+                        <div key={pIdx} className="bg-[#faf5ff] p-2.5 rounded-xl border border-[#e9d5ff] space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-[#6b21a8] uppercase tracking-wider">
+                              Paragraph {pIdx + 1}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                disabled={pIdx === 0}
+                                onClick={() => {
+                                  if (pIdx === 0) return;
+                                  const list = [...getFounderMessageMetadata().paragraphs];
+                                  const temp = list[pIdx - 1];
+                                  list[pIdx - 1] = list[pIdx];
+                                  list[pIdx - 1] = list[pIdx];
+                                  const swap = list[pIdx - 1];
+                                  list[pIdx - 1] = list[pIdx];
+                                  list[pIdx] = swap;
+                                  updateFounderMessageMetadata((prev) => ({ ...prev, paragraphs: list }));
+                                }}
+                                className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                                title="Move Up"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                type="button"
+                                disabled={pIdx === getFounderMessageMetadata().paragraphs.length - 1}
+                                onClick={() => {
+                                  const list = [...getFounderMessageMetadata().paragraphs];
+                                  if (pIdx >= list.length - 1) return;
+                                  const temp = list[pIdx + 1];
+                                  list[pIdx + 1] = list[pIdx];
+                                  list[pIdx] = temp;
+                                  updateFounderMessageMetadata((prev) => ({ ...prev, paragraphs: list }));
+                                }}
+                                className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                                title="Move Down"
+                              >
+                                ▼
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const list = [...getFounderMessageMetadata().paragraphs];
+                                  list.splice(pIdx, 1);
+                                  updateFounderMessageMetadata((prev) => ({ ...prev, paragraphs: list }));
+                                }}
+                                className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded cursor-pointer ml-1"
+                                title="Delete Paragraph"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+
+                          <textarea
+                            rows={3}
+                            value={pText}
+                            onChange={(e) => {
+                              const list = [...getFounderMessageMetadata().paragraphs];
+                              list[pIdx] = e.target.value;
+                              updateFounderMessageMetadata((prev) => ({ ...prev, paragraphs: list }));
+                            }}
+                            placeholder="Enter paragraph text..."
+                            className="w-full bg-white border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] leading-relaxed focus:outline-hidden focus:border-[#9333ea]"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    {getFounderMessageMetadata().paragraphs.length === 0 && (
+                      <div className="text-center py-6 bg-white rounded-xl border border-dashed border-[#e9d5ff]">
+                        <p className="text-xs text-gray-500 mb-2">No paragraphs configured.</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateFounderMessageMetadata((prev) => ({
+                              ...prev,
+                              paragraphs: defaultFounderMessageMetadata.paragraphs,
+                            }));
+                          }}
+                          className="text-xs text-[#9333ea] font-semibold hover:underline cursor-pointer"
+                        >
+                          Reset to Default 4 Paragraphs
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Fellowship Pathways Intro Specific Visual Manager */}
+              {(editingKey === "pathways_intro" ||
+                editingKey === "categories" ||
+                editingKey === "pathways") && (
+                <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
+                      <h4 className="text-xs font-bold text-[#0369a1] uppercase tracking-wider">
+                        Fellowship Pathways, Eligibility &amp; Benefits Manager
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-semibold text-[#0284c7] bg-white px-2.5 py-0.5 rounded-full border border-[#bae6fd]">
+                      {getPathwaysMetadata().pathways.length} Pathways Configured
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-[#075985]/80">
+                    Manage fellowship tracks (Research Fellows, Junior Fellows, Honorary Fellows), including role descriptions, SVG/image icons, eligibility requirements, and institutional benefits.
+                  </p>
+
+                  {/* Pathway Cards */}
+                  <div className="space-y-4">
+                    {getPathwaysMetadata().pathways.map((pathway, pIdx) => {
+                      const iconPresets = [
+                        { label: "Planet", url: "/assets/tab-planet.svg" },
+                        { label: "Hat", url: "/assets/tab-hat.svg" },
+                        { label: "Trophy", url: "/assets/tab-trophy.svg" },
+                      ];
+
+                      return (
+                        <div
+                          key={`pathway-${pIdx}`}
+                          className="bg-white p-4 rounded-xl border border-[#e0f2fe] shadow-xs space-y-3 relative group"
+                        >
+                          {/* Card Header with reorder/delete */}
+                          <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-full bg-[#0284c7] text-white flex items-center justify-center text-[11px] font-bold">
+                                {pIdx + 1}
+                              </span>
+                              <div className="w-6 h-6 relative shrink-0 flex items-center justify-center bg-gray-50 border border-gray-200 rounded-md p-0.5">
+                                {pathway.icon ? (
+                                  <img
+                                    src={pathway.icon}
+                                    alt={pathway.name}
+                                    className="w-full h-full object-contain"
+                                    onError={(e) => {
+                                      (e.currentTarget as HTMLElement).style.display = "none";
+                                    }}
+                                  />
+                                ) : (
+                                  <span className="text-[10px] text-gray-400">?</span>
+                                )}
+                              </div>
+                              <span className="text-xs font-bold text-[#101828]">
+                                {pathway.name || `Pathway #${pIdx + 1}`}
+                              </span>
+                              <span className="text-[10px] text-gray-500 font-mono bg-gray-100 px-1.5 py-0.5 rounded">
+                                id: {pathway.id}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                title="Move Pathway Up"
+                                disabled={pIdx === 0}
+                                onClick={() => {
+                                  const list = [...getPathwaysMetadata().pathways];
+                                  const temp = list[pIdx - 1];
+                                  list[pIdx - 1] = list[pIdx];
+                                  list[pIdx] = temp;
+                                  updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                }}
+                                className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 cursor-pointer"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                type="button"
+                                title="Move Pathway Down"
+                                disabled={pIdx === getPathwaysMetadata().pathways.length - 1}
+                                onClick={() => {
+                                  const list = [...getPathwaysMetadata().pathways];
+                                  const temp = list[pIdx + 1];
+                                  list[pIdx + 1] = list[pIdx];
+                                  list[pIdx] = temp;
+                                  updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                }}
+                                className="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 cursor-pointer"
+                              >
+                                ▼
+                              </button>
+                              <button
+                                type="button"
+                                title="Delete Pathway"
+                                onClick={() => {
+                                  if (confirm(`Delete fellowship pathway "${pathway.name}"?`)) {
+                                    const list = getPathwaysMetadata().pathways.filter((_, i) => i !== pIdx);
+                                    updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                  }
+                                }}
+                                className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors cursor-pointer ml-1"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Fields Grid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                              <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                                Unique ID / Slug (e.g. research)
+                              </label>
+                              <input
+                                type="text"
+                                value={pathway.id}
+                                onChange={(e) => {
+                                  const list = [...getPathwaysMetadata().pathways];
+                                  list[pIdx] = { ...list[pIdx], id: e.target.value };
+                                  updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                }}
+                                placeholder="research"
+                                className="w-full bg-[#f8fafc] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] font-mono"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                                Tab / Category Name
+                              </label>
+                              <input
+                                type="text"
+                                value={pathway.name}
+                                onChange={(e) => {
+                                  const list = [...getPathwaysMetadata().pathways];
+                                  list[pIdx] = { ...list[pIdx], name: e.target.value };
+                                  updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                }}
+                                placeholder="Research Fellows"
+                                className="w-full bg-[#f8fafc] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] font-semibold"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                                Title in Details Card
+                              </label>
+                              <input
+                                type="text"
+                                value={pathway.title}
+                                onChange={(e) => {
+                                  const list = [...getPathwaysMetadata().pathways];
+                                  list[pIdx] = { ...list[pIdx], title: e.target.value };
+                                  updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                }}
+                                placeholder="Research Fellows"
+                                className="w-full bg-[#f8fafc] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828]"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Icon Selector with Presets & Upload */}
+                          <div className="bg-[#f8fafc] p-2.5 rounded-lg border border-gray-200 space-y-2">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                              <label className="text-[11px] font-semibold text-[#344054]">
+                                Pathway Icon (SVG / Image)
+                              </label>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] text-gray-500">Presets:</span>
+                                {iconPresets.map((preset) => (
+                                  <button
+                                    key={preset.url}
+                                    type="button"
+                                    onClick={() => {
+                                      const list = [...getPathwaysMetadata().pathways];
+                                      list[pIdx] = { ...list[pIdx], icon: preset.url };
+                                      updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                    }}
+                                    className={`px-2 py-0.5 text-[10px] font-medium rounded border transition-colors cursor-pointer ${
+                                      pathway.icon === preset.url
+                                        ? "bg-[#0284c7] text-white border-[#0284c7]"
+                                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
+                                    }`}
+                                  >
+                                    {preset.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={pathway.icon}
+                                onChange={(e) => {
+                                  const list = [...getPathwaysMetadata().pathways];
+                                  list[pIdx] = { ...list[pIdx], icon: e.target.value };
+                                  updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                }}
+                                placeholder="/assets/tab-planet.svg"
+                                className="flex-1 bg-white border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs font-mono text-gray-700"
+                              />
+
+                              <label className="shrink-0 px-2.5 py-1.5 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 rounded-lg text-[11px] font-medium cursor-pointer transition-colors shadow-2xs">
+                                {uploadingPathwayIdx === pIdx ? "Uploading..." : "Upload Icon"}
+                                <input
+                                  type="file"
+                                  accept="image/svg+xml,image/png,image/jpeg,image/webp"
+                                  className="hidden"
+                                  disabled={uploadingPathwayIdx === pIdx}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      handlePathwayIconUpload(file, pIdx);
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Description */}
+                          <div>
+                            <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                              Role Overview / Description
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={pathway.description}
+                              onChange={(e) => {
+                                const list = [...getPathwaysMetadata().pathways];
+                                list[pIdx] = { ...list[pIdx], description: e.target.value };
+                                updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                              }}
+                              placeholder="Role overview for this fellowship track..."
+                              className="w-full bg-[#f8fafc] border border-[#d0d5dd] rounded-lg p-2 text-xs text-[#101828]"
+                            />
+                          </div>
+
+                          {/* 2-Column: Eligibility and Benefits */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                            {/* Eligibility List */}
+                            <div className="bg-[#fcfaff] p-3 rounded-lg border border-[#ede9fe] space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-bold text-[#6d28d9] uppercase tracking-wide">
+                                  Eligibility ({pathway.eligibility?.length || 0})
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const list = [...getPathwaysMetadata().pathways];
+                                    const currentEl = Array.isArray(list[pIdx].eligibility) ? [...list[pIdx].eligibility] : [];
+                                    currentEl.push("");
+                                    list[pIdx] = { ...list[pIdx], eligibility: currentEl };
+                                    updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                  }}
+                                  className="text-[10px] font-semibold text-[#7c3aed] hover:text-[#6d28d9] cursor-pointer"
+                                >
+                                  + Add Criterion
+                                </button>
+                              </div>
+
+                              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                                {(pathway.eligibility || []).map((elItem, elIdx) => (
+                                  <div key={`el-${elIdx}`} className="flex items-center gap-1.5">
+                                    <span className="text-[10px] text-gray-400 w-4 text-right">{elIdx + 1}.</span>
+                                    <input
+                                      type="text"
+                                      value={elItem}
+                                      onChange={(e) => {
+                                        const list = [...getPathwaysMetadata().pathways];
+                                        const elList = [...(list[pIdx].eligibility || [])];
+                                        elList[elIdx] = e.target.value;
+                                        list[pIdx] = { ...list[pIdx], eligibility: elList };
+                                        updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                      }}
+                                      placeholder="e.g. PhD in relevant field"
+                                      className="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-800"
+                                    />
+                                    <button
+                                      type="button"
+                                      title="Remove"
+                                      onClick={() => {
+                                        const list = [...getPathwaysMetadata().pathways];
+                                        const elList = (list[pIdx].eligibility || []).filter((_, i) => i !== elIdx);
+                                        list[pIdx] = { ...list[pIdx], eligibility: elList };
+                                        updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                      }}
+                                      className="text-gray-400 hover:text-red-500 text-xs px-1 cursor-pointer"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ))}
+
+                                {(!pathway.eligibility || pathway.eligibility.length === 0) && (
+                                  <p className="text-[10px] text-gray-400 italic py-1">No eligibility criteria added.</p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Benefits List */}
+                            <div className="bg-[#f0fdf4] p-3 rounded-lg border border-[#bbf7d0] space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-bold text-[#15803d] uppercase tracking-wide">
+                                  Benefits ({pathway.benefits?.length || 0})
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const list = [...getPathwaysMetadata().pathways];
+                                    const currentBen = Array.isArray(list[pIdx].benefits) ? [...list[pIdx].benefits] : [];
+                                    currentBen.push("");
+                                    list[pIdx] = { ...list[pIdx], benefits: currentBen };
+                                    updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                  }}
+                                  className="text-[10px] font-semibold text-[#16a34a] hover:text-[#15803d] cursor-pointer"
+                                >
+                                  + Add Benefit
+                                </button>
+                              </div>
+
+                              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                                {(pathway.benefits || []).map((benItem, benIdx) => (
+                                  <div key={`ben-${benIdx}`} className="flex items-center gap-1.5">
+                                    <span className="text-[10px] text-gray-400 w-4 text-right">{benIdx + 1}.</span>
+                                    <input
+                                      type="text"
+                                      value={benItem}
+                                      onChange={(e) => {
+                                        const list = [...getPathwaysMetadata().pathways];
+                                        const benList = [...(list[pIdx].benefits || [])];
+                                        benList[benIdx] = e.target.value;
+                                        list[pIdx] = { ...list[pIdx], benefits: benList };
+                                        updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                      }}
+                                      placeholder="e.g. Institutional affiliation"
+                                      className="flex-1 bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-800"
+                                    />
+                                    <button
+                                      type="button"
+                                      title="Remove"
+                                      onClick={() => {
+                                        const list = [...getPathwaysMetadata().pathways];
+                                        const benList = (list[pIdx].benefits || []).filter((_, i) => i !== benIdx);
+                                        list[pIdx] = { ...list[pIdx], benefits: benList };
+                                        updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                                      }}
+                                      className="text-gray-400 hover:text-red-500 text-xs px-1 cursor-pointer"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ))}
+
+                                {(!pathway.benefits || pathway.benefits.length === 0) && (
+                                  <p className="text-[10px] text-gray-400 italic py-1">No benefits added.</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Add Pathway & Reset Actions */}
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const list = [...getPathwaysMetadata().pathways];
+                        const nextNum = list.length + 1;
+                        list.push({
+                          id: `pathway-${nextNum}`,
+                          name: `Pathway ${nextNum}`,
+                          title: `Pathway ${nextNum}`,
+                          icon: "/assets/tab-planet.svg",
+                          description: "",
+                          eligibility: ["Eligibility criterion 1"],
+                          benefits: ["Benefit item 1"],
+                        });
+                        updatePathwaysMetadata((prev) => ({ ...prev, pathways: list }));
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-semibold rounded-lg shadow-xs transition-colors cursor-pointer"
+                    >
+                      + Add Fellowship Pathway
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset to the 3 standard fellowship pathways (Research, Junior, Honorary)?")) {
+                          updatePathwaysMetadata(() => defaultPathwaysIntroMetadata);
+                        }
+                      }}
+                      className="text-xs text-[#0284c7] hover:underline font-semibold cursor-pointer"
+                    >
+                      Reset to Default 3 Pathways
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Metadata JSON */}
               <div>
                 <label className="block text-xs font-bold text-[#344054] mb-1">
@@ -867,8 +3970,10 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                 />
               </div>
 
-              {/* Sequence & Toggle */}
-              <div className="flex items-center justify-between pt-2 border-t border-[#e5e7eb]">
+              </div>
+
+              {/* Sticky Footer */}
+              <div className="flex items-center justify-between px-6 py-4 border-t border-[#e5e7eb] bg-[#fcfdff] shrink-0">
                 <div className="flex items-center gap-4">
                   <div>
                     <label className="block text-xs font-bold text-[#344054] mb-1">

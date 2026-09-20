@@ -1,11 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-
-interface FilterTab {
-  id: string;
-  name: string;
-}
+import { PageSectionData } from "@/common/services/cms.service";
+import { fetchNewsArticles, NewsArticleItem } from "@/common/services/news.service";
 
 interface FilterTab {
   id: string;
@@ -15,15 +12,10 @@ interface FilterTab {
 const defaultFilterTabs: FilterTab[] = [
   { id: "all", name: "All" },
   { id: "news", name: "News" },
-  { id: "press", name: "Press Releases" },
-  { id: "articles", name: "Articles" },
-  { id: "opinion", name: "Opinion Pieces" },
-  { id: "interviews", name: "Interviews" },
-  { id: "videos", name: "Videos" },
-  { id: "newsletter", name: "Newsletter Archive" },
+  { id: "programs", name: "Programs" },
+  { id: "events", name: "Events" },
+  { id: "press-releases", name: "Press Releases" },
 ];
-
-import { PageSectionData } from "@/common/services/cms.service";
 
 interface LatestNewsMediaProps {
   badge?: string;
@@ -40,7 +32,7 @@ export default function LatestNewsMedia({
   title: propTitle = "Latest from IILP",
   subtitle: propSubtitle = "Latest developments from IILP and upcoming conferences, seminars, and workshops.",
   tabs = defaultFilterTabs,
-  detailsHref = "/news-details",
+  detailsHref = "/news/student-clubs-and-organizations",
   headerLayout = "center",
   data,
 }: LatestNewsMediaProps) {
@@ -48,6 +40,27 @@ export default function LatestNewsMedia({
   const title = data?.title || propTitle;
   const subtitle = data?.subtitle || propSubtitle;
   const [activeFilter, setActiveFilter] = useState(tabs[0]?.id || "all");
+  const [liveArticles, setLiveArticles] = useState<NewsArticleItem[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchNewsArticles({
+      category: activeFilter !== "all" ? activeFilter : undefined,
+      limit: 20,
+    }).then((res) => {
+      if (isMounted && res?.items) {
+        setLiveArticles(res.items);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [activeFilter]);
+
+  const hasLiveArticles = liveArticles.length > 0;
+  const mainArticle = hasLiveArticles ? liveArticles[0] : null;
+  const gridArticles = hasLiveArticles ? liveArticles.slice(1, 5) : [];
+  const remainingArticles = hasLiveArticles && liveArticles.length > 5 ? liveArticles.slice(5) : [];
 
   return (
     <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
@@ -143,191 +156,136 @@ export default function LatestNewsMedia({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 w-full items-start">
           {/* Large Left Card */}
           <Link
-            href={detailsHref}
+            href={mainArticle ? `/news/${mainArticle.slug}` : detailsHref}
             className="lg:col-span-6 flex flex-col gap-4 group cursor-pointer"
           >
             <div className="relative w-full aspect-[4/4] sm:aspect-[4/3] lg:aspect-[1/1] rounded-2xl overflow-hidden bg-gray-100">
               <Image
-                src="/assets/news-students-talking.png"
-                alt="Technological Advancements"
+                src={mainArticle?.featuredImage || "/assets/news-students-talking.png"}
+                alt={mainArticle?.title || "Technological Advancements"}
                 fill
+                unoptimized
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3">
                 <span className="bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff] font-semibold text-xs px-2.5 py-1 rounded-full uppercase tracking-wider">
-                  News
+                  {mainArticle?.categoryName || "News"}
                 </span>
                 <span className="font-sans text-sm text-[#414651]">
-                  May 20, 2025
+                  {mainArticle?.publishedDate || "May 20, 2025"}
                 </span>
               </div>
               <h3 className="font-serif text-[#000080] text-2xl lg:text-[28px] font-bold leading-tight group-hover:text-primary-500 transition-colors">
-                Technological Advancements
+                {mainArticle?.title || "Technological Advancements in International Law"}
               </h3>
             </div>
           </Link>
 
           {/* Right 2x2 Grid */}
           <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
-            {/* Card 1 */}
-            <Link
-              href={detailsHref}
-              className="flex flex-col gap-3 group cursor-pointer"
-            >
-              <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">
-                <Image
-                  src="/assets/news-student-books.png"
-                  alt="Technological Advancements"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-2.5">
-                  <span className="bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff] font-semibold text-xs px-2 py-0.5 rounded-full uppercase">
-                    News
-                  </span>
-                  <span className="font-sans text-xs text-[#414651]">
-                    May 20, 2025
-                  </span>
+            {(gridArticles.length > 0
+              ? gridArticles
+              : [
+                  {
+                    id: "1",
+                    slug: "student-clubs-and-organizations",
+                    title: "Student Clubs and Organizations You Should Join This Semester",
+                    categoryName: "Programs",
+                    publishedDate: "May 19, 2025",
+                    featuredImage: "/assets/news-article-student.png",
+                  },
+                  {
+                    id: "2",
+                    slug: "evolving-landscape-of-international-humanitarian-law",
+                    title: "The Evolving Landscape of International Humanitarian Law",
+                    categoryName: "Programs",
+                    publishedDate: "May 18, 2025",
+                    featuredImage: "/assets/news-student-books.png",
+                  },
+                  {
+                    id: "3",
+                    slug: "annual-international-jurisprudence-symposium-2025",
+                    title: "Annual International Jurisprudence Symposium 2025 Announced",
+                    categoryName: "Events",
+                    publishedDate: "May 15, 2025",
+                    featuredImage: "/assets/news-students-couple.png",
+                  },
+                  {
+                    id: "4",
+                    slug: "iilp-publishes-landmark-policy-brief-maritime-boundary-treaties",
+                    title: "IILP Publishes Landmark Policy Brief on Maritime Boundary Treaties",
+                    categoryName: "Press Releases",
+                    publishedDate: "May 10, 2025",
+                    featuredImage: "/assets/news-students-city.png",
+                  },
+                ]
+            ).map((item) => (
+              <Link
+                key={item.id}
+                href={`/news/${item.slug}`}
+                className="flex flex-col gap-3 group cursor-pointer"
+              >
+                <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">
+                  <Image
+                    src={item.featuredImage || "/assets/news-small-1.png"}
+                    alt={item.title}
+                    fill
+                    unoptimized
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-                <h4 className="font-serif text-[#000080] text-lg font-bold leading-tight group-hover:text-primary-500 transition-colors">
-                  Technological Advancements
-                </h4>
-              </div>
-            </Link>
-
-            {/* Card 2 (Video Play Icon) */}
-            <Link
-              href={detailsHref}
-              className="flex flex-col gap-3 group cursor-pointer relative"
-            >
-              <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">
-                <Image
-                  src="/assets/news-students-couple.png"
-                  alt="Technological Advancements"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                {/* Play Button Overlay */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-14 h-14 rounded-full bg-white/90 shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <svg
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="#000080"
-                      className="ml-1"
-                    >
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff] font-semibold text-xs px-2 py-0.5 rounded-full uppercase">
+                      {item.categoryName}
+                    </span>
+                    <span className="font-sans text-xs text-[#414651]">
+                      {item.publishedDate}
+                    </span>
                   </div>
+                  <h4 className="font-serif text-[#000080] text-lg font-bold leading-tight group-hover:text-primary-500 transition-colors line-clamp-2">
+                    {item.title}
+                  </h4>
                 </div>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-2.5">
-                  <span className="bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff] font-semibold text-xs px-2 py-0.5 rounded-full uppercase">
-                    News
-                  </span>
-                  <span className="font-sans text-xs text-[#414651]">
-                    May 20, 2025
-                  </span>
-                </div>
-                <h4 className="font-serif text-[#000080] text-lg font-bold leading-tight group-hover:text-primary-500 transition-colors">
-                  Technological Advancements
-                </h4>
-              </div>
-            </Link>
-
-            {/* Card 3 */}
-            <Link
-              href={detailsHref}
-              className="flex flex-col gap-3 group cursor-pointer"
-            >
-              <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">
-                <Image
-                  src="/assets/news-students-city.png"
-                  alt="Technological Advancements"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-2.5">
-                  <span className="bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff] font-semibold text-xs px-2 py-0.5 rounded-full uppercase">
-                    News
-                  </span>
-                  <span className="font-sans text-xs text-[#414651]">
-                    May 20, 2025
-                  </span>
-                </div>
-                <h4 className="font-serif text-[#000080] text-lg font-bold leading-tight group-hover:text-primary-500 transition-colors">
-                  Technological Advancements
-                </h4>
-              </div>
-            </Link>
-
-            {/* Card 4 */}
-            <Link
-              href={detailsHref}
-              className="flex flex-col gap-3 group cursor-pointer"
-            >
-              <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">
-                <Image
-                  src="/assets/news-lab-researchers.png"
-                  alt="Technological Advancements"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-2.5">
-                  <span className="bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff] font-semibold text-xs px-2 py-0.5 rounded-full uppercase">
-                    News
-                  </span>
-                  <span className="font-sans text-xs text-[#414651]">
-                    May 20, 2025
-                  </span>
-                </div>
-                <h4 className="font-serif text-[#000080] text-lg font-bold leading-tight group-hover:text-primary-500 transition-colors">
-                  Technological Advancements
-                </h4>
-              </div>
-            </Link>
+              </Link>
+            ))}
           </div>
         </div>
 
-        {/* Bottom 8 Cards Grid (2 rows of 4) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full pt-4">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <Link
-              key={index}
-              href="/publication-details"
-              className="flex flex-col gap-3 group cursor-pointer"
-            >
-              <div className="relative w-full aspect-[1/1] rounded-xl overflow-hidden bg-gray-100">
-                <Image
-                  src="/assets/news-students-talking.png"
-                  alt="Technological Advancements"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-2 font-sans text-xs text-[#414651]">
-                  <span>May 20, 2025</span>
-                  <span>•</span>
-                  <span>Solar Energy</span>
+        {/* Bottom Cards Grid if extra articles exist */}
+        {remainingArticles.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full pt-4">
+            {remainingArticles.map((item) => (
+              <Link
+                key={item.id}
+                href={`/news/${item.slug}`}
+                className="flex flex-col gap-3 group cursor-pointer"
+              >
+                <div className="relative w-full aspect-[1/1] rounded-xl overflow-hidden bg-gray-100">
+                  <Image
+                    src={item.featuredImage || "/assets/news-small-1.png"}
+                    alt={item.title}
+                    fill
+                    unoptimized
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-                <h4 className="font-serif text-[#000080] text-lg font-bold leading-tight group-hover:text-primary-500 transition-colors">
-                  Technological Advancements
-                </h4>
-              </div>
-            </Link>
-          ))}
-        </div>
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2 font-sans text-xs text-[#414651]">
+                    <span>{item.publishedDate}</span>
+                    <span>•</span>
+                    <span>{item.categoryName}</span>
+                  </div>
+                  <h4 className="font-serif text-[#000080] text-lg font-bold leading-tight group-hover:text-primary-500 transition-colors line-clamp-2">
+                    {item.title}
+                  </h4>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

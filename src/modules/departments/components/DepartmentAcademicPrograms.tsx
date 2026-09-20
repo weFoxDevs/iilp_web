@@ -10,6 +10,7 @@ interface ProgramDepartment {
   image: string;
   highlighted?: boolean;
   hasActionButton?: boolean;
+  slug?: string;
 }
 
 const programDepartments: ProgramDepartment[] = [
@@ -20,6 +21,7 @@ const programDepartments: ProgramDepartment[] = [
     description:
       "Advancing legal scholarship, international law, and justice systems in a changing global order.",
     image: "/assets/academic-thumbnail-1.png",
+    slug: "law-international-legal-studies",
   },
   {
     id: "political-science",
@@ -30,6 +32,7 @@ const programDepartments: ProgramDepartment[] = [
     image: "/assets/academic-thumbnail-1.png",
     highlighted: true,
     hasActionButton: true,
+    slug: "political-science-governance",
   },
   {
     id: "human-rights",
@@ -38,6 +41,7 @@ const programDepartments: ProgramDepartment[] = [
     description:
       "Promoting human dignity, rights-based approaches, and humanitarian action globally.",
     image: "/assets/academic-thumbnail-1.png",
+    slug: "human-rights-humanitarian-studies",
   },
 ];
 
@@ -71,7 +75,7 @@ export default function DepartmentAcademicPrograms() {
           {programDepartments.map((dept) => (
             <Link
               key={dept.id}
-              href="/department-details"
+              href={`/departments/${dept.slug || dept.id}`}
               className="flex flex-col gap-[30px] group cursor-pointer"
             >
               {/* Image Container with Badge */}

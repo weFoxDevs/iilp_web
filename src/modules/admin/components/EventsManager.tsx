@@ -668,10 +668,11 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {events.map((ev) => {
-                  const seatsLeft = Math.max(0, (ev.seatsCapacity || 0) - (ev.seatsReserved || 0));
+                  const registeredCount = ev.totalRegistrations ?? ev.seatsReserved ?? 0;
+                  const seatsLeft = Math.max(0, (ev.seatsCapacity || 0) - registeredCount);
                   const percentReserved =
-                    ev.seatsCapacity > 0 ? Math.min(100, Math.round((ev.seatsReserved / ev.seatsCapacity) * 100)) : 0;
-                  const isFull = ev.seatsCapacity > 0 && ev.seatsReserved >= ev.seatsCapacity;
+                    ev.seatsCapacity > 0 ? Math.min(100, Math.round((registeredCount / ev.seatsCapacity) * 100)) : 0;
+                  const isFull = ev.seatsCapacity > 0 && registeredCount >= ev.seatsCapacity;
 
                   return (
                     <tr key={ev.id} className="hover:bg-gray-50/70 transition-colors">
@@ -735,26 +736,29 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
 
                       {/* Category & Mode */}
                       <td className="p-4">
-                        <div className="flex flex-col gap-1">
-                          <span className="inline-flex w-fit px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]">
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]">
                             {ev.category}
                           </span>
-                          <span className="text-[11px] font-medium text-gray-600">
+                          <span className="text-[11px] font-semibold text-gray-600 flex items-center gap-1">
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                ev.mode === "HYBRID" ? "bg-purple-500" : ev.mode === "ONLINE" ? "bg-sky-500" : "bg-emerald-500"
+                              }`}
+                            />
                             {ev.mode}
                           </span>
                         </div>
                       </td>
 
-                      {/* Dates & Time */}
+                      {/* Schedule */}
                       <td className="p-4">
-                        <div className="text-gray-900 font-semibold">
-                          {ev.startDate ? ev.startDate.split("T")[0] : "TBA"}
-                          {ev.endDate && ev.endDate !== ev.startDate && (
-                            <span className="text-gray-400 font-normal"> · {ev.endDate.split("T")[0]}</span>
-                          )}
-                        </div>
-                        <div className="text-[11px] text-gray-500 mt-0.5">
-                          {ev.startTime || "Schedule TBA"}
+                        <div className="flex flex-col text-xs text-gray-800">
+                          <span className="font-bold">
+                            {ev.startDate}
+                            {ev.endDate && ev.endDate !== ev.startDate && ` · ${ev.endDate}`}
+                          </span>
+                          <span className="text-[11px] text-gray-500">{ev.startTime}</span>
                         </div>
                       </td>
 
@@ -791,7 +795,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
                         >
                           <div className="flex items-center justify-between text-[11px]">
                             <span className="font-bold text-gray-900 group-hover:text-[#00698c] transition-colors">
-                              {ev.seatsReserved || 0} registered
+                              {registeredCount} registered
                             </span>
                             <span className="text-gray-400">
                               / {ev.seatsCapacity > 0 ? ev.seatsCapacity : "∞"}
@@ -877,7 +881,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
-                            <span>Attendees ({ev.totalRegistrations ?? ev.seatsReserved ?? 0})</span>
+                            <span>Attendees ({registeredCount})</span>
                           </button>
 
                           {/* Edit Button */}
@@ -1003,7 +1007,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
             </div>
 
             {/* Content Body */}
-            <div className="p-6 overflow-y-auto space-y-6 text-xs text-gray-700">
+            <div className="p-6 overflow-y-auto space-y-6 text-xs text-gray-700 modal-scroll">
               {/* Short summary if available */}
               {viewingEvent.shortSummary && (
                 <div className="p-3 bg-[#e6f9ff] border border-[#b0ebff] rounded-xl text-[#00698c] font-medium leading-relaxed">
@@ -1024,7 +1028,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
                 <div>
                   <span className="text-[10px] font-bold uppercase text-gray-400">Capacity</span>
                   <div className="font-bold text-gray-900 mt-0.5">
-                    {viewingEvent.seatsReserved} / {viewingEvent.seatsCapacity || "∞"} seats
+                    {viewingEvent.totalRegistrations ?? viewingEvent.seatsReserved ?? 0} / {viewingEvent.seatsCapacity || "∞"} seats
                   </div>
                 </div>
                 <div>
@@ -1101,7 +1105,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span>View Attendees ({viewingEvent.seatsReserved || 0})</span>
+                  <span>View Attendees ({viewingEvent.totalRegistrations ?? viewingEvent.seatsReserved ?? 0})</span>
                 </button>
                 <button
                   type="button"
@@ -1162,7 +1166,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
               style={{ colorScheme: "light" }}
             >
               {/* Scrollable Form Body */}
-              <div className="overflow-y-auto p-6 space-y-6 flex-1 text-xs">
+              <div className="overflow-y-auto p-6 space-y-6 flex-1 text-xs modal-scroll">
                 {/* Basic Details Section */}
                 <div className="space-y-4">
                   <h4 className="font-bold text-[#00698c] uppercase tracking-wider text-[11px] border-b border-gray-100 pb-1">
@@ -1744,7 +1748,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
             {/* Roster Filter Bar */}
             <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between text-xs">
               <span className="text-gray-600 font-medium">
-                Capacity: <strong>{selectedEventForRoster.seatsReserved}</strong> of{" "}
+                Capacity: <strong>{selectedEventForRoster.totalRegistrations ?? selectedEventForRoster.seatsReserved ?? 0}</strong> of{" "}
                 <strong>{selectedEventForRoster.seatsCapacity || "Unlimited"}</strong> seats reserved
               </span>
 
@@ -1780,7 +1784,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
             {(() => {
               const attendeeList = Array.isArray(registrations) ? registrations : [];
               return (
-                <div className="overflow-y-auto flex-1">
+                <div className="overflow-y-auto flex-1 modal-scroll">
                   {isLoadingRoster ? (
                     <div className="p-16 flex flex-col items-center justify-center gap-2">
                       <div className="size-6 border-2 border-[#00bfff] border-t-transparent rounded-full animate-spin"></div>

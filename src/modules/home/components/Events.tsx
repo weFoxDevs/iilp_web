@@ -1,40 +1,106 @@
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PageSectionData } from '@/common/services/cms.service';
+import { fetchPublicEvents } from '@/common/services/events.service';
 
-interface EventItem {
+interface EventCardItem {
   date: string;
   title: string;
   image: string;
   aspectRatio: string;
+  slug?: string;
 }
 
-const defaultEvents: EventItem[] = [
+const aspectRatios = [
+  'aspect-[409/476]',
+  'aspect-[409/542]',
+  'aspect-[409/476]',
+];
+
+const defaultEventImages = [
+  '/assets/event-1.png',
+  '/assets/event-2.png',
+  '/assets/event-3.png',
+];
+
+const defaultEvents: EventCardItem[] = [
   {
-    date: "January 22, 2026",
-    title: "Student Startup Pitch Competition",
-    image: "/assets/event-1.png",
-    aspectRatio: "aspect-[409/476]",
+    date: 'August 28, 2026',
+    title: 'International Law & Human Rights Summit 2026',
+    image: '/assets/event-1.png',
+    aspectRatio: 'aspect-[409/476]',
+    slug: 'summit-2026-1',
   },
   {
-    date: "May 22, 2026",
-    title: "International Fashion Parade",
-    image: "/assets/event-2.png",
-    aspectRatio: "aspect-[409/542]",
+    date: 'August 28, 2026',
+    title: 'Refugee Protection: Emerging Legal Frameworks',
+    image: '/assets/event-2.png',
+    aspectRatio: 'aspect-[409/542]',
+    slug: 'refugee-protection-2',
   },
   {
-    date: "May 22, 2026",
-    title: "Award-winning student play",
-    image: "/assets/event-3.png",
-    aspectRatio: "aspect-[409/476]",
+    date: 'October 05, 2026',
+    title: 'Multilateral Trade & Human Rights Policy Dialogue',
+    image: '/assets/event-3.png',
+    aspectRatio: 'aspect-[409/476]',
+    slug: 'policy-dialogue-5',
   },
 ];
+
+function formatDisplayDate(dateStr?: string | null): string {
+  if (!dateStr) return 'Upcoming Event';
+  try {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC',
+      });
+    }
+  } catch {
+    // fallback
+  }
+  return dateStr;
+}
 
 interface EventsProps {
   data?: Partial<PageSectionData>;
 }
 
 export function Events({ data }: EventsProps) {
+  const [apiEvents, setApiEvents] = useState<EventCardItem[] | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchPublicEvents({ limit: 3 })
+      .then((res) => {
+        if (isMounted && res && Array.isArray(res.items) && res.items.length > 0) {
+          setApiEvents(
+            res.items.slice(0, 3).map((item, idx) => ({
+              date: formatDisplayDate(item.startDate),
+              title: item.title,
+              image:
+                item.imageUrl ||
+                item.bannerImage ||
+                defaultEventImages[idx % defaultEventImages.length],
+              aspectRatio: aspectRatios[idx % aspectRatios.length],
+              slug: item.slug || item.id,
+            }))
+          );
+        }
+      })
+      .catch((err) => {
+        console.warn('[Events] Failed to fetch events from API:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const section = {
     badge: data?.badge ?? 'Stay Updated',
     title: data?.title ?? 'Upcoming Events & Activities',
@@ -43,13 +109,14 @@ export function Events({ data }: EventsProps) {
       'Interdisciplinary programs advancing law, governance, human rights, and development through rigorous research and scholarship.',
     actionText: data?.actionText || 'View All Events',
     actionUrl: data?.actionUrl || '/events',
-    metadata: data?.metadata ?? {
-      events: defaultEvents,
-    },
   };
 
-  const events =
-    ((section.metadata || {}).events as EventItem[]) || defaultEvents;
+  const rawEvents =
+    apiEvents ||
+    ((data?.metadata || {}).events as EventCardItem[]) ||
+    defaultEvents;
+
+  const events = (Array.isArray(rawEvents) ? rawEvents : defaultEvents).slice(0, 3);
 
   return (
     <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">
@@ -77,7 +144,7 @@ export function Events({ data }: EventsProps) {
           
           {section.actionText && (
             <Link 
-              href={section.actionUrl || "/events"} 
+              href={section.actionUrl || '/events'} 
               className="inline-flex items-center justify-center rounded-full bg-[#00bfff] hover:bg-[#00a2d6] px-[24px] py-[14px] shadow-sm transition-colors shrink-0 mb-1"
             >
               <span className="font-source font-semibold text-white text-[16px] leading-[24px]">
@@ -91,13 +158,13 @@ export function Events({ data }: EventsProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-[60px] items-end w-full">
           {events.map((event, index) => (
             <Link 
-              href="/events" 
+              href={event.slug ? `/events/${event.slug}` : (section.actionUrl || '/events')} 
               key={index} 
               className="flex flex-col gap-[24px] group cursor-pointer w-full"
             >
               <div className={`relative w-full ${event.aspectRatio} rounded-[4px] overflow-hidden`}>
                 <Image 
-                  src={event.image} 
+                  src={event.image || defaultEventImages[index % defaultEventImages.length]} 
                   alt={event.title} 
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
@@ -110,7 +177,7 @@ export function Events({ data }: EventsProps) {
                   {event.date}
                 </span>
 
-                <h3 className="font-['Soria',var(--font-playfair),serif] text-[24px] leading-[33.6px] tracking-[-0.5px] text-[#160d03] group-hover:text-[#00bfff] transition-colors">
+                <h3 className="font-['Soria',var(--font-playfair),serif] text-[24px] leading-[33.6px] tracking-[-0.5px] text-[#160d03] group-hover:text-[#00bfff] transition-colors line-clamp-2">
                   {event.title}
                 </h3>
               </div>

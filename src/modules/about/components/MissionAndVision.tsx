@@ -16,36 +16,58 @@ const defaultStats: StatItem[] = [
 
 interface MissionAndVisionProps {
   data?: Partial<PageSectionData>;
+  missionData?: Partial<PageSectionData>;
+  visionData?: Partial<PageSectionData>;
 }
 
-export default function MissionAndVision({ data }: MissionAndVisionProps) {
-  const missionBadge = data?.badge ?? 'Our Mission';
-  const missionTitle = data?.title ?? 'Advancing Interdisciplinary Scholarship';
+export default function MissionAndVision({ data, missionData, visionData }: MissionAndVisionProps) {
+  const legacyMeta = (data?.metadata || {}) as Record<string, any>;
+  const visionMeta = (visionData?.metadata || {}) as Record<string, any>;
+
+  const missionBadge = missionData?.badge ?? data?.badge ?? 'Our Mission';
+  const missionTitle = missionData?.title ?? data?.title ?? 'Advancing Interdisciplinary Scholarship';
   const missionSubtitle =
+    missionData?.subtitle ??
     data?.subtitle ??
     'The mission of the International Institute for Law and Politics is to advance interdisciplinary scholarship, strengthen evidence-based policymaking, foster ethical leadership, and contribute to the development of informed and resilient institutions capable of addressing contemporary global challenges.';
+  const missionImage =
+    ((missionData?.bgImage as string) ||
+    (missionData?.metadata?.missionImage as string) ||
+    (legacyMeta.missionImage as string) ||
+    '/assets/about-vision-students.png') as string;
 
-  const meta = (data?.metadata || {}) as {
-    visionBadge?: string;
-    visionTitle?: string;
-    visionSubtitle?: string;
-    missionImage?: string;
-    visionImage?: string;
-    studentRatingsCount?: string;
-    studentRatingsLabel?: string;
-    stats?: StatItem[];
-  };
-
-  const visionBadge = meta.visionBadge || 'Our Vision';
-  const visionTitle = meta.visionTitle || 'A Globally Respected Centre of Excellence';
+  const visionBadge =
+    (visionData?.badge as string) ||
+    (visionMeta.visionBadge as string) ||
+    (legacyMeta.visionBadge as string) ||
+    'Our Vision';
+  const visionTitle =
+    (visionData?.title as string) ||
+    (visionMeta.visionTitle as string) ||
+    (legacyMeta.visionTitle as string) ||
+    'A Globally Respected Centre of Excellence';
   const visionSubtitle =
-    meta.visionSubtitle ||
+    (visionData?.subtitle as string) ||
+    (visionMeta.visionSubtitle as string) ||
+    (legacyMeta.visionSubtitle as string) ||
     'To become a globally respected center of excellence for research, education, policy innovation, and leadership development — advancing justice, human dignity, democratic governance, responsible public leadership, and sustainable peace.';
-  const missionImage = meta.missionImage || '/assets/about-vision-students.png';
-  const visionImage = meta.visionImage || '/assets/about-mission-student.png';
-  const studentRatingsCount = meta.studentRatingsCount || '5000';
-  const studentRatingsLabel = meta.studentRatingsLabel || 'Student ratings';
-  const stats = meta.stats || defaultStats;
+  const visionImage =
+    ((visionData?.bgImage as string) ||
+    (visionMeta.visionImage as string) ||
+    (legacyMeta.visionImage as string) ||
+    '/assets/about-mission-student.png') as string;
+  const studentRatingsCount =
+    (visionMeta.studentRatingsCount as string) ||
+    (legacyMeta.studentRatingsCount as string) ||
+    '5000';
+  const studentRatingsLabel =
+    (visionMeta.studentRatingsLabel as string) ||
+    (legacyMeta.studentRatingsLabel as string) ||
+    'Student ratings';
+  const stats =
+    (visionMeta.stats as StatItem[]) ||
+    (legacyMeta.stats as StatItem[]) ||
+    defaultStats;
 
   return (
     <section className="w-full bg-[#e6f9ff] py-16 lg:py-[140px] px-4 md:px-8 lg:px-16 xl:px-[240px]">

@@ -87,13 +87,13 @@ export function EventRegistrationModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 sm:p-6 animate-in fade-in duration-200"
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
     >
       <div
-        className="bg-white rounded-[24px] shadow-2xl w-full max-w-[760px] p-6 sm:p-10 relative overflow-hidden flex flex-col gap-6"
+        className="bg-white rounded-[24px] shadow-2xl w-full max-w-[760px] p-6 sm:p-10 relative overflow-y-auto flex flex-col gap-6 max-h-[calc(100vh-4rem)] modal-scroll my-8"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}

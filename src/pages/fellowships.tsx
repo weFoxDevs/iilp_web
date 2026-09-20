@@ -22,9 +22,11 @@ export default function FellowshipsPage({
         <FellowshipHero data={getSection("hero")} />
         <FellowshipCategories
           initialTab={defaultTab}
-          data={getSection("pathways_intro")}
+          data={getSection("pathways_intro") || getSection("categories")}
         />
-        <FellowshipApplication data={getSection("application_cta")} />
+        <FellowshipApplication
+          data={getSection("application_cta") || getSection("application")}
+        />
       </main>
       <Footer />
     </div>
