@@ -21,7 +21,7 @@ export function FounderMessage({ data }: FounderMessageProps) {
       'IILP was established upon a straightforward yet ambitious principle: knowledge must serve humanity. Knowledge is power, and that power cannot be siloed within academia or confined to intellectual discussions alone.',
     bgImage: '/assets/founder-main.png',
     actionText: "Read Full Founder's Message →",
-    actionUrl: '/founder',
+    actionUrl: '/about#founder-message',
     metadata: {
       authorName: 'Mohammed Siraj',
       authorRole: 'Founder & President, IILP',
@@ -36,7 +36,10 @@ export function FounderMessage({ data }: FounderMessageProps) {
     subtitle: data?.subtitle ?? defaultFounder.subtitle,
     bgImage: data?.bgImage || defaultFounder.bgImage,
     actionText: data?.actionText || defaultFounder.actionText,
-    actionUrl: data?.actionUrl || defaultFounder.actionUrl,
+    actionUrl:
+      data?.actionUrl && data.actionUrl !== '/founder'
+        ? data.actionUrl
+        : defaultFounder.actionUrl,
     metadata: (data?.metadata as FounderMetadata) || defaultFounder.metadata,
   };
 

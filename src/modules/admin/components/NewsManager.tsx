@@ -447,12 +447,15 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
 
       {/* Create / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-5 my-8 shadow-2xl border border-gray-100">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-base font-bold text-[#0a0d12]">
-                {editingId ? "Edit News Article" : "Create New News Article"}
-              </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-gray-100 flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 shrink-0">
+              <div>
+                <h3 className="text-base font-bold text-[#0a0d12]">
+                  {editingId ? "Edit News Article" : "Create New News Article"}
+                </h3>
+                <p className="text-xs text-gray-400 mt-0.5">Fill in article details, upload media, and set content.</p>
+              </div>
               <button
                 onClick={closeModal}
                 className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 cursor-pointer"
@@ -461,7 +464,9 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              {/* Scrollable Form Body */}
+              <div className="flex-1 overflow-y-auto modal-scroll p-6 space-y-4 text-xs">
               {/* Title & Slug */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
@@ -661,8 +666,10 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
                 />
               </div>
 
-              {/* Submit / Cancel */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
+              </div>
+
+              {/* Sticky Footer */}
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-[#fcfdff] shrink-0">
                 <button
                   type="button"
                   onClick={closeModal}

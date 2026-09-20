@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { PageSectionData } from "@/common/services/cms.service";
+import { submitFellowshipApplication } from "@/common/services/fellowship-application.service";
 
 interface FellowshipApplicationProps {
   data?: Partial<PageSectionData>;
@@ -17,7 +18,7 @@ export default function FellowshipApplication({ data }: FellowshipApplicationPro
     firstName: "",
     lastName: "",
     email: "",
-    countryCode: "+12",
+    countryCode: "+1",
     phone: "",
     country: "",
     institution: "",
@@ -29,6 +30,8 @@ export default function FellowshipApplication({ data }: FellowshipApplicationPro
 
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -45,13 +48,50 @@ export default function FellowshipApplication({ data }: FellowshipApplicationPro
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      const dataPayload = new FormData();
+      dataPayload.append("firstName", formData.firstName);
+      dataPayload.append("lastName", formData.lastName);
+      dataPayload.append("email", formData.email);
+      dataPayload.append("countryCode", formData.countryCode);
+      dataPayload.append("phone", formData.phone);
+      dataPayload.append("country", formData.country);
+      if (formData.institution) {
+        dataPayload.append("institution", formData.institution);
+      }
+      dataPayload.append("degree", formData.degree);
+      if (formData.researchInterest) {
+        dataPayload.append("researchInterest", formData.researchInterest);
+      }
+      dataPayload.append("fellowshipType", formData.fellowshipType);
+      dataPayload.append("statement", formData.statement);
+
+      if (selectedFiles && selectedFiles.length > 0) {
+        for (let i = 0; i < selectedFiles.length; i++) {
+          dataPayload.append("files", selectedFiles[i]);
+        }
+      }
+
+      await submitFellowshipApplication(dataPayload);
+      setSubmitted(true);
+    } catch (err: unknown) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Failed to submit fellowship application. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <section className="bg-[#e6f9ff] py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
+    <section id="apply" className="bg-[#e6f9ff] py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] scroll-mt-20">
       <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px] items-center">
         {/* Section Header */}
         <div className="flex flex-col items-center gap-4 text-center max-w-[850px]">
@@ -387,12 +427,52 @@ export default function FellowshipApplication({ data }: FellowshipApplicationPro
                 </div>
               </div>
 
+              {errorMessage && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center justify-between">
+                  <span>{errorMessage}</span>
+                  <button
+                    type="button"
+                    onClick={() => setErrorMessage(null)}
+                    className="text-red-500 hover:text-red-800 text-xs font-bold ml-2 cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base py-3.5 px-6 rounded-full drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] transition-colors cursor-pointer"
+                disabled={isSubmitting}
+                className="w-full bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base py-3.5 px-6 rounded-full drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] transition-colors cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
               >
-                Submit Fellowship Application
+                {isSubmitting ? (
+                  <>
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8H4z"
+                      ></path>
+                    </svg>
+                    <span>Submitting Application...</span>
+                  </>
+                ) : (
+                  <span>Submit Fellowship Application</span>
+                )}
               </button>
             </form>
           )}

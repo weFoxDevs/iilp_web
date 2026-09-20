@@ -109,9 +109,9 @@ export default function StrategicObjectives({ data }: StrategicObjectivesProps) 
 
         {/* Bottom: 10 Numbered Objective Cards (Grid) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 w-full">
-          {objectives.map((item) => (
+          {objectives.map((item, idx) => (
             <div
-              key={item.num}
+              key={idx}
               className="bg-white/10 border border-[#00698c] p-6 sm:p-7 lg:p-[30px] flex items-center gap-5 sm:gap-6 hover:bg-white/15 transition-all"
             >
               {/* Cyan Number */}

@@ -417,18 +417,21 @@ export function DepartmentsManager({ token, onShowToast }: DepartmentsManagerPro
 
       {/* Create / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-[#e5e7eb] my-8">
-            <div className="flex items-center justify-between pb-4 border-b border-[#e5e7eb] mb-6">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#00bfff]"></span>
-                <h3 className="text-lg font-bold text-[#101828]">
-                  {editingId ? "Edit Department" : "Create New Academic Department"}
-                </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-[#e5e7eb] flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-4 shrink-0">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#00bfff]"></span>
+                  <h3 className="text-lg font-bold text-[#101828]">
+                    {editingId ? "Edit Department" : "Create New Academic Department"}
+                  </h3>
+                </div>
+                <p className="text-xs text-gray-400 mt-0.5 ml-4">Configure department details, media, and visibility.</p>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer p-1.5 rounded-lg hover:bg-gray-100"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -436,7 +439,9 @@ export function DepartmentsManager({ token, onShowToast }: DepartmentsManagerPro
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-4">
+            <form onSubmit={handleSave} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              {/* Scrollable Form Body */}
+              <div className="flex-1 overflow-y-auto modal-scroll p-6 space-y-4 text-xs">
               {/* Row 1: Number, Code, Sort Order */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
@@ -637,8 +642,10 @@ export function DepartmentsManager({ token, onShowToast }: DepartmentsManagerPro
                 </label>
               </div>
 
-              {/* Footer Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e7eb]">
+              </div>
+
+              {/* Sticky Footer */}
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#e5e7eb] bg-[#fcfdff] shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}

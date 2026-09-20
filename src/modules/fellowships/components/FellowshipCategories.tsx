@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { PageSectionData } from "@/common/services/cms.service";
 
 interface FellowshipPathway {
-  id: "research" | "junior" | "honorary";
+  id: string;
   name: string;
   icon: string;
   title: string;
@@ -79,7 +79,7 @@ const defaultPathways: FellowshipPathway[] = [
 ];
 
 interface FellowshipCategoriesProps {
-  initialTab?: "research" | "junior" | "honorary";
+  initialTab?: string;
   data?: Partial<PageSectionData>;
 }
 
@@ -88,9 +88,7 @@ export default function FellowshipCategories({
   data,
 }: FellowshipCategoriesProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"research" | "junior" | "honorary">(
-    initialTab
-  );
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
 
   const badge = data?.badge ?? "Fellowship Categories";
   const title = data?.title ?? "Three Fellowship Pathways";
@@ -105,16 +103,13 @@ export default function FellowshipCategories({
 
   useEffect(() => {
     if (router.isReady && router.query.tab) {
-      const tab = router.query.tab as string;
-      if (tab === "junior" || tab === "honorary" || tab === "research") {
-        setActiveTab(tab);
-      }
+      setActiveTab(router.query.tab as string);
     } else if (initialTab) {
       setActiveTab(initialTab);
     }
   }, [router.isReady, router.query.tab, initialTab]);
 
-  const handleTabClick = (tabId: "research" | "junior" | "honorary") => {
+  const handleTabClick = (tabId: string) => {
     setActiveTab(tabId);
     if (router.isReady) {
       router.push(

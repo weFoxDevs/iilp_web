@@ -221,20 +221,24 @@ export function SiteMetricsManager({ token, onShowToast }: SiteMetricsManagerPro
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-[#e5e7eb]">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-[#e5e7eb]">
-              <h3 className="text-base font-bold text-[#101828]">
-                {editingId ? "Edit Impact Metric" : "Add New Metric"}
-              </h3>
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-xl border border-[#e5e7eb] flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-4 shrink-0">
+              <div>
+                <h3 className="text-base font-bold text-[#101828]">
+                  {editingId ? "Edit Impact Metric" : "Add New Metric"}
+                </h3>
+                <p className="text-xs text-gray-400 mt-0.5">Configure metric value, label, and display settings.</p>
+              </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-[#98a2b3] hover:text-[#101828] text-lg font-bold cursor-pointer"
+                className="text-[#98a2b3] hover:text-[#101828] text-lg font-bold cursor-pointer p-1 rounded-lg hover:bg-gray-100"
               >
                 &times;
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-4">
+            <form onSubmit={handleSave} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto modal-scroll p-6 space-y-4 text-xs">
               <div>
                 <label className="block text-xs font-bold text-[#344054] mb-1">
                   Metric Label <span className="text-red-500">*</span>
@@ -301,7 +305,10 @@ export function SiteMetricsManager({ token, onShowToast }: SiteMetricsManagerPro
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e7eb]">
+              </div>
+
+              {/* Sticky Footer */}
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[#e5e7eb] bg-[#fcfdff] shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}

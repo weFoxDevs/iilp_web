@@ -19,10 +19,14 @@ export default function AboutPage() {
       <Header />
       <main className="flex-grow">
         <AboutHero data={getSection('hero')} />
-        <InstitutionalProfile data={getSection('profile')} />
-        <MissionAndVision data={getSection('mission_vision')} />
-        <StrategicObjectives data={getSection('objectives')} />
-        <InstitutionalValues data={getSection('values')} />
+        <InstitutionalProfile data={getSection('profile') || getSection('institutional_profile')} />
+        <MissionAndVision
+          missionData={getSection('our_mission')}
+          visionData={getSection('our_vision')}
+          data={getSection('mission_vision')}
+        />
+        <StrategicObjectives data={getSection('objectives') || getSection('strategic_objectives')} />
+        <InstitutionalValues data={getSection('values') || getSection('institutional_values')} />
         <GlobalEngagement data={getSection('global_engagement')} />
         <AboutFounderMessage data={getSection('founder_message')} />
         <AboutGallery data={getSection('gallery')} />

@@ -57,6 +57,7 @@ export default function InstitutionalProfile({ data }: InstitutionalProfileProps
               src={image1}
               alt="Faculty and student in discussion"
               fill
+              unoptimized
               sizes="(max-width: 768px) 60vw, 348px"
               className="object-cover"
             />
@@ -68,6 +69,7 @@ export default function InstitutionalProfile({ data }: InstitutionalProfileProps
               src={image2}
               alt="Smiling IILP student"
               fill
+              unoptimized
               sizes="(max-width: 768px) 60vw, 348px"
               className="object-cover"
             />
@@ -81,6 +83,7 @@ export default function InstitutionalProfile({ data }: InstitutionalProfileProps
                 src={badgeIcon}
                 alt="Heritage award icon"
                 fill
+                unoptimized
                 className="object-contain"
               />
             </div>
@@ -92,6 +95,7 @@ export default function InstitutionalProfile({ data }: InstitutionalProfileProps
                 alt="Next-Gen Toward Education Since 1995"
                 width={140}
                 height={140}
+                unoptimized
                 className="w-full h-full object-contain"
               />
             </div>

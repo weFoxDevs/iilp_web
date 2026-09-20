@@ -11,6 +11,7 @@ import { DepartmentsManager } from "@/modules/admin/components/DepartmentsManage
 import { EventsManager } from "@/modules/admin/components/EventsManager";
 import { SiteLayoutManager } from "@/modules/admin/components/SiteLayoutManager";
 import { NewsManager } from "@/modules/admin/components/NewsManager";
+import { FellowshipApplicationsManager } from "@/modules/admin/components/FellowshipApplicationsManager";
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -73,6 +74,7 @@ const VALID_TABS = [
   "admin-manage",
   "role-manage",
   "events",
+  "fellowship-applications",
   "news",
   "site-layout",
   "page-content",
@@ -884,6 +886,29 @@ export default function AdminDashboard() {
                 <span className="font-bold truncate whitespace-nowrap">Events &amp; Symposia</span>
               </div>
             </button>
+
+            <button
+              onClick={() => handleTabChange("fellowship-applications")}
+              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "fellowship-applications"
+                  ? "bg-[#000080] text-white shadow-xs font-bold"
+                  : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                  activeTab === "fellowship-applications"
+                    ? "bg-[#00bfff] text-white"
+                    : "bg-[#f0f4f8] text-[#4a5565]"
+                }`}>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                  </svg>
+                </div>
+                <span className="font-bold truncate whitespace-nowrap">Fellowships</span>
+              </div>
+            </button>
           </div>
 
           {/* Section: Dynamic Content Management (CMS) */}
@@ -1062,6 +1087,7 @@ export default function AdminDashboard() {
               {activeTab === "admin-manage" && "Administrator Management"}
               {activeTab === "role-manage" && "Role & RBAC Security"}
               {activeTab === "events" && "Events & Conferences Management"}
+              {activeTab === "fellowship-applications" && "Fellowship Applications & Admissions"}
               {activeTab === "site-layout" && "Global Layout, Navbar & Footer Branding"}
               {activeTab === "page-content" && "Page Content (CMS) Engine"}
               {activeTab === "news" && "News & Media Articles"}
@@ -1634,6 +1660,14 @@ export default function AdminDashboard() {
             />
           )}
 
+          {/* TAB: FELLOWSHIP APPLICATIONS */}
+          {activeTab === "fellowship-applications" && token && (
+            <FellowshipApplicationsManager
+              token={token}
+              onShowToast={(msg, type) => setToast({ message: msg, type })}
+            />
+          )}
+
           {/* TAB 4: PAGE CONTENT (CMS) */}
           {activeTab === "page-content" && token && (
             <PageContentManager
@@ -1679,80 +1713,83 @@ export default function AdminDashboard() {
       {/* ================= MODAL: CREATE ADMIN ================= */}
       {createAdminModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
-          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-6">
-            <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-4">
+          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-md w-full flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 sm:px-8 py-5 shrink-0">
               <div>
                 <h3 className="text-xl font-playfair font-bold text-[#000080]">Create Administrator</h3>
                 <p className="text-xs text-[#4a5565] mt-0.5">Add an authorized institutional account</p>
               </div>
               <button
                 onClick={() => setCreateAdminModalOpen(false)}
-                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer"
+                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer hover:bg-gray-100"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateAdmin} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#0a0d12]">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={adminFormData.name}
-                  onChange={(e) => setAdminFormData({ ...adminFormData, name: e.target.value })}
-                  placeholder="e.g. Dr. Sarah Ahmed"
-                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
-                />
+            <form onSubmit={handleCreateAdmin} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto modal-scroll px-6 sm:px-8 py-5 space-y-4 text-xs">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-[#0a0d12]">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={adminFormData.name}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, name: e.target.value })}
+                    placeholder="e.g. Dr. Sarah Ahmed"
+                    className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-[#0a0d12]">
+                    Email Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={adminFormData.email}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, email: e.target.value })}
+                    placeholder="sarah.ahmed@iilp.org"
+                    className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-[#0a0d12]">
+                    Initial Password <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={adminFormData.password}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, password: e.target.value })}
+                    placeholder="••••••••"
+                    className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-[#0a0d12]">Assigned Role</label>
+                  <select
+                    value={adminFormData.roleId}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, roleId: e.target.value })}
+                    className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                  >
+                    {roles.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#0a0d12]">
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={adminFormData.email}
-                  onChange={(e) => setAdminFormData({ ...adminFormData, email: e.target.value })}
-                  placeholder="sarah.ahmed@iilp.org"
-                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#0a0d12]">
-                  Initial Password <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={adminFormData.password}
-                  onChange={(e) => setAdminFormData({ ...adminFormData, password: e.target.value })}
-                  placeholder="••••••••"
-                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#0a0d12]">Assigned Role</label>
-                <select
-                  value={adminFormData.roleId}
-                  onChange={(e) => setAdminFormData({ ...adminFormData, roleId: e.target.value })}
-                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
-                >
-                  {roles.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e7eb]">
+              {/* Sticky Footer */}
+              <div className="flex items-center justify-end gap-3 px-6 sm:px-8 py-4 border-t border-[#e5e7eb] bg-[#fcfdff] shrink-0">
                 <button
                   type="button"
                   onClick={() => setCreateAdminModalOpen(false)}
@@ -1776,73 +1813,76 @@ export default function AdminDashboard() {
       {/* ================= MODAL: EDIT ADMIN ================= */}
       {editAdminModalOpen && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
-          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-6">
-            <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-4">
+          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-md w-full flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 sm:px-8 py-5 shrink-0">
               <div>
                 <h3 className="text-xl font-playfair font-bold text-[#000080]">Edit Administrator</h3>
                 <p className="text-xs text-[#4a5565] mt-0.5">Update credentials and access tier</p>
               </div>
               <button
                 onClick={() => setEditAdminModalOpen(false)}
-                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer"
+                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer hover:bg-gray-100"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleUpdateAdmin} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#0a0d12]">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  value={adminFormData.name}
-                  onChange={(e) => setAdminFormData({ ...adminFormData, name: e.target.value })}
-                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
-                />
+            <form onSubmit={handleUpdateAdmin} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto modal-scroll px-6 sm:px-8 py-5 space-y-4 text-xs">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-[#0a0d12]">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={adminFormData.name}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, name: e.target.value })}
+                    className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-[#0a0d12]">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    value={adminFormData.email}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, email: e.target.value })}
+                    className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-[#0a0d12]">
+                    New Password <span className="text-[#6a7282] font-normal">(Leave blank to keep current)</span>
+                  </label>
+                  <input
+                    type="password"
+                    minLength={6}
+                    value={adminFormData.password}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, password: e.target.value })}
+                    placeholder="••••••••"
+                    className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-[#0a0d12]">Assigned Role</label>
+                  <select
+                    value={adminFormData.roleId}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, roleId: e.target.value })}
+                    className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                  >
+                    {roles.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#0a0d12]">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  value={adminFormData.email}
-                  onChange={(e) => setAdminFormData({ ...adminFormData, email: e.target.value })}
-                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#0a0d12]">
-                  New Password <span className="text-[#6a7282] font-normal">(Leave blank to keep current)</span>
-                </label>
-                <input
-                  type="password"
-                  minLength={6}
-                  value={adminFormData.password}
-                  onChange={(e) => setAdminFormData({ ...adminFormData, password: e.target.value })}
-                  placeholder="••••••••"
-                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#0a0d12]">Assigned Role</label>
-                <select
-                  value={adminFormData.roleId}
-                  onChange={(e) => setAdminFormData({ ...adminFormData, roleId: e.target.value })}
-                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
-                >
-                  {roles.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e7eb]">
+              {/* Sticky Footer */}
+              <div className="flex items-center justify-end gap-3 px-6 sm:px-8 py-4 border-t border-[#e5e7eb] bg-[#fcfdff] shrink-0">
                 <button
                   type="button"
                   onClick={() => setEditAdminModalOpen(false)}
@@ -1865,8 +1905,8 @@ export default function AdminDashboard() {
 
       {/* ================= MODAL: DELETE ADMIN CONFIRMATION ================= */}
       {deleteAdminModalOpen && selectedUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
-          <div className="bg-white border border-red-200 rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 text-center">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
+          <div className="bg-white border border-red-200 rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 text-center my-8 overflow-y-auto max-h-[calc(100vh-4rem)] modal-scroll">
             <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -1900,73 +1940,76 @@ export default function AdminDashboard() {
       {/* ================= MODAL: CREATE ROLE ================= */}
       {createRoleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
-          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-6">
-            <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-4">
+          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 sm:px-8 py-5 shrink-0">
               <div>
                 <h3 className="text-xl font-playfair font-bold text-[#000080]">Create New Role</h3>
                 <p className="text-xs text-[#4a5565] mt-0.5">Define security level and check authorized permissions</p>
               </div>
               <button
                 onClick={() => setCreateRoleModalOpen(false)}
-                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer"
+                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer hover:bg-gray-100"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateRole} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#0a0d12]">
-                  Role Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={roleFormData.name}
-                  onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
-                  placeholder="e.g. Academic Officer, Media Manager"
-                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-semibold text-[#0a0d12]">Associated Permissions</label>
-                  <button
-                    type="button"
-                    onClick={toggleAllPermissions}
-                    className="text-xs text-[#00698c] hover:text-[#000080] font-semibold cursor-pointer underline"
-                  >
-                    {roleFormData.permissionIds.length === permissions.length ? "Deselect All" : "Select All"}
-                  </button>
+            <form onSubmit={handleCreateRole} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto modal-scroll px-6 sm:px-8 py-5 space-y-4 text-xs">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-[#0a0d12]">
+                    Role Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={roleFormData.name}
+                    onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
+                    placeholder="e.g. Academic Officer, Media Manager"
+                    className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-3 bg-[#f4faff] rounded-xl border border-[#e5e7eb]">
-                  {permissions.map((p) => {
-                    const isChecked = roleFormData.permissionIds.includes(p.id);
-                    return (
-                      <label
-                        key={p.id}
-                        className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
-                          isChecked
-                            ? "bg-white border-[#b0ebff] text-[#000080] font-semibold shadow-2xs"
-                            : "bg-transparent border-transparent text-[#4a5565] hover:bg-white/60"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => togglePermission(p.id)}
-                          className="rounded text-[#00bfff] focus:ring-[#00bfff]"
-                        />
-                        <span className="font-mono text-[11px] truncate">{p.name}</span>
-                      </label>
-                    );
-                  })}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-[#0a0d12]">Associated Permissions</label>
+                    <button
+                      type="button"
+                      onClick={toggleAllPermissions}
+                      className="text-xs text-[#00698c] hover:text-[#000080] font-semibold cursor-pointer underline"
+                    >
+                      {roleFormData.permissionIds.length === permissions.length ? "Deselect All" : "Select All"}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-3 bg-[#f4faff] rounded-xl border border-[#e5e7eb] modal-scroll">
+                    {permissions.map((p) => {
+                      const isChecked = roleFormData.permissionIds.includes(p.id);
+                      return (
+                        <label
+                          key={p.id}
+                          className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
+                            isChecked
+                              ? "bg-white border-[#b0ebff] text-[#000080] font-semibold shadow-2xs"
+                              : "bg-transparent border-transparent text-[#4a5565] hover:bg-white/60"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => togglePermission(p.id)}
+                            className="rounded text-[#00bfff] focus:ring-[#00bfff]"
+                          />
+                          <span className="font-mono text-[11px] truncate">{p.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e7eb]">
+              {/* Sticky Footer */}
+              <div className="flex items-center justify-end gap-3 px-6 sm:px-8 py-4 border-t border-[#e5e7eb] bg-[#fcfdff] shrink-0">
                 <button
                   type="button"
                   onClick={() => setCreateRoleModalOpen(false)}
@@ -1990,70 +2033,73 @@ export default function AdminDashboard() {
       {/* ================= MODAL: EDIT ROLE ================= */}
       {editRoleModalOpen && selectedRole && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
-          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-6">
-            <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-4">
+          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 sm:px-8 py-5 shrink-0">
               <div>
                 <h3 className="text-xl font-playfair font-bold text-[#000080]">Edit Role: {selectedRole.name}</h3>
                 <p className="text-xs text-[#4a5565] mt-0.5">Modify permission scope and privileges</p>
               </div>
               <button
                 onClick={() => setEditRoleModalOpen(false)}
-                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer"
+                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer hover:bg-gray-100"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleUpdateRole} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-[#0a0d12]">Role Name</label>
-                <input
-                  type="text"
-                  required
-                  value={roleFormData.name}
-                  onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
-                  className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-semibold text-[#0a0d12]">Associated Permissions</label>
-                  <button
-                    type="button"
-                    onClick={toggleAllPermissions}
-                    className="text-xs text-[#00698c] hover:text-[#000080] font-semibold cursor-pointer underline"
-                  >
-                    {roleFormData.permissionIds.length === permissions.length ? "Deselect All" : "Select All"}
-                  </button>
+            <form onSubmit={handleUpdateRole} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto modal-scroll px-6 sm:px-8 py-5 space-y-4 text-xs">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-[#0a0d12]">Role Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={roleFormData.name}
+                    onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
+                    className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-3 bg-[#f4faff] rounded-xl border border-[#e5e7eb]">
-                  {permissions.map((p) => {
-                    const isChecked = roleFormData.permissionIds.includes(p.id);
-                    return (
-                      <label
-                        key={p.id}
-                        className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
-                          isChecked
-                            ? "bg-white border-[#b0ebff] text-[#000080] font-semibold shadow-2xs"
-                            : "bg-transparent border-transparent text-[#4a5565] hover:bg-white/60"
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => togglePermission(p.id)}
-                          className="rounded text-[#00bfff] focus:ring-[#00bfff]"
-                        />
-                        <span className="font-mono text-[11px] truncate">{p.name}</span>
-                      </label>
-                    );
-                  })}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-[#0a0d12]">Associated Permissions</label>
+                    <button
+                      type="button"
+                      onClick={toggleAllPermissions}
+                      className="text-xs text-[#00698c] hover:text-[#000080] font-semibold cursor-pointer underline"
+                    >
+                      {roleFormData.permissionIds.length === permissions.length ? "Deselect All" : "Select All"}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-3 bg-[#f4faff] rounded-xl border border-[#e5e7eb] modal-scroll">
+                    {permissions.map((p) => {
+                      const isChecked = roleFormData.permissionIds.includes(p.id);
+                      return (
+                        <label
+                          key={p.id}
+                          className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
+                            isChecked
+                              ? "bg-white border-[#b0ebff] text-[#000080] font-semibold shadow-2xs"
+                              : "bg-transparent border-transparent text-[#4a5565] hover:bg-white/60"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => togglePermission(p.id)}
+                            className="rounded text-[#00bfff] focus:ring-[#00bfff]"
+                          />
+                          <span className="font-mono text-[11px] truncate">{p.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#e5e7eb]">
+              {/* Sticky Footer */}
+              <div className="flex items-center justify-end gap-3 px-6 sm:px-8 py-4 border-t border-[#e5e7eb] bg-[#fcfdff] shrink-0">
                 <button
                   type="button"
                   onClick={() => setEditRoleModalOpen(false)}
@@ -2076,8 +2122,8 @@ export default function AdminDashboard() {
 
       {/* ================= MODAL: DELETE ROLE CONFIRMATION ================= */}
       {deleteRoleModalOpen && selectedRole && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
-          <div className="bg-white border border-red-200 rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 text-center">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
+          <div className="bg-white border border-red-200 rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 text-center my-8 overflow-y-auto max-h-[calc(100vh-4rem)] modal-scroll">
             <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />

@@ -1003,7 +1003,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
             </div>
 
             {/* Content Body */}
-            <div className="p-6 overflow-y-auto space-y-6 text-xs text-gray-700">
+            <div className="p-6 overflow-y-auto space-y-6 text-xs text-gray-700 modal-scroll">
               {/* Short summary if available */}
               {viewingEvent.shortSummary && (
                 <div className="p-3 bg-[#e6f9ff] border border-[#b0ebff] rounded-xl text-[#00698c] font-medium leading-relaxed">
@@ -1162,7 +1162,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
               style={{ colorScheme: "light" }}
             >
               {/* Scrollable Form Body */}
-              <div className="overflow-y-auto p-6 space-y-6 flex-1 text-xs">
+              <div className="overflow-y-auto p-6 space-y-6 flex-1 text-xs modal-scroll">
                 {/* Basic Details Section */}
                 <div className="space-y-4">
                   <h4 className="font-bold text-[#00698c] uppercase tracking-wider text-[11px] border-b border-gray-100 pb-1">
@@ -1780,7 +1780,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
             {(() => {
               const attendeeList = Array.isArray(registrations) ? registrations : [];
               return (
-                <div className="overflow-y-auto flex-1">
+                <div className="overflow-y-auto flex-1 modal-scroll">
                   {isLoadingRoster ? (
                     <div className="p-16 flex flex-col items-center justify-center gap-2">
                       <div className="size-6 border-2 border-[#00bfff] border-t-transparent rounded-full animate-spin"></div>

@@ -32,7 +32,8 @@ export default function AboutFounderMessage({ data }: AboutFounderMessageProps) 
   const paragraphs = meta.paragraphs || defaultParagraphs;
 
   return (
-    <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-16 xl:px-[240px]">
+    <section id="founder-message" className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-16 xl:px-[240px] scroll-mt-20 relative">
+      <span id="founder_message" className="sr-only" />
       <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px]">
         
         {/* Section Header */}

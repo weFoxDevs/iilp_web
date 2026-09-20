@@ -71,12 +71,12 @@ export default function LeadershipProfileModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-black/55 backdrop-blur-[8px] animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-6 md:p-8 bg-black/55 backdrop-blur-[8px] animate-fadeIn"
       onClick={onClose}
     >
       {/* Modal Card Container */}
       <div
-        className="w-full max-w-[800px] bg-white border border-[#b0ebff] rounded-2xl p-6 sm:p-[30px] flex flex-col gap-6 relative shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-[800px] bg-white border border-[#b0ebff] rounded-2xl p-6 sm:p-[30px] flex flex-col gap-6 relative shadow-2xl max-h-[calc(100vh-4rem)] overflow-y-auto modal-scroll my-8"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
