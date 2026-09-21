@@ -13,6 +13,8 @@ import { EventsManager } from "@/modules/admin/components/EventsManager";
 import { SiteLayoutManager } from "@/modules/admin/components/SiteLayoutManager";
 import { NewsManager } from "@/modules/admin/components/NewsManager";
 import { FellowshipApplicationsManager } from "@/modules/admin/components/FellowshipApplicationsManager";
+import { LeadershipManager } from "@/modules/admin/components/LeadershipManager";
+import { ProfileSettings } from "@/modules/admin/components/ProfileSettings";
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -76,12 +78,14 @@ const VALID_TABS = [
   "role-manage",
   "events",
   "fellowship-applications",
+  "leadership",
   "news",
   "site-layout",
   "page-content",
   "departments",
   "site-metrics",
   "testimonials",
+  "profile",
 ] as const;
 
 type TabType = (typeof VALID_TABS)[number];
@@ -310,6 +314,7 @@ export default function AdminDashboard() {
       } else if (
         newTab === "site-layout" ||
         newTab === "page-content" ||
+        newTab === "leadership" ||
         newTab === "news" ||
         newTab === "departments" ||
         newTab === "site-metrics" ||
@@ -347,6 +352,7 @@ export default function AdminDashboard() {
           } else if (
             queryTab === "site-layout" ||
             queryTab === "page-content" ||
+            queryTab === "leadership" ||
             queryTab === "news" ||
             queryTab === "departments" ||
             queryTab === "site-metrics" ||
@@ -933,6 +939,7 @@ export default function AdminDashboard() {
               className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTab === "site-layout" ||
                 activeTab === "page-content" ||
+                activeTab === "leadership" ||
                 activeTab === "news" ||
                 activeTab === "departments" ||
                 activeTab === "site-metrics" ||
@@ -943,7 +950,7 @@ export default function AdminDashboard() {
             >
               <div className="flex items-center gap-2 min-w-0">
                 <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                  activeTab === "site-layout" || activeTab === "page-content" || activeTab === "news" || activeTab === "departments" || activeTab === "site-metrics" || activeTab === "testimonials"
+                  activeTab === "site-layout" || activeTab === "page-content" || activeTab === "leadership" || activeTab === "news" || activeTab === "departments" || activeTab === "site-metrics" || activeTab === "testimonials"
                     ? "bg-[#00bfff] text-white"
                     : "bg-[#f0f4f8] text-[#4a5565]"
                 }`}>
@@ -959,6 +966,7 @@ export default function AdminDashboard() {
                   cmsMenuOpen ||
                   activeTab === "site-layout" ||
                   activeTab === "page-content" ||
+                  activeTab === "leadership" ||
                   activeTab === "news" ||
                   activeTab === "departments" ||
                   activeTab === "site-metrics" ||
@@ -1001,6 +1009,20 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-2 min-w-0">
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "page-content" ? "bg-[#00bfff]" : "bg-[#00698c]"}`}></span>
                     <span className="truncate whitespace-nowrap">Page Content (CMS)</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleTabChange("leadership")}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === "leadership"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "leadership" ? "bg-[#00bfff]" : "bg-[#0284c7]"}`}></span>
+                    <span className="truncate whitespace-nowrap">Leadership Directory</span>
                   </div>
                 </button>
 
@@ -1066,15 +1088,29 @@ export default function AdminDashboard() {
 
         {/* User Session Footer - Fixed at Bottom */}
         <div className="p-4 border-t border-[#e5e7eb] space-y-3 font-sans shrink-0 bg-white">
-          <div className="flex items-center gap-3 px-2">
+          <button
+            type="button"
+            onClick={() => handleTabChange("profile")}
+            className={`w-full flex items-center gap-3 px-2 py-2 rounded-xl text-left transition-all cursor-pointer ${
+              activeTab === "profile"
+                ? "bg-[#f4faff] border border-[#b0ebff] shadow-xs"
+                : "hover:bg-gray-50 border border-transparent"
+            }`}
+            title="Manage Profile & Security Settings"
+          >
             <div className="w-9 h-9 rounded-full bg-[#e6f9ff] border border-[#b0ebff] text-[#000080] font-bold flex items-center justify-center text-sm shrink-0 shadow-xs">
               {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold text-[#101828] truncate">{user?.name}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-[#101828] truncate">{user?.name}</p>
+                <span className="text-[10px] font-bold text-[#00698c] bg-[#e6f9ff] px-1.5 py-0.5 rounded border border-[#b0ebff]">
+                  Profile
+                </span>
+              </div>
               <p className="text-[11px] text-[#4a5565] truncate">{user?.email}</p>
             </div>
-          </div>
+          </button>
 
           <button
             onClick={logout}
@@ -1099,16 +1135,33 @@ export default function AdminDashboard() {
               {activeTab === "role-manage" && "Role & RBAC Security"}
               {activeTab === "events" && "Events & Conferences Management"}
               {activeTab === "fellowship-applications" && "Fellowship Applications & Admissions"}
+              {activeTab === "leadership" && "Leadership Directory Management"}
               {activeTab === "site-layout" && "Global Layout, Navbar & Footer Branding"}
               {activeTab === "page-content" && "Page Content (CMS) Engine"}
               {activeTab === "news" && "News & Media Articles"}
               {activeTab === "site-metrics" && "Site Impact Metrics"}
               {activeTab === "testimonials" && "Student & Scholar Testimonials"}
               {activeTab === "departments" && "Academic Departments & Disciplines"}
+              {activeTab === "profile" && "Account & Profile Settings"}
             </h1>
           </div>
 
           <div className="flex items-center gap-3 font-sans">
+            <button
+              onClick={() => handleTabChange("profile")}
+              className={`px-3 py-1.5 rounded-full border text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all ${
+                activeTab === "profile"
+                  ? "bg-[#000080] text-white border-[#000080] shadow-xs"
+                  : "border-[#d5d5ed] hover:border-[#00bfff] text-[#4a5565] hover:text-[#000080] hover:bg-[#f4faff]"
+              }`}
+              title="View Profile Settings"
+            >
+              <div className="w-5 h-5 rounded-full bg-[#00bfff] text-white flex items-center justify-center text-[10px] font-bold">
+                {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
+              </div>
+              <span className="hidden sm:inline">My Profile</span>
+            </button>
+
             <button
               onClick={fetchDashboardData}
               disabled={isDataLoading}
@@ -1138,6 +1191,7 @@ export default function AdminDashboard() {
             </Link>
           </div>
         </header>
+
 
         {/* Error Notification */}
         {fetchError && (
@@ -1687,6 +1741,14 @@ export default function AdminDashboard() {
             />
           )}
 
+          {/* TAB: LEADERSHIP DIRECTORY */}
+          {activeTab === "leadership" && token && (
+            <LeadershipManager
+              token={token}
+              onShowToast={(msg, type) => setToast({ message: msg, type })}
+            />
+          )}
+
           {/* TAB: NEWS & ARTICLES */}
           {activeTab === "news" && token && (
             <NewsManager
@@ -1718,7 +1780,16 @@ export default function AdminDashboard() {
               onShowToast={(msg, type) => setToast({ message: msg, type })}
             />
           )}
+
+          {/* TAB: PROFILE & SECURITY */}
+          {activeTab === "profile" && token && (
+            <ProfileSettings
+              token={token}
+              onShowToast={(msg, type) => setToast({ message: msg, type })}
+            />
+          )}
         </main>
+
       </div>
 
       {/* ================= MODAL: CREATE ADMIN ================= */}

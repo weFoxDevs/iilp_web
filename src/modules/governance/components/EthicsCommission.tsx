@@ -28,6 +28,10 @@ export default function EthicsCommission({ data }: EthicsCommissionProps) {
       ? (data.metadata.functions as string[])
       : ACCOUNTABILITY_FUNCTIONS;
 
+  const cardTitle = (data?.metadata?.cardTitle as string) || 'Accountability Functions';
+  const ratingValue = (data?.metadata?.ratingValue as string) || '5000';
+  const ratingLabel = (data?.metadata?.ratingLabel as string) || 'Student ratings';
+
   return (
     <section className="w-full bg-[#e6f9ff] py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-[80px]">
@@ -59,7 +63,7 @@ export default function EthicsCommission({ data }: EthicsCommissionProps) {
           {/* Functions Card Box */}
           <div className="w-full bg-white border border-[#b0ebff] p-6 lg:p-[30px] flex flex-col gap-6">
             <h3 className="text-xl lg:text-[24px] font-serif font-bold text-[#000080] leading-normal">
-              Accountability Functions
+              {cardTitle}
             </h3>
 
             <div className="flex flex-col gap-4 w-full">
@@ -125,10 +129,10 @@ export default function EthicsCommission({ data }: EthicsCommissionProps) {
             {/* Rating Text */}
             <div className="flex flex-col text-white">
               <span className="text-base font-semibold leading-tight font-sans">
-                5000
+                {ratingValue}
               </span>
               <span className="text-xs text-white/90 font-sans mt-0.5">
-                Student ratings
+                {ratingLabel}
               </span>
             </div>
           </div>

@@ -43,6 +43,8 @@ export interface SectionDefinition {
   defaultBadge?: string;
   defaultSubtitle?: string;
   defaultBgImage?: string;
+  defaultActionText?: string;
+  defaultActionUrl?: string;
   defaultMetadata?: Record<string, any>;
 }
 
@@ -125,6 +127,185 @@ export const defaultPathwaysIntroMetadata: PathwaysIntroMetadata = {
       ],
     },
   ],
+};
+
+export interface LeadershipTierItem {
+  title: string;
+  desc: string;
+}
+
+export interface StructureIntroMetadata {
+  tiers: LeadershipTierItem[];
+}
+
+export const defaultLeadershipTiers: LeadershipTierItem[] = [
+  {
+    title: "Founding Authority",
+    desc: "Founder & President — visionary and strategic authority",
+  },
+  {
+    title: "Governing Council",
+    desc: "Highest governing and decision-making body",
+  },
+  {
+    title: "Executive Directorate Board",
+    desc: "Operational leadership and program delivery",
+  },
+  {
+    title: "Academic Senate",
+    desc: "Principal academic and intellectual authority",
+  },
+  {
+    title: "ICT & Media Cell",
+    desc: "Digital presence, media and communications",
+  },
+  {
+    title: "Advisory Board",
+    desc: "External strategic and intellectual guidance",
+  },
+  {
+    title: "Global Fellowship Network",
+    desc: "International scholarly community",
+  },
+  {
+    title: "Ethics & Accountability Commission",
+    desc: "Institutional integrity and ethical governance",
+  },
+  {
+    title: "Youth Leadership Assembly",
+    desc: "Youth participation and leadership development",
+  },
+];
+
+export const defaultStructureIntroMetadata: StructureIntroMetadata = {
+  tiers: defaultLeadershipTiers,
+};
+
+export interface GoverningCouncilResponsibilityItem {
+  number: string;
+  text: string;
+}
+
+export interface GoverningCouncilMetadata {
+  responsibilities: GoverningCouncilResponsibilityItem[];
+}
+
+export const defaultCouncilResponsibilities: GoverningCouncilResponsibilityItem[] = [
+  {
+    number: "01",
+    text: "Approves institutional policies, regulations, and governance frameworks.",
+  },
+  {
+    number: "02",
+    text: "Provides strategic direction and long-term institutional planning.",
+  },
+  {
+    number: "03",
+    text: "Ensures accountability, transparency, and responsible institutional management.",
+  },
+  {
+    number: "04",
+    text: "Oversees organizational growth, development, and sustainability.",
+  },
+  {
+    number: "05",
+    text: "Safeguards academic quality, professional standards, and ethical integrity.",
+  },
+  {
+    number: "06",
+    text: "Reviews major programs, partnerships, projects, and institutional initiatives.",
+  },
+  {
+    number: "07",
+    text: "Supports resource mobilization and institutional capacity development.",
+  },
+  {
+    number: "08",
+    text: "Monitors institutional performance and strategic progress.",
+  },
+];
+
+export const defaultGoverningCouncilMetadata: GoverningCouncilMetadata = {
+  responsibilities: defaultCouncilResponsibilities,
+};
+
+export interface EthicsCommissionMetadata {
+  functions: string[];
+  cardTitle?: string;
+  ratingValue?: string;
+  ratingLabel?: string;
+}
+
+export const defaultEthicsCommissionFunctions: string[] = [
+  "Monitor compliance with institutional ethics and professional standards.",
+  "Review matters relating to institutional conduct, integrity, and accountability.",
+  "Promote transparency, fairness, and responsible governance practices.",
+  "Safeguard academic independence and intellectual freedom.",
+  "Address internal concerns, grievances, and ethical matters through appropriate procedures.",
+  "Encourage a culture of professionalism, respect, and ethical leadership.",
+  "Protect the credibility, legitimacy, and reputation of the Institute.",
+];
+
+export const defaultEthicsCommissionMetadata: EthicsCommissionMetadata = {
+  cardTitle: "Accountability Functions",
+  ratingValue: "5000",
+  ratingLabel: "Student ratings",
+  functions: defaultEthicsCommissionFunctions,
+};
+
+export interface YouthLeadershipMetadata {
+  functions: string[];
+  cardTitle?: string;
+  ratingValue?: string;
+  ratingLabel?: string;
+}
+
+export const defaultYouthLeadershipFunctions: string[] = [
+  "Represent youth perspectives within institutional discussions and initiatives.",
+  "Organize leadership development programs, workshops, and training activities.",
+  "Promote youth participation in research, policy dialogue, and public engagement.",
+  "Support community service and civic engagement initiatives.",
+  "Encourage innovation, critical thinking, and responsible leadership among young people.",
+  "Develop pathways for future scholars, researchers, professionals, and institutional leaders.",
+];
+
+export const defaultYouthLeadershipMetadata: YouthLeadershipMetadata = {
+  cardTitle: "Assembly Functions",
+  ratingValue: "5000",
+  ratingLabel: "Student ratings",
+  functions: defaultYouthLeadershipFunctions,
+};
+
+export interface FoundingMemberItem {
+  name: string;
+  role: string;
+  image: string;
+}
+
+export interface FoundingMembersMetadata {
+  members: FoundingMemberItem[];
+}
+
+export const defaultFoundingMembersList: FoundingMemberItem[] = [
+  {
+    name: "Mohammed Siraj",
+    role: "Founding Member",
+    image: "/assets/governance-founding-member.png",
+  },
+  {
+    name: "Mujibur Rahman",
+    role: "Founding Member",
+    image: "/assets/governance-founding-member.png",
+  },
+  {
+    name: "MD. Mahamudun Noby Rupok",
+    role: "Founding Member",
+    image: "/assets/governance-founding-member.png",
+  },
+];
+
+export const defaultFoundingMembersMetadata: FoundingMembersMetadata = {
+  members: defaultFoundingMembersList,
 };
 
 export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
@@ -533,16 +714,61 @@ export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
   ],
   governance: [
     { key: "hero", label: "Governance Hero", defaultTitle: "Institutional Governance & Integrity" },
-    { key: "leadership_structure", label: "Leadership Structure", defaultTitle: "Structure & Oversight" },
+    {
+      key: "structure_intro",
+      label: "Leadership Structure",
+      defaultTitle: "Multi-Tiered Leadership Structure",
+      defaultBadge: "How We Are Governed",
+      defaultSubtitle:
+        "The Institute is governed through a multi-tiered leadership structure that combines strategic oversight, operational management, academic leadership, and institutional development.",
+      defaultMetadata: defaultStructureIntroMetadata,
+    },
     { key: "founding_authority", label: "Founding Authority", defaultTitle: "Founding Charter & Authority" },
-    { key: "founding_members", label: "Founding Members", defaultTitle: "Distinguished Founding Members" },
-    { key: "governing_council", label: "Governing Council", defaultTitle: "Governing Council" },
+    {
+      key: "founding_members",
+      label: "Board of Founding Members",
+      defaultTitle: "Board of Founding Members",
+      defaultBadge: "Founding Members",
+      defaultSubtitle:
+        "The Board of Founding Members comprises the individuals who supported the founder during the establishment process of the International Institute for Law and Politics and provided guidance on institutional, strategic, and organizational foundation.",
+      defaultActionText: "View Leadership Directory",
+      defaultActionUrl: "/leadership-directory",
+      defaultMetadata: defaultFoundingMembersMetadata,
+    },
+    {
+      key: "governing_council",
+      label: "Governing Council",
+      defaultTitle: "Governing Council",
+      defaultBadge: "Highest Governing Body",
+      defaultSubtitle:
+        "The Governing Council serves as the highest governing and decision-making body of the Institute. It provides strategic leadership, policy oversight, and institutional accountability while ensuring that the Institute operates in accordance with its mission, objectives, and ethical principles.",
+      defaultBgImage: "/assets/governance-council-student.png",
+      defaultMetadata: defaultGoverningCouncilMetadata,
+    },
     { key: "executive_directorate", label: "Executive Directorate", defaultTitle: "Executive Directorate Board" },
     { key: "academic_senate", label: "Academic Senate", defaultTitle: "Academic Senate" },
     { key: "advisory_board", label: "Advisory Board", defaultTitle: "International Advisory Board" },
-    { key: "ethics_commission", label: "Ethics Commission", defaultTitle: "Ethics Commission" },
-    { key: "youth_assembly", label: "Youth Leadership Assembly", defaultTitle: "Youth Leadership Assembly" },
-    { key: "get_involved", label: "Get Involved CTA", defaultTitle: "Engage with Governance" },
+    {
+      key: "ethics_commission",
+      label: "Ethics Commission",
+      defaultTitle: "Ethics and Accountability Commission",
+      defaultBadge: "Integrity & Accountability",
+      defaultSubtitle:
+        "The Ethics and Accountability Commission serves as the guardian of institutional integrity, ethical governance, transparency, and professional conduct.",
+      defaultBgImage: "/assets/governance-advisory-student.png",
+      defaultMetadata: defaultEthicsCommissionMetadata,
+    },
+    {
+      key: "youth_leadership",
+      label: "Youth Leadership Assembly",
+      defaultTitle: "Youth Leadership Assembly",
+      defaultBadge: "Youth Engagement",
+      defaultSubtitle:
+        "The Youth Leadership Assembly serves as the Institute's primary platform for youth participation, leadership development, and civic engagement.",
+      defaultBgImage: "/assets/governance-advisory-student.png",
+      defaultMetadata: defaultYouthLeadershipMetadata,
+    },
+    { key: "get_involved_banner", label: "Get Involved CTA", defaultTitle: "Engage with Governance" },
   ],
   "leadership-directory": [
     { key: "hero", label: "Leadership Directory Hero", defaultTitle: "Institutional Leadership Directory" },
@@ -1086,6 +1312,7 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
   };
 
   const [uploadingPathwayIdx, setUploadingPathwayIdx] = useState<number | null>(null);
+  const [uploadingFoundingMemberIdx, setUploadingFoundingMemberIdx] = useState<number | null>(null);
 
   const getPathwaysMetadata = (): PathwaysIntroMetadata => {
     try {
@@ -1121,6 +1348,182 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
       const base = getPathwaysMetadata();
       const updated = updater(base);
       setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const getStructureIntroMetadata = (): StructureIntroMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed.tiers)) {
+        return {
+          tiers: parsed.tiers.map((t: any) => ({
+            title: String(t.title || ""),
+            desc: String(t.desc || ""),
+          })),
+        };
+      }
+      return defaultStructureIntroMetadata;
+    } catch {
+      return defaultStructureIntroMetadata;
+    }
+  };
+
+  const updateStructureIntroMetadata = (
+    updater: (prev: StructureIntroMetadata) => StructureIntroMetadata
+  ) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const base = getStructureIntroMetadata();
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    } catch {
+      const base = getStructureIntroMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const getGoverningCouncilMetadata = (): GoverningCouncilMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed.responsibilities)) {
+        return {
+          responsibilities: parsed.responsibilities.map((r: any, idx: number) => ({
+            number: String(r.number || String(idx + 1).padStart(2, "0")),
+            text: String(r.text || ""),
+          })),
+        };
+      }
+      return defaultGoverningCouncilMetadata;
+    } catch {
+      return defaultGoverningCouncilMetadata;
+    }
+  };
+
+  const updateGoverningCouncilMetadata = (
+    updater: (prev: GoverningCouncilMetadata) => GoverningCouncilMetadata
+  ) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const base = getGoverningCouncilMetadata();
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    } catch {
+      const base = getGoverningCouncilMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const getEthicsCommissionMetadata = (): EthicsCommissionMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      return {
+        cardTitle: String(parsed.cardTitle || defaultEthicsCommissionMetadata.cardTitle || "Accountability Functions"),
+        ratingValue: String(parsed.ratingValue || defaultEthicsCommissionMetadata.ratingValue || "5000"),
+        ratingLabel: String(parsed.ratingLabel || defaultEthicsCommissionMetadata.ratingLabel || "Student ratings"),
+        functions: Array.isArray(parsed.functions)
+          ? parsed.functions.map(String)
+          : defaultEthicsCommissionMetadata.functions,
+      };
+    } catch {
+      return defaultEthicsCommissionMetadata;
+    }
+  };
+
+  const updateEthicsCommissionMetadata = (
+    updater: (prev: EthicsCommissionMetadata) => EthicsCommissionMetadata
+  ) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const base = getEthicsCommissionMetadata();
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    } catch {
+      const base = getEthicsCommissionMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const getYouthLeadershipMetadata = (): YouthLeadershipMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      return {
+        cardTitle: String(parsed.cardTitle || defaultYouthLeadershipMetadata.cardTitle || "Assembly Functions"),
+        ratingValue: String(parsed.ratingValue || defaultYouthLeadershipMetadata.ratingValue || "5000"),
+        ratingLabel: String(parsed.ratingLabel || defaultYouthLeadershipMetadata.ratingLabel || "Student ratings"),
+        functions: Array.isArray(parsed.functions)
+          ? parsed.functions.map(String)
+          : defaultYouthLeadershipMetadata.functions,
+      };
+    } catch {
+      return defaultYouthLeadershipMetadata;
+    }
+  };
+
+  const updateYouthLeadershipMetadata = (
+    updater: (prev: YouthLeadershipMetadata) => YouthLeadershipMetadata
+  ) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const base = getYouthLeadershipMetadata();
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    } catch {
+      const base = getYouthLeadershipMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const getFoundingMembersMetadata = (): FoundingMembersMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed.members)) {
+        return {
+          members: parsed.members.map((m: any) => ({
+            name: String(m?.name ?? ""),
+            role: String(m?.role ?? "Founding Member"),
+            image: String(m?.image ?? "/assets/governance-founding-member.png"),
+          })),
+        };
+      }
+      return defaultFoundingMembersMetadata;
+    } catch {
+      return defaultFoundingMembersMetadata;
+    }
+  };
+
+  const updateFoundingMembersMetadata = (
+    updater: (prev: FoundingMembersMetadata) => FoundingMembersMetadata
+  ) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const base = getFoundingMembersMetadata();
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    } catch {
+      const base = getFoundingMembersMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const handleFoundingMemberImageUpload = async (file: File, memberIdx: number) => {
+    setUploadingFoundingMemberIdx(memberIdx);
+    try {
+      const res = await uploadMediaFile(token, file, "governance");
+      updateFoundingMembersMetadata((prev) => {
+        const list = [...prev.members];
+        list[memberIdx] = { ...list[memberIdx], image: res.url };
+        return { ...prev, members: list };
+      });
+      onShowToast("Member photo uploaded successfully!", "success");
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to upload image", "error");
+    } finally {
+      setUploadingFoundingMemberIdx(null);
     }
   };
 
@@ -1264,7 +1667,13 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
       sortOrder: section.sortOrder ?? 0,
       isActive: section.isActive ?? true,
     });
-    setMetadataJson(JSON.stringify(section.metadata || {}, null, 2));
+    const pageDefs = PAGE_SECTIONS_REGISTRY[selectedPage] || [];
+    const matchDef = pageDefs.find((d) => d.key === section.sectionKey);
+    let initialMeta = section.metadata;
+    if ((!initialMeta || Object.keys(initialMeta).length === 0) && matchDef?.defaultMetadata) {
+      initialMeta = matchDef.defaultMetadata;
+    }
+    setMetadataJson(JSON.stringify(initialMeta || {}, null, 2));
     setIsModalOpen(true);
   };
 
@@ -1293,8 +1702,8 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
       badge: initialDef?.defaultBadge || "",
       bgImage: initialDef?.defaultBgImage || "",
       bodyContent: "",
-      actionText: "",
-      actionUrl: "",
+      actionText: initialDef?.defaultActionText || "",
+      actionUrl: initialDef?.defaultActionUrl || "",
       sortOrder: sections.length * 10,
       isActive: true,
     });
@@ -1318,6 +1727,8 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
           badge: prev.badge || match.defaultBadge || "",
           subtitle: prev.subtitle || match.defaultSubtitle || "",
           bgImage: prev.bgImage || match.defaultBgImage || "",
+          actionText: prev.actionText || match.defaultActionText || "",
+          actionUrl: prev.actionUrl || match.defaultActionUrl || "",
         }));
         if (match.defaultMetadata && (metadataJson === "{}" || !metadataJson.trim())) {
           setMetadataJson(JSON.stringify(match.defaultMetadata, null, 2));
@@ -3952,6 +4363,1104 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                       className="text-xs text-[#0284c7] hover:underline font-semibold cursor-pointer"
                     >
                       Reset to Default 3 Pathways
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Governance Structure Intro (Leadership Tiers) Specific Visual Manager */}
+              {(editingKey === "structure_intro" || editingKey === "leadership_structure") && (
+                <div className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#16a34a]"></span>
+                      <h4 className="text-xs font-bold text-[#15803d] uppercase tracking-wider">
+                        Leadership Tiers Manager ({getStructureIntroMetadata().tiers.length} Tiers)
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateStructureIntroMetadata((prev) => ({
+                            ...prev,
+                            tiers: [...prev.tiers, { title: "", desc: "" }],
+                          }));
+                        }}
+                        className="px-3 py-1 bg-[#16a34a] hover:bg-[#15803d] text-white text-[11px] font-semibold rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>+ Add Tier</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#166534]/80">
+                    Configure the multi-tiered leadership cards displayed on the Governance page under &quot;How We Are Governed&quot; (e.g. Founding Authority, Governing Council, Academic Senate).
+                  </p>
+
+                  {/* Tiers List */}
+                  <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                    {getStructureIntroMetadata().tiers.map((tier, idx) => (
+                      <div
+                        key={`tier-${idx}`}
+                        className="bg-white p-3.5 rounded-xl border border-[#dcfce7] shadow-xs flex flex-col sm:flex-row gap-3 items-start"
+                      >
+                        {/* Number Index & Order Controls */}
+                        <div className="flex sm:flex-col items-center gap-1 shrink-0 w-full sm:w-16">
+                          <span className="w-7 h-7 rounded-lg bg-[#f0fdf4] border border-[#bbf7d0] text-[#15803d] flex items-center justify-center text-xs font-bold font-mono">
+                            {String(idx + 1).padStart(2, "0")}
+                          </span>
+                          <div className="flex items-center gap-1 mt-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                updateStructureIntroMetadata((prev) => {
+                                  const list = [...prev.tiers];
+                                  const temp = list[idx - 1];
+                                  list[idx - 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, tiers: list };
+                                });
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Tier Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === getStructureIntroMetadata().tiers.length - 1}
+                              onClick={() => {
+                                updateStructureIntroMetadata((prev) => {
+                                  const list = [...prev.tiers];
+                                  const temp = list[idx + 1];
+                                  list[idx + 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, tiers: list };
+                                });
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Tier Down"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Title & Description Fields */}
+                        <div className="flex-1 w-full space-y-2">
+                          <div>
+                            <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider mb-1">
+                              Tier Title
+                            </label>
+                            <input
+                              type="text"
+                              value={tier.title}
+                              onChange={(e) => {
+                                updateStructureIntroMetadata((prev) => {
+                                  const list = [...prev.tiers];
+                                  list[idx] = { ...list[idx], title: e.target.value };
+                                  return { ...prev, tiers: list };
+                                });
+                              }}
+                              placeholder="e.g. Governing Council"
+                              className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#16a34a]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-semibold text-[#344054] mb-1">
+                              Tier Description
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={tier.desc}
+                              onChange={(e) => {
+                                updateStructureIntroMetadata((prev) => {
+                                  const list = [...prev.tiers];
+                                  list[idx] = { ...list[idx], desc: e.target.value };
+                                  return { ...prev, tiers: list };
+                                });
+                              }}
+                              placeholder="Brief summary of authority and mandate..."
+                              className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#16a34a]"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Delete Action */}
+                        <div className="shrink-0 self-end sm:self-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateStructureIntroMetadata((prev) => {
+                                const list = [...prev.tiers];
+                                list.splice(idx, 1);
+                                return { ...prev, tiers: list };
+                              });
+                            }}
+                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer transition"
+                            title="Delete Tier"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Empty State */}
+                  {getStructureIntroMetadata().tiers.length === 0 && (
+                    <div className="text-center py-6 bg-white rounded-xl border border-dashed border-[#bbf7d0]">
+                      <p className="text-xs text-gray-500 mb-2">No leadership tiers currently configured.</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateStructureIntroMetadata(() => defaultStructureIntroMetadata);
+                        }}
+                        className="text-xs text-[#16a34a] font-semibold hover:underline cursor-pointer"
+                      >
+                        Reset to Default 9 Leadership Tiers
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Bottom Reset Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-[#dcfce7]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateStructureIntroMetadata((prev) => ({
+                          ...prev,
+                          tiers: [
+                            ...prev.tiers,
+                            {
+                              title: `Tier ${prev.tiers.length + 1}`,
+                              desc: "Institutional role and mandate description",
+                            },
+                          ],
+                        }));
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#16a34a] hover:bg-[#15803d] text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
+                    >
+                      + Add Leadership Tier
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset to the default 9 governance leadership tiers?")) {
+                          updateStructureIntroMetadata(() => defaultStructureIntroMetadata);
+                        }
+                      }}
+                      className="text-xs text-[#16a34a] hover:underline font-semibold cursor-pointer"
+                    >
+                      Reset to Default 9 Tiers
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Governing Council Specific Visual Manager */}
+              {editingKey === "governing_council" && (
+                <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00506b]"></span>
+                      <h4 className="text-xs font-bold text-[#00506b] uppercase tracking-wider">
+                        Governing Council Responsibilities ({getGoverningCouncilMetadata().responsibilities.length} Items)
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateGoverningCouncilMetadata((prev) => {
+                            const nextNum = String(prev.responsibilities.length + 1).padStart(2, "0");
+                            return {
+                              ...prev,
+                              responsibilities: [
+                                ...prev.responsibilities,
+                                { number: nextNum, text: "" },
+                              ],
+                            };
+                          });
+                        }}
+                        className="px-3 py-1 bg-[#00506b] hover:bg-[#003b4f] text-white text-[11px] font-semibold rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>+ Add Responsibility</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#0369a1]/80">
+                    Configure the core responsibilities and governance duties of the Governing Council displayed on the Governance page.
+                  </p>
+
+                  {/* Responsibilities List */}
+                  <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                    {getGoverningCouncilMetadata().responsibilities.map((item, idx) => (
+                      <div
+                        key={`resp-${idx}`}
+                        className="bg-white p-3.5 rounded-xl border border-[#e0f2fe] shadow-xs flex flex-col sm:flex-row gap-3 items-start"
+                      >
+                        {/* Number Index & Order Controls */}
+                        <div className="flex sm:flex-col items-center gap-1 shrink-0 w-full sm:w-16">
+                          <input
+                            type="text"
+                            value={item.number}
+                            onChange={(e) => {
+                              updateGoverningCouncilMetadata((prev) => {
+                                const list = [...prev.responsibilities];
+                                list[idx] = { ...list[idx], number: e.target.value };
+                                return { ...prev, responsibilities: list };
+                              });
+                            }}
+                            className="w-8 h-8 rounded-lg bg-[#f0f9ff] border border-[#bae6fd] text-[#00506b] text-center text-xs font-bold font-mono focus:bg-white focus:outline-hidden focus:border-[#00506b]"
+                          />
+                          <div className="flex items-center gap-1 mt-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                updateGoverningCouncilMetadata((prev) => {
+                                  const list = [...prev.responsibilities];
+                                  const temp = list[idx - 1];
+                                  list[idx - 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, responsibilities: list };
+                                });
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Item Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === getGoverningCouncilMetadata().responsibilities.length - 1}
+                              onClick={() => {
+                                updateGoverningCouncilMetadata((prev) => {
+                                  const list = [...prev.responsibilities];
+                                  const temp = list[idx + 1];
+                                  list[idx + 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, responsibilities: list };
+                                });
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Item Down"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Responsibility Statement Textarea */}
+                        <div className="flex-1 w-full space-y-1">
+                          <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider">
+                            Responsibility Statement #{idx + 1}
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={item.text}
+                            onChange={(e) => {
+                              updateGoverningCouncilMetadata((prev) => {
+                                const list = [...prev.responsibilities];
+                                list[idx] = { ...list[idx], text: e.target.value };
+                                return { ...prev, responsibilities: list };
+                              });
+                            }}
+                            placeholder="Enter institutional governance duty or responsibility..."
+                            className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#00506b]"
+                          />
+                        </div>
+
+                        {/* Delete Action */}
+                        <div className="shrink-0 self-end sm:self-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateGoverningCouncilMetadata((prev) => {
+                                const list = [...prev.responsibilities];
+                                list.splice(idx, 1);
+                                return { ...prev, responsibilities: list };
+                              });
+                            }}
+                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer transition"
+                            title="Delete Responsibility"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Empty State */}
+                  {getGoverningCouncilMetadata().responsibilities.length === 0 && (
+                    <div className="text-center py-6 bg-white rounded-xl border border-dashed border-[#bae6fd]">
+                      <p className="text-xs text-gray-500 mb-2">No council responsibilities currently configured.</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateGoverningCouncilMetadata(() => defaultGoverningCouncilMetadata);
+                        }}
+                        className="text-xs text-[#00506b] font-semibold hover:underline cursor-pointer"
+                      >
+                        Reset to Default 8 Responsibilities
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Bottom Reset Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-[#e0f2fe]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateGoverningCouncilMetadata((prev) => {
+                          const nextNum = String(prev.responsibilities.length + 1).padStart(2, "0");
+                          return {
+                            ...prev,
+                            responsibilities: [
+                              ...prev.responsibilities,
+                              {
+                                number: nextNum,
+                                text: "",
+                              },
+                            ],
+                          };
+                        });
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#00506b] hover:bg-[#003b4f] text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
+                    >
+                      + Add Responsibility
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset to the default 8 Governing Council responsibilities?")) {
+                          updateGoverningCouncilMetadata(() => defaultGoverningCouncilMetadata);
+                        }
+                      }}
+                      className="text-xs text-[#00506b] hover:underline font-semibold cursor-pointer"
+                    >
+                      Reset to Default 8 Responsibilities
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Ethics Commission Specific Visual Manager */}
+              {editingKey === "ethics_commission" && (
+                <div className="bg-[#f0fdfa] border border-[#99f6e4] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#0d9488]"></span>
+                      <h4 className="text-xs font-bold text-[#0f766e] uppercase tracking-wider">
+                        Ethics &amp; Accountability Commission Functions ({getEthicsCommissionMetadata().functions.length} Items)
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateEthicsCommissionMetadata((prev) => ({
+                            ...prev,
+                            functions: [...prev.functions, ""],
+                          }));
+                        }}
+                        className="px-3 py-1 bg-[#0d9488] hover:bg-[#0f766e] text-white text-[11px] font-semibold rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>+ Add Function</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#115e59]/80">
+                    Configure institutional ethics, accountability standards, and integrity mandates displayed on the Governance page.
+                  </p>
+
+                  {/* Card Title & Floating Badge Fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3.5 rounded-xl border border-[#ccfbf1] shadow-2xs">
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider mb-1">
+                        Functions Box Heading
+                      </label>
+                      <input
+                        type="text"
+                        value={getEthicsCommissionMetadata().cardTitle}
+                        onChange={(e) => {
+                          updateEthicsCommissionMetadata((prev) => ({
+                            ...prev,
+                            cardTitle: e.target.value,
+                          }));
+                        }}
+                        placeholder="Accountability Functions"
+                        className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#0d9488]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider mb-1">
+                        Badge Stat / Number
+                      </label>
+                      <input
+                        type="text"
+                        value={getEthicsCommissionMetadata().ratingValue}
+                        onChange={(e) => {
+                          updateEthicsCommissionMetadata((prev) => ({
+                            ...prev,
+                            ratingValue: e.target.value,
+                          }));
+                        }}
+                        placeholder="5000"
+                        className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#0d9488]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider mb-1">
+                        Badge Label / Subtitle
+                      </label>
+                      <input
+                        type="text"
+                        value={getEthicsCommissionMetadata().ratingLabel}
+                        onChange={(e) => {
+                          updateEthicsCommissionMetadata((prev) => ({
+                            ...prev,
+                            ratingLabel: e.target.value,
+                          }));
+                        }}
+                        placeholder="Student ratings"
+                        className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#0d9488]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Functions List */}
+                  <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                    {getEthicsCommissionMetadata().functions.map((fnItem, idx) => (
+                      <div
+                        key={`ethics-fn-${idx}`}
+                        className="bg-white p-3.5 rounded-xl border border-[#ccfbf1] shadow-xs flex flex-col sm:flex-row gap-3 items-start"
+                      >
+                        {/* Number Index & Order Controls */}
+                        <div className="flex sm:flex-col items-center gap-1 shrink-0 w-full sm:w-16">
+                          <span className="w-8 h-8 rounded-lg bg-[#f0fdfa] border border-[#99f6e4] text-[#0f766e] flex items-center justify-center text-xs font-bold font-mono">
+                            {String(idx + 1).padStart(2, "0")}
+                          </span>
+                          <div className="flex items-center gap-1 mt-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                updateEthicsCommissionMetadata((prev) => {
+                                  const list = [...prev.functions];
+                                  const temp = list[idx - 1];
+                                  list[idx - 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, functions: list };
+                                });
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Item Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === getEthicsCommissionMetadata().functions.length - 1}
+                              onClick={() => {
+                                updateEthicsCommissionMetadata((prev) => {
+                                  const list = [...prev.functions];
+                                  const temp = list[idx + 1];
+                                  list[idx + 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, functions: list };
+                                });
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Item Down"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Function Statement Textarea */}
+                        <div className="flex-1 w-full space-y-1">
+                          <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider">
+                            Institutional Function #{idx + 1}
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={fnItem}
+                            onChange={(e) => {
+                              updateEthicsCommissionMetadata((prev) => {
+                                const list = [...prev.functions];
+                                list[idx] = e.target.value;
+                                return { ...prev, functions: list };
+                              });
+                            }}
+                            placeholder="Enter institutional compliance, oversight, or accountability mandate..."
+                            className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#0d9488]"
+                          />
+                        </div>
+
+                        {/* Delete Action */}
+                        <div className="shrink-0 self-end sm:self-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateEthicsCommissionMetadata((prev) => {
+                                const list = [...prev.functions];
+                                list.splice(idx, 1);
+                                return { ...prev, functions: list };
+                              });
+                            }}
+                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer transition"
+                            title="Delete Function"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Empty State */}
+                  {getEthicsCommissionMetadata().functions.length === 0 && (
+                    <div className="text-center py-6 bg-white rounded-xl border border-dashed border-[#99f6e4]">
+                      <p className="text-xs text-gray-500 mb-2">No ethics commission functions currently configured.</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateEthicsCommissionMetadata(() => defaultEthicsCommissionMetadata);
+                        }}
+                        className="text-xs text-[#0d9488] font-semibold hover:underline cursor-pointer"
+                      >
+                        Reset to Default 7 Functions
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Bottom Reset Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-[#ccfbf1]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateEthicsCommissionMetadata((prev) => ({
+                          ...prev,
+                          functions: [
+                            ...prev.functions,
+                            "",
+                          ],
+                        }));
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0d9488] hover:bg-[#0f766e] text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
+                    >
+                      + Add Function
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset to the default 7 Ethics & Accountability Commission functions?")) {
+                          updateEthicsCommissionMetadata(() => defaultEthicsCommissionMetadata);
+                        }
+                      }}
+                      className="text-xs text-[#0d9488] hover:underline font-semibold cursor-pointer"
+                    >
+                      Reset to Default 7 Functions
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Youth Leadership Assembly Specific Visual Manager */}
+              {(editingKey === "youth_leadership" || editingKey === "youth_assembly") && (
+                <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
+                      <h4 className="text-xs font-bold text-[#0369a1] uppercase tracking-wider">
+                        Youth Leadership Assembly Functions ({getYouthLeadershipMetadata().functions.length} Items)
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateYouthLeadershipMetadata((prev) => ({
+                            ...prev,
+                            functions: [...prev.functions, ""],
+                          }));
+                        }}
+                        className="px-3 py-1 bg-[#0284c7] hover:bg-[#0369a1] text-white text-[11px] font-semibold rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>+ Add Function</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#075985]/80">
+                    Configure youth perspectives, leadership development programs, and civic engagement initiatives displayed on the Governance page.
+                  </p>
+
+                  {/* Card Title & Floating Badge Fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3.5 rounded-xl border border-[#e0f2fe] shadow-2xs">
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider mb-1">
+                        Functions Box Heading
+                      </label>
+                      <input
+                        type="text"
+                        value={getYouthLeadershipMetadata().cardTitle}
+                        onChange={(e) => {
+                          updateYouthLeadershipMetadata((prev) => ({
+                            ...prev,
+                            cardTitle: e.target.value,
+                          }));
+                        }}
+                        placeholder="Assembly Functions"
+                        className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#0284c7]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider mb-1">
+                        Badge Stat / Number
+                      </label>
+                      <input
+                        type="text"
+                        value={getYouthLeadershipMetadata().ratingValue}
+                        onChange={(e) => {
+                          updateYouthLeadershipMetadata((prev) => ({
+                            ...prev,
+                            ratingValue: e.target.value,
+                          }));
+                        }}
+                        placeholder="5000"
+                        className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#0284c7]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider mb-1">
+                        Badge Label / Subtitle
+                      </label>
+                      <input
+                        type="text"
+                        value={getYouthLeadershipMetadata().ratingLabel}
+                        onChange={(e) => {
+                          updateYouthLeadershipMetadata((prev) => ({
+                            ...prev,
+                            ratingLabel: e.target.value,
+                          }));
+                        }}
+                        placeholder="Student ratings"
+                        className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#0284c7]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Functions List */}
+                  <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                    {getYouthLeadershipMetadata().functions.map((fnItem, idx) => (
+                      <div
+                        key={`youth-fn-${idx}`}
+                        className="bg-white p-3.5 rounded-xl border border-[#e0f2fe] shadow-xs flex flex-col sm:flex-row gap-3 items-start"
+                      >
+                        {/* Number Index & Order Controls */}
+                        <div className="flex sm:flex-col items-center gap-1 shrink-0 w-full sm:w-16">
+                          <span className="w-8 h-8 rounded-lg bg-[#f0f9ff] border border-[#bae6fd] text-[#0284c7] flex items-center justify-center text-xs font-bold font-mono">
+                            {String(idx + 1).padStart(2, "0")}
+                          </span>
+                          <div className="flex items-center gap-1 mt-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                updateYouthLeadershipMetadata((prev) => {
+                                  const list = [...prev.functions];
+                                  const temp = list[idx - 1];
+                                  list[idx - 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, functions: list };
+                                });
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Item Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === getYouthLeadershipMetadata().functions.length - 1}
+                              onClick={() => {
+                                updateYouthLeadershipMetadata((prev) => {
+                                  const list = [...prev.functions];
+                                  const temp = list[idx + 1];
+                                  list[idx + 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, functions: list };
+                                });
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Item Down"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Function Statement Textarea */}
+                        <div className="flex-1 w-full space-y-1">
+                          <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider">
+                            Youth Initiative Function #{idx + 1}
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={fnItem}
+                            onChange={(e) => {
+                              updateYouthLeadershipMetadata((prev) => {
+                                const list = [...prev.functions];
+                                list[idx] = e.target.value;
+                                return { ...prev, functions: list };
+                              });
+                            }}
+                            placeholder="Enter youth leadership, research participation, or training mandate..."
+                            className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#0284c7]"
+                          />
+                        </div>
+
+                        {/* Delete Action */}
+                        <div className="shrink-0 self-end sm:self-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateYouthLeadershipMetadata((prev) => {
+                                const list = [...prev.functions];
+                                list.splice(idx, 1);
+                                return { ...prev, functions: list };
+                              });
+                            }}
+                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer transition"
+                            title="Delete Function"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Empty State */}
+                  {getYouthLeadershipMetadata().functions.length === 0 && (
+                    <div className="text-center py-6 bg-white rounded-xl border border-dashed border-[#bae6fd]">
+                      <p className="text-xs text-gray-500 mb-2">No youth leadership functions currently configured.</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateYouthLeadershipMetadata(() => defaultYouthLeadershipMetadata);
+                        }}
+                        className="text-xs text-[#0284c7] font-semibold hover:underline cursor-pointer"
+                      >
+                        Reset to Default 6 Functions
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Bottom Reset Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-[#bae6fd]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateYouthLeadershipMetadata((prev) => ({
+                          ...prev,
+                          functions: [
+                            ...prev.functions,
+                            "",
+                          ],
+                        }));
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
+                    >
+                      + Add Function
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset to the default 6 Youth Leadership Assembly functions?")) {
+                          updateYouthLeadershipMetadata(() => defaultYouthLeadershipMetadata);
+                        }
+                      }}
+                      className="text-xs text-[#0284c7] hover:underline font-semibold cursor-pointer"
+                    >
+                      Reset to Default 6 Functions
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Board of Founding Members Specific Visual Manager */}
+              {editingKey === "founding_members" && (
+                <div className="bg-[#eff6ff] border border-[#bfdbfe] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#2563eb]"></span>
+                      <h4 className="text-xs font-bold text-[#1d4ed8] uppercase tracking-wider">
+                        Board of Founding Members ({getFoundingMembersMetadata().members.length} Members)
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateFoundingMembersMetadata((prev) => ({
+                            ...prev,
+                            members: [
+                              ...prev.members,
+                              {
+                                name: "",
+                                role: "Founding Member",
+                                image: "/assets/governance-founding-member.png",
+                              },
+                            ],
+                          }));
+                        }}
+                        className="px-3 py-1 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-[11px] font-semibold rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>+ Add Member</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#1e40af]/80">
+                    Configure the founding board members displayed in the Board of Founding Members grid.
+                  </p>
+
+                  {/* Members List */}
+                  <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+                    {getFoundingMembersMetadata().members.map((mItem, idx) => (
+                      <div
+                        key={`founding-member-${idx}`}
+                        className="bg-white p-3.5 rounded-xl border border-[#dbeafe] shadow-xs flex flex-col md:flex-row gap-4 items-start"
+                      >
+                        {/* Index & Order Controls */}
+                        <div className="flex md:flex-col items-center gap-1 shrink-0">
+                          <span className="w-8 h-8 rounded-lg bg-[#eff6ff] border border-[#bfdbfe] text-[#2563eb] flex items-center justify-center text-xs font-bold font-mono">
+                            {String(idx + 1).padStart(2, "0")}
+                          </span>
+                          <div className="flex items-center gap-1 mt-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                updateFoundingMembersMetadata((prev) => {
+                                  const list = [...prev.members];
+                                  const temp = list[idx - 1];
+                                  list[idx - 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, members: list };
+                                });
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Member Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === getFoundingMembersMetadata().members.length - 1}
+                              onClick={() => {
+                                updateFoundingMembersMetadata((prev) => {
+                                  const list = [...prev.members];
+                                  const temp = list[idx + 1];
+                                  list[idx + 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, members: list };
+                                });
+                              }}
+                              className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 cursor-pointer"
+                              title="Move Member Down"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Photo Thumbnail & Upload/URL */}
+                        <div className="shrink-0 flex flex-col items-center gap-2">
+                          <div className="relative w-20 h-24 rounded-lg overflow-hidden border border-[#d0d5dd] bg-gray-100 flex items-center justify-center shadow-xs">
+                            {mItem.image ? (
+                              <img
+                                src={mItem.image}
+                                alt={mItem.name || "Member Photo"}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-[10px] text-gray-400 text-center px-1">No Photo</span>
+                            )}
+                          </div>
+                          <label className="px-2 py-1 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-[11px] font-semibold rounded-md cursor-pointer transition text-center w-full">
+                            {uploadingFoundingMemberIdx === idx ? "Uploading..." : "Upload Photo"}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={uploadingFoundingMemberIdx === idx}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                handleFoundingMemberImageUpload(file, idx);
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                        </div>
+
+                        {/* Info Inputs (Name, Role, Image URL) */}
+                        <div className="flex-1 w-full space-y-2.5">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div>
+                              <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider mb-1">
+                                Full Name
+                              </label>
+                              <input
+                                type="text"
+                                value={mItem.name}
+                                onChange={(e) => {
+                                  updateFoundingMembersMetadata((prev) => {
+                                    const list = [...prev.members];
+                                    list[idx] = { ...list[idx], name: e.target.value };
+                                    return { ...prev, members: list };
+                                  });
+                                }}
+                                placeholder="e.g. Mohammed Siraj"
+                                className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#2563eb]"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider mb-1">
+                                Role / Designation
+                              </label>
+                              <input
+                                type="text"
+                                value={mItem.role}
+                                onChange={(e) => {
+                                  updateFoundingMembersMetadata((prev) => {
+                                    const list = [...prev.members];
+                                    list[idx] = { ...list[idx], role: e.target.value };
+                                    return { ...prev, members: list };
+                                  });
+                                }}
+                                placeholder="e.g. Founding Member"
+                                className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#2563eb]"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-bold text-[#344054] uppercase tracking-wider mb-1">
+                              Image URL / Storage Path
+                            </label>
+                            <input
+                              type="text"
+                              value={mItem.image}
+                              onChange={(e) => {
+                                updateFoundingMembersMetadata((prev) => {
+                                  const list = [...prev.members];
+                                  list[idx] = { ...list[idx], image: e.target.value };
+                                  return { ...prev, members: list };
+                                });
+                              }}
+                              placeholder="/assets/governance-founding-member.png or https://..."
+                              className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-lg px-2.5 py-1.5 text-xs font-mono text-[#101828] focus:bg-white focus:outline-hidden focus:border-[#2563eb]"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Delete Member */}
+                        <div className="shrink-0 self-end md:self-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateFoundingMembersMetadata((prev) => {
+                                const list = [...prev.members];
+                                list.splice(idx, 1);
+                                return { ...prev, members: list };
+                              });
+                            }}
+                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer transition"
+                            title="Delete Member"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Empty State */}
+                  {getFoundingMembersMetadata().members.length === 0 && (
+                    <div className="text-center py-6 bg-white rounded-xl border border-dashed border-[#bfdbfe]">
+                      <p className="text-xs text-gray-500 mb-2">No founding members currently configured.</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateFoundingMembersMetadata(() => defaultFoundingMembersMetadata);
+                        }}
+                        className="text-xs text-[#2563eb] font-semibold hover:underline cursor-pointer"
+                      >
+                        Reset to Default 3 Founding Members
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Bottom Reset Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-[#bfdbfe]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateFoundingMembersMetadata((prev) => ({
+                          ...prev,
+                          members: [
+                            ...prev.members,
+                            {
+                              name: "",
+                              role: "Founding Member",
+                              image: "/assets/governance-founding-member.png",
+                            },
+                          ],
+                        }));
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
+                    >
+                      + Add Member
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset to the default 3 Board of Founding Members?")) {
+                          updateFoundingMembersMetadata(() => defaultFoundingMembersMetadata);
+                        }
+                      }}
+                      className="text-xs text-[#2563eb] hover:underline font-semibold cursor-pointer"
+                    >
+                      Reset to Default 3 Founding Members
                     </button>
                   </div>
                 </div>

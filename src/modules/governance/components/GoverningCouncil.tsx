@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { PageSectionData } from '@/common/services/cms.service';
 
@@ -51,7 +52,12 @@ export default function GoverningCouncil({ data }: GoverningCouncilProps) {
   const subtitle =
     data?.subtitle ??
     'The Governing Council serves as the highest governing and decision-making body of the Institute. It provides strategic leadership, policy oversight, and institutional accountability while ensuring that the Institute operates in accordance with its mission, objectives, and ethical principles.';
-  const bgImage = data?.bgImage || '/assets/governance-founding-authority.png';
+  const defaultImage = '/assets/governance-council-student.png';
+  const [imgSrc, setImgSrc] = useState(data?.bgImage || defaultImage);
+
+  useEffect(() => {
+    setImgSrc(data?.bgImage || defaultImage);
+  }, [data?.bgImage]);
 
   const responsibilitiesList: CouncilResponsibility[] =
     Array.isArray(data?.metadata?.responsibilities) && data.metadata.responsibilities.length > 0
@@ -88,13 +94,20 @@ export default function GoverningCouncil({ data }: GoverningCouncilProps) {
           </div>
 
           {/* Feature Image */}
-          <div className="w-full lg:w-[500px] h-[360px] sm:h-[450px] lg:h-[520px] relative shrink-0 overflow-hidden">
+          <div className="w-full lg:w-[500px] h-[360px] sm:h-[450px] lg:h-[520px] relative shrink-0 overflow-hidden rounded-xl shadow-lg">
             <Image
-              src={bgImage}
+              src={imgSrc}
               alt={title}
               fill
               sizes="(max-width: 1024px) 100vw, 500px"
               className="object-cover"
+              onError={() => {
+                if (imgSrc !== defaultImage) {
+                  setImgSrc(defaultImage);
+                } else {
+                  setImgSrc('/assets/governance-founding-authority.png');
+                }
+              }}
             />
           </div>
         </div>

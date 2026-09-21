@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PageSectionData } from '@/common/services/cms.service';
+import { fetchPublicLeadershipMembers } from '@/common/services/leadership.service';
 import LeadershipProfileModal, {
   LeadershipMemberData,
 } from './LeadershipProfileModal';
@@ -131,6 +132,7 @@ interface InstitutionalLeadershipProps {
 
 export default function InstitutionalLeadership({ data }: InstitutionalLeadershipProps) {
   const [selectedMember, setSelectedMember] = useState<LeadershipMemberData | null>(null);
+  const [membersList, setMembersList] = useState<LeadershipMemberData[]>(MEMBERS);
 
   const badge = data?.badge ?? 'Our Team';
   const title = data?.title ?? 'Institutional Leadership';
@@ -140,10 +142,22 @@ export default function InstitutionalLeadership({ data }: InstitutionalLeadershi
   const actionText = data?.actionText ?? 'Contact Us';
   const actionUrl = data?.actionUrl ?? '/contact';
 
-  const membersList: LeadershipMemberData[] =
-    Array.isArray(data?.metadata?.members) && data.metadata.members.length > 0
-      ? (data.metadata.members as LeadershipMemberData[])
-      : MEMBERS;
+  useEffect(() => {
+    let active = true;
+    fetchPublicLeadershipMembers()
+      .then((apiMembers) => {
+        if (active && Array.isArray(apiMembers) && apiMembers.length > 0) {
+          setMembersList(apiMembers);
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load public leadership members, using fallback defaults:', err);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <section className="w-full bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">

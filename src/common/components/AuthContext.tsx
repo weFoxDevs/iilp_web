@@ -1,11 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-interface User {
+export interface User {
   id: number;
   name: string;
   email: string;
   role: string | null;
+  permissions?: string[];
+  createdAt?: string;
+  verifiedAt?: string | null;
 }
 
 interface AuthContextType {
@@ -14,6 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (token: string, user: User) => void;
+  updateUser: (updatedUser: Partial<User>) => void;
   logout: () => void;
 }
 
@@ -50,6 +54,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(newUser);
   };
 
+  const updateUser = (updatedFields: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, ...updatedFields };
+      localStorage.setItem("iilp_user", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const logout = () => {
     localStorage.removeItem("iilp_token");
     localStorage.removeItem("iilp_user");
@@ -66,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!token,
         isLoading,
         login,
+        updateUser,
         logout,
       }}
     >
