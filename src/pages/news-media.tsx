@@ -1,4 +1,5 @@
 import React from "react";
+import Head from "next/head";
 import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
 import { usePageContent } from "@/common/hooks/usePageContent";
@@ -11,7 +12,16 @@ export default function NewsMediaPage() {
   const { getSection } = usePageContent("news-media");
 
   return (
-    <div className="flex flex-col min-h-screen bg-white font-sans">
+    <>
+      <Head>
+        <title>News &amp; Media | International Institute for Law and Politics</title>
+        <meta
+          name="description"
+          content="Stay updated with IILP's latest news, press releases, photo galleries, newsletter archives, and media coverage on law, governance, and human rights."
+        />
+      </Head>
+
+      <div className="flex flex-col min-h-screen bg-white font-sans">
       <Header />
       <main className="flex-grow">
         <NewsMediaHero data={getSection("hero")} />
@@ -21,6 +31,7 @@ export default function NewsMediaPage() {
       </main>
       <Footer />
     </div>
+    </>
   );
 }
 

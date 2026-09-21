@@ -1,4 +1,5 @@
 import React from "react";
+import Head from "next/head";
 import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
 import { usePageContent } from "@/common/hooks/usePageContent";
@@ -10,7 +11,16 @@ export default function LeadershipDirectoryPage() {
   const { getSection } = usePageContent("leadership-directory");
 
   return (
-    <div className="flex flex-col min-h-screen bg-white font-sans">
+    <>
+      <Head>
+        <title>Leadership Directory | International Institute for Law and Politics</title>
+        <meta
+          name="description"
+          content="Meet the leadership team of IILP — institutional leaders, directors, and senior staff driving law, politics, and global policy research."
+        />
+      </Head>
+
+      <div className="flex flex-col min-h-screen bg-white font-sans">
       <Header />
       <main className="flex-grow">
         <LeadershipDirectoryHero data={getSection("hero")} />
@@ -19,5 +29,6 @@ export default function LeadershipDirectoryPage() {
       </main>
       <Footer />
     </div>
+    </>
   );
 }

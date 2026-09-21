@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 import Toast, { ToastType } from "@/common/components/Toast";
@@ -61,7 +62,16 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4faff] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <>
+      <Head>
+        <title>Forgot Password | IILP Admin Portal</title>
+        <meta
+          name="description"
+          content="Reset your IILP Admin Portal password. Enter your registered email address to receive a password reset link."
+        />
+      </Head>
+
+      <div className="min-h-screen bg-[#f4faff] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background Decorative Ambient Glows */}
       <div className="absolute top-[-15%] right-[-10%] w-[550px] h-[550px] rounded-full bg-[#00bfff]/10 blur-[130px] pointer-events-none"></div>
       <div className="absolute bottom-[-15%] left-[-10%] w-[550px] h-[550px] rounded-full bg-[#000080]/10 blur-[130px] pointer-events-none"></div>
@@ -194,5 +204,6 @@ export default function ForgotPasswordPage() {
         />
       )}
     </div>
+    </>
   );
 }

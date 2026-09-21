@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
@@ -706,7 +707,17 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#f4faff] flex flex-col md:flex-row">
+    <>
+      <Head>
+        <title>Admin Dashboard | IILP CMS Console</title>
+        <meta
+          name="description"
+          content="IILP Executive CMS Console — manage site content, departments, events, fellowships, news, testimonials, and administrative settings."
+        />
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
+
+      <div className="h-screen w-screen overflow-hidden bg-[#f4faff] flex flex-col md:flex-row">
       {/* Sidebar Navigation - Fixed Height on Screen */}
       <aside className="w-full md:w-72 bg-white border-r border-[#e5e7eb] flex flex-col shrink-0 h-auto md:h-full z-20 select-none shadow-xs">
         {/* Sidebar Header with Official Logo */}
@@ -2163,5 +2174,6 @@ export default function AdminDashboard() {
         />
       )}
     </div>
+    </>
   );
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import Head from "next/head";
 import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
 import { usePageContent } from "@/common/hooks/usePageContent";
@@ -19,7 +20,16 @@ export default function GovernancePage() {
   const { getSection } = usePageContent('governance');
 
   return (
-    <div className="flex flex-col min-h-screen bg-white font-sans">
+    <>
+      <Head>
+        <title>Governance | International Institute for Law and Politics</title>
+        <meta
+          name="description"
+          content="Explore the governance structure of IILP, including the Governing Council, Executive Directorate, Academic Senate, Advisory Board, and Ethics Commission."
+        />
+      </Head>
+
+      <div className="flex flex-col min-h-screen bg-white font-sans">
       <Header />
       <main className="flex-grow">
         <GovernanceHero data={getSection('hero')} />
@@ -36,5 +46,6 @@ export default function GovernancePage() {
       </main>
       <Footer />
     </div>
+    </>
   );
 }
