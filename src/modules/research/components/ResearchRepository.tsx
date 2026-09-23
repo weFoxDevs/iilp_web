@@ -1,21 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PageSectionData } from "@/common/services/cms.service";
-
-interface Publication {
-  id: string;
-  category: string;
-  field: string;
-  date: string;
-  title: string;
-  description: string;
-  authorRole: string;
-  authorName: string;
-  authorInitials: string;
-  image: string;
-  highlighted?: boolean;
-}
+import {
+  fetchPublicPublications,
+  PublicationItem,
+} from "@/common/services/publications.service";
 
 const filterCategories = [
   "All Publications",
@@ -29,12 +19,13 @@ const filterCategories = [
   "Case Studies",
 ];
 
-const publicationsData: Publication[] = [
+const fallbackPublicationsData: PublicationItem[] = [
   {
     id: "pub-1",
+    slug: "refugee-protection-in-a-fragmented-global-order-policy-priorities-for-2026",
     category: "Policy Briefs",
     field: "Refugee & Displacement Studies",
-    date: "August 2026",
+    publicationDate: "August 2026",
     title:
       "Refugee Protection in a Fragmented Global Order: Policy Priorities for 2026",
     description:
@@ -43,49 +34,63 @@ const publicationsData: Publication[] = [
     authorName: "IILP Team",
     authorInitials: "MM",
     image: "/assets/department-faculty-member.png",
+    highlighted: false,
+    sortOrder: 0,
+    isActive: true,
   },
   {
     id: "pub-2",
-    category: "Policy Briefs",
-    field: "Refugee & Displacement Studies",
-    date: "August 2026",
+    slug: "international-humanitarian-law-in-emerging-conflicts-challenges-and-modern-frameworks",
+    category: "Research Papers",
+    field: "Human Rights & Conflict Resolution",
+    publicationDate: "August 2026",
     title:
-      "Refugee Protection in a Fragmented Global Order: Policy Priorities for 2026",
+      "International Humanitarian Law in Emerging Conflicts: Challenges and Modern Frameworks",
     description:
-      "This brief examines emerging protection gaps and proposes evidence-based recommendations for strengthening refugee protection mechanisms in the current global context.",
+      "A comprehensive analysis of international humanitarian law compliance and enforcement dilemmas in non-international armed conflicts.",
     authorRole: "Author",
     authorName: "IILP Team",
     authorInitials: "MM",
     image: "/assets/department-faculty-member.png",
     highlighted: true,
+    sortOrder: 1,
+    isActive: true,
   },
   {
     id: "pub-3",
-    category: "Policy Briefs",
-    field: "Refugee & Displacement Studies",
-    date: "August 2026",
+    slug: "constitutional-transformations-and-democratic-resilience-in-comparative-perspective",
+    category: "Working Papers",
+    field: "Comparative Politics & Governance",
+    publicationDate: "July 2026",
     title:
-      "Refugee Protection in a Fragmented Global Order: Policy Priorities for 2026",
+      "Constitutional Transformations and Democratic Resilience in Comparative Perspective",
     description:
-      "This brief examines emerging protection gaps and proposes evidence-based recommendations for strengthening refugee protection mechanisms in the current global context.",
+      "Examining institutional counterbalances and constitutional judiciary performance amidst rising polarization and democratic erosion.",
     authorRole: "Author",
     authorName: "IILP Team",
     authorInitials: "MM",
     image: "/assets/department-faculty-member.png",
+    highlighted: false,
+    sortOrder: 2,
+    isActive: true,
   },
   {
     id: "pub-4",
-    category: "Policy Briefs",
-    field: "Refugee & Displacement Studies",
-    date: "August 2026",
+    slug: "geopolitical-realignments-and-multilateral-treaties-negotiating-global-climate-action",
+    category: "Research Reports",
+    field: "International Environmental Law",
+    publicationDate: "June 2026",
     title:
-      "Refugee Protection in a Fragmented Global Order: Policy Priorities for 2026",
+      "Geopolitical Realignments and Multilateral Treaties: Negotiating Global Climate Action",
     description:
-      "This brief examines emerging protection gaps and proposes evidence-based recommendations for strengthening refugee protection mechanisms in the current global context.",
+      "A strategic policy report on multilateral treaty mechanisms, compliance incentives, and state accountability in transboundary environmental agreements.",
     authorRole: "Author",
     authorName: "IILP Team",
     authorInitials: "MM",
     image: "/assets/department-faculty-member.png",
+    highlighted: false,
+    sortOrder: 3,
+    isActive: true,
   },
 ];
 
@@ -95,6 +100,8 @@ interface ResearchRepositoryProps {
 
 export default function ResearchRepository({ data }: ResearchRepositoryProps) {
   const [activeFilter, setActiveFilter] = useState("All Publications");
+  const [publicationsList, setPublicationsList] = useState<PublicationItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const badge = data?.badge ?? "Scholarly Output";
   const title = data?.title ?? "Research Repository & Publications";
@@ -109,19 +116,39 @@ export default function ResearchRepository({ data }: ResearchRepositoryProps) {
       ? (data.metadata.filterCategories as string[])
       : filterCategories;
 
-  const publicationsList: Publication[] =
-    Array.isArray(data?.metadata?.publications) && data.metadata.publications.length > 0
-      ? (data.metadata.publications as Publication[])
-      : publicationsData;
+  useEffect(() => {
+    let isMounted = true;
+    fetchPublicPublications()
+      .then((items) => {
+        if (isMounted) {
+          if (items && items.length > 0) {
+            setPublicationsList(items);
+          } else {
+            setPublicationsList(fallbackPublicationsData);
+          }
+          setIsLoading(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setPublicationsList(fallbackPublicationsData);
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const displayedPublications =
     activeFilter === "All Publications"
       ? publicationsList
       : publicationsList.filter(
-          (pub) => pub.category.toLowerCase() === activeFilter.toLowerCase(),
+          (pub) => pub.category?.toLowerCase() === activeFilter.toLowerCase(),
         ).length > 0
       ? publicationsList.filter(
-          (pub) => pub.category.toLowerCase() === activeFilter.toLowerCase(),
+          (pub) => pub.category?.toLowerCase() === activeFilter.toLowerCase(),
         )
       : publicationsList;
 
@@ -188,38 +215,49 @@ export default function ResearchRepository({ data }: ResearchRepositoryProps) {
         </div>
 
         {/* 2x2 Publications Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-[30px]">
-          {displayedPublications.map((pub) => (
-            <Link
-              key={pub.id}
-              href="/publication-details"
-              className="flex flex-col group cursor-pointer overflow-hidden rounded-md shadow-xs transition-transform duration-300 hover:shadow-md"
-            >
-              {/* Photo Banner (16:9 Aspect Ratio) */}
-              <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-200">
-                <Image
-                  src={pub.image}
-                  alt={pub.title}
-                  fill
-                  className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
+        {isLoading ? (
+          <div className="py-12 flex flex-col items-center justify-center gap-3">
+            <div className="w-8 h-8 border-3 border-[#00bfff] border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-gray-500 font-sans">Loading scholarly research...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-[30px]">
+            {displayedPublications.map((pub) => {
+              const targetHref = pub.slug
+                ? `/publications/${encodeURIComponent(pub.slug)}`
+                : `/publication-details?id=${encodeURIComponent(pub.id)}`;
 
-              {/* Bottom Card Content */}
-              <div className="bg-[#e6f9ff] p-6 sm:p-8 flex flex-col gap-6 sm:gap-[32px]">
-                <div className="flex flex-col gap-4">
-                  {/* Category & Date Tag Row */}
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="bg-white text-[#000036] font-sans font-normal text-xs sm:text-sm px-3.5 py-1 rounded-full whitespace-nowrap">
-                      {pub.category}
-                    </span>
-                    <span className="font-sans font-normal text-xs sm:text-sm text-[#0a0d12]">
-                      {pub.field}
-                    </span>
-                    <span className="font-sans font-normal text-xs sm:text-sm text-[#0a0d12]">
-                      · {pub.date}
-                    </span>
+              return (
+                <Link
+                  key={pub.id}
+                  href={targetHref}
+                  className="flex flex-col group cursor-pointer overflow-hidden rounded-md shadow-xs transition-transform duration-300 hover:shadow-md hover:-translate-y-1"
+                >
+                  {/* Photo Banner (16:9 Aspect Ratio) */}
+                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-200">
+                    <Image
+                      src={pub.image || "/assets/department-faculty-member.png"}
+                      alt={pub.title}
+                      fill
+                      className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
+
+                  {/* Bottom Card Content */}
+                  <div className="bg-[#e6f9ff] p-6 sm:p-8 flex flex-col gap-6 sm:gap-[32px] flex-1 justify-between">
+                    <div className="flex flex-col gap-4">
+                      {/* Category & Date Tag Row */}
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <span className="bg-white text-[#000036] font-sans font-normal text-xs sm:text-sm px-3.5 py-1 rounded-full whitespace-nowrap">
+                          {pub.category}
+                        </span>
+                        <span className="font-sans font-normal text-xs sm:text-sm text-[#0a0d12]">
+                          {pub.field}
+                        </span>
+                        <span className="font-sans font-normal text-xs sm:text-sm text-[#0a0d12]">
+                          · {pub.publicationDate || (pub as any).date}
+                        </span>
+                      </div>
 
                   {/* Title & Description */}
                   <div className="flex flex-col gap-3">
@@ -278,9 +316,11 @@ export default function ResearchRepository({ data }: ResearchRepositoryProps) {
                 </div>
               </div>
             </Link>
-          ))}
-        </div>
+          );
+        })}
       </div>
-    </section>
-  );
+    )}
+  </div>
+</section>
+);
 }

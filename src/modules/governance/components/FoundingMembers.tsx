@@ -89,8 +89,8 @@ export default function FoundingMembers({ data }: FoundingMembersProps) {
             <div key={index} className="flex flex-col items-start w-full group">
               <div className="relative w-full aspect-[277.5/370] overflow-hidden bg-gray-100">
                 <Image
-                  src={member.image}
-                  alt={member.name}
+                  src={member.image || '/assets/governance-founding-member.png'}
+                  alt={member.name || 'Founding Member'}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className="object-cover transition-transform duration-300 group-hover:scale-105"

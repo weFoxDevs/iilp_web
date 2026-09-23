@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Head from "next/head";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -96,7 +97,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f4faff] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <>
+      <Head>
+        <title>Login | IILP Admin Portal</title>
+        <meta
+          name="description"
+          content="Sign in to the International Institute for Law and Politics administrative portal to manage content, events, fellowships, and institutional resources."
+        />
+      </Head>
+
+      <div className="min-h-screen bg-[#f4faff] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background Decorative Ambient Glows */}
       <div className="absolute top-[-15%] left-[-10%] w-[550px] h-[550px] rounded-full bg-[#00bfff]/10 blur-[130px] pointer-events-none"></div>
       <div className="absolute bottom-[-15%] right-[-10%] w-[550px] h-[550px] rounded-full bg-[#000080]/10 blur-[130px] pointer-events-none"></div>
@@ -237,5 +247,6 @@ export default function LoginPage() {
         />
       )}
     </div>
+    </>
   );
 }

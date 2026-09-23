@@ -141,16 +141,6 @@ export const DEFAULT_NAVBAR: NavbarLayoutData = {
           description: "Repository of policy briefs, papers & reports",
         },
         {
-          name: "Publication Details",
-          href: "/publication-details",
-          description: "In-depth research paper & publication sample",
-        },
-        {
-          name: "Department Details",
-          href: "/department-details",
-          description: "Academic departments, courses & faculty",
-        },
-        {
           name: "Leadership Directory",
           href: "/leadership-directory",
           description: "Executive leadership & distinguished faculty profiles",
@@ -166,29 +156,14 @@ export const DEFAULT_NAVBAR: NavbarLayoutData = {
           description: "Conferences, seminars, workshops & webinars",
         },
         {
-          name: "Event Details",
-          href: "/event-details",
-          description: "Symposium agenda, highlights & registration",
-        },
-        {
           name: "News & Media Center",
           href: "/news-media",
           description: "Press releases, events & photo gallery",
         },
         {
-          name: "News Article Details",
-          href: "/news-details",
-          description: "Student clubs & campus news details",
-        },
-        {
           name: "Partnership Framework",
           href: "/partnership-framework",
           description: "Collaborative engagement across five strategic tracks",
-        },
-        {
-          name: "Global Fellowship Network",
-          href: "/fellowships",
-          description: "Junior, Research & Honorary fellows network",
         },
       ],
     },

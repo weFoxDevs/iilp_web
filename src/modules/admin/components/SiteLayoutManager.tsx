@@ -23,6 +23,7 @@ import {
   useSiteLayout,
 } from "@/common/components/SiteLayoutContext";
 import { ToastType } from "@/common/components/Toast";
+import ConfirmationModal from "./ConfirmationModal";
 
 interface SiteLayoutManagerProps {
   token: string;
@@ -37,6 +38,7 @@ export function SiteLayoutManager({ token, onShowToast }: SiteLayoutManagerProps
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<Record<string, File>>({});
   const [pendingPreviews, setPendingPreviews] = useState<Record<string, string>>({});
   const [uploadStatusText, setUploadStatusText] = useState<string | null>(null);
@@ -246,9 +248,6 @@ export function SiteLayoutManager({ token, onShowToast }: SiteLayoutManagerProps
 
   // Reset to default layout seeder
   const handleResetDefaults = async () => {
-    if (!confirm("Are you sure you want to reset all Layout, Navbar, Logo, CTA and Footer settings to defaults?")) {
-      return;
-    }
     setSeeding(true);
     try {
       await seedAdminLayoutSections(token);
@@ -632,9 +631,9 @@ export function SiteLayoutManager({ token, onShowToast }: SiteLayoutManagerProps
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={handleResetDefaults}
+            onClick={() => setIsResetModalOpen(true)}
             disabled={seeding || saving}
-            className="px-4 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-50"
+            className="px-4 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
             title="Restore default initial design and links"
           >
             {seeding ? "Resetting..." : "🔄 Reset to Defaults"}
@@ -1817,6 +1816,22 @@ export function SiteLayoutManager({ token, onShowToast }: SiteLayoutManagerProps
           </div>
         </div>
       )}
+
+      {/* Reset Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isResetModalOpen}
+        title="Reset Layout Defaults"
+        message="Are you sure you want to reset all Layout, Navbar, Logo, CTA and Footer settings to default initial seed? Custom changes will be overwritten."
+        confirmLabel="Reset Defaults"
+        cancelLabel="Cancel"
+        isConfirming={seeding}
+        variant="warning"
+        onConfirm={async () => {
+          await handleResetDefaults();
+          setIsResetModalOpen(false);
+        }}
+        onCancel={() => setIsResetModalOpen(false)}
+      />
     </div>
   );
 }

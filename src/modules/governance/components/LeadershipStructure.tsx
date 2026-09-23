@@ -61,6 +61,13 @@ export default function LeadershipStructure({ data }: LeadershipStructureProps) 
       ? (data.metadata.tiers as LeadershipTier[])
       : defaultLeadershipTiers;
 
+  const image1 =
+    (typeof data?.metadata?.image1 === 'string' && data.metadata.image1) ||
+    '/assets/about-institutional-1.png';
+  const image2 =
+    (typeof data?.metadata?.image2 === 'string' && data.metadata.image2) ||
+    '/assets/about-institutional-2.png';
+
   return (
     <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-16 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start gap-12 lg:gap-[80px]">
@@ -70,7 +77,7 @@ export default function LeadershipStructure({ data }: LeadershipStructureProps) 
           {/* Top Left Image: Professor & Student */}
           <div className="w-[60%] sm:w-[348px] h-[340px] sm:h-[448px] relative overflow-hidden shadow-sm">
             <Image
-              src="/assets/about-institutional-1.png"
+              src={image1}
               alt="Faculty and student in discussion"
               fill
               sizes="(max-width: 768px) 60vw, 348px"
@@ -81,7 +88,7 @@ export default function LeadershipStructure({ data }: LeadershipStructureProps) 
           {/* Bottom Right Overlapping Image: Female Student */}
           <div className="w-[60%] sm:w-[348px] h-[260px] sm:h-[358px] absolute right-0 sm:left-[242px] bottom-0 overflow-hidden border-[4px] border-white shadow-xl">
             <Image
-              src="/assets/about-institutional-2.png"
+              src={image2}
               alt="Smiling IILP student"
               fill
               sizes="(max-width: 768px) 60vw, 348px"

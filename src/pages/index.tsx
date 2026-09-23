@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
 import { Hero } from "@/modules/home/components/Hero";
@@ -15,7 +16,16 @@ export default function Home() {
   const { getSection } = usePageContent("home");
 
   return (
-    <div className="flex flex-col min-h-screen bg-white font-sans overflow-x-hidden">
+    <>
+      <Head>
+        <title>International Institute for Law and Politics (IILP)</title>
+        <meta
+          name="description"
+          content="The International Institute for Law and Politics (IILP) advances scholarship, fellowship, and leadership in law, governance, human rights, and global policy."
+        />
+      </Head>
+
+      <div className="flex flex-col min-h-screen bg-white font-sans overflow-x-hidden">
       <Header />
       
       <main className="flex-grow overflow-x-hidden">
@@ -35,5 +45,6 @@ export default function Home() {
       
       <Footer />
     </div>
+    </>
   );
 }
