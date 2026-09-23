@@ -7,6 +7,7 @@ import {
   SiteMetricItem,
 } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
+import ConfirmationModal from "./ConfirmationModal";
 
 interface SiteMetricsManagerProps {
   token: string;
@@ -28,6 +29,10 @@ export function SiteMetricsManager({ token, onShowToast }: SiteMetricsManagerPro
     isActive: true,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Delete Confirmation State
+  const [metricToDelete, setMetricToDelete] = useState<{ id: string; label: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadMetrics = useCallback(async () => {
     setIsLoading(true);
@@ -110,17 +115,19 @@ export function SiteMetricsManager({ token, onShowToast }: SiteMetricsManagerPro
     }
   };
 
-  const handleDelete = async (id: string, label: string) => {
-    if (!confirm(`Are you sure you want to delete metric '${label}'?`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!metricToDelete) return;
 
+    setIsDeleting(true);
     try {
-      await deleteAdminMetric(token, id);
-      onShowToast(`Metric '${label}' deleted.`, "info");
+      await deleteAdminMetric(token, metricToDelete.id);
+      onShowToast(`Metric '${metricToDelete.label}' deleted.`, "info");
+      setMetricToDelete(null);
       loadMetrics();
     } catch (err: unknown) {
       onShowToast(err instanceof Error ? err.message : "Failed to delete metric", "error");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -204,7 +211,7 @@ export function SiteMetricsManager({ token, onShowToast }: SiteMetricsManagerPro
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(m.id, m.label)}
+                        onClick={() => setMetricToDelete({ id: m.id, label: m.label })}
                         className="text-xs font-bold text-red-600 hover:underline cursor-pointer"
                       >
                         Delete
@@ -328,6 +335,23 @@ export function SiteMetricsManager({ token, onShowToast }: SiteMetricsManagerPro
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={!!metricToDelete}
+        title="Delete Metric"
+        message={
+          <>
+            Are you sure you want to delete metric <strong className="text-gray-900 font-semibold">{metricToDelete?.label}</strong>? This action cannot be undone.
+          </>
+        }
+        confirmLabel="Confirm Delete"
+        cancelLabel="Cancel"
+        isConfirming={isDeleting}
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setMetricToDelete(null)}
+      />
     </div>
   );
 }

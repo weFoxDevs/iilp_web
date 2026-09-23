@@ -11,6 +11,7 @@ import {
 } from "@/common/services/news.service";
 import { uploadMediaFile } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
+import ConfirmationModal from "./ConfirmationModal";
 
 interface NewsManagerProps {
   token: string;
@@ -34,6 +35,12 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Delete & Action Modal States
+  const [articleToDelete, setArticleToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSeedModalOpen, setIsSeedModalOpen] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
 
   // Form Fields
   const [formData, setFormData] = useState<Partial<NewsArticleItem>>({
@@ -217,37 +224,39 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
     }
   };
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!window.confirm(`Are you sure you want to permanently delete "${title}"? Associated uploaded media will also be removed.`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!articleToDelete) return;
 
+    setIsDeleting(true);
     try {
-      await deleteAdminNews(token, id);
+      await deleteAdminNews(token, articleToDelete.id);
       onShowToast("News article deleted successfully.", "success");
+      setArticleToDelete(null);
       await loadArticles();
     } catch (err: unknown) {
       onShowToast(
         err instanceof Error ? err.message : "Failed to delete article",
         "error"
       );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handleSeed = async () => {
-    if (!window.confirm("Seed default articles from Module 05 specification? This will ensure initial articles exist.")) {
-      return;
-    }
-
+  const handleConfirmSeed = async () => {
+    setIsSeeding(true);
     try {
       const res = await seedAdminNews(token);
       onShowToast(`Successfully seeded ${res.count} articles!`, "success");
+      setIsSeedModalOpen(false);
       await loadArticles();
     } catch (err: unknown) {
       onShowToast(
         err instanceof Error ? err.message : "Failed to seed default articles",
         "error"
       );
+    } finally {
+      setIsSeeding(false);
     }
   };
 
@@ -265,7 +274,7 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={handleSeed}
+            onClick={() => setIsSeedModalOpen(true)}
             className="px-4 py-2 text-xs font-semibold text-[#00698c] bg-[#e6f9ff] border border-[#b0ebff] rounded-xl hover:bg-[#cbf2ff] transition-all cursor-pointer"
           >
             ↺ Seed Default Articles
@@ -431,7 +440,7 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(article.id, article.title)}
+                        onClick={() => setArticleToDelete({ id: article.id, title: article.title })}
                         className="px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-md transition-all cursor-pointer"
                       >
                         Delete
@@ -693,6 +702,36 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={!!articleToDelete}
+        title="Delete News Article"
+        message={
+          <>
+            Are you sure you want to delete <strong className="text-gray-900 font-semibold">{articleToDelete?.title}</strong>? Associated uploaded media will also be removed.
+          </>
+        }
+        confirmLabel="Confirm Delete"
+        cancelLabel="Cancel"
+        isConfirming={isDeleting}
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setArticleToDelete(null)}
+      />
+
+      {/* Seed Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isSeedModalOpen}
+        title="Seed Default Articles"
+        message="Seed default articles from the Module specification? This will generate initial articles in the database."
+        confirmLabel="Confirm Seed"
+        cancelLabel="Cancel"
+        isConfirming={isSeeding}
+        variant="info"
+        onConfirm={handleConfirmSeed}
+        onCancel={() => setIsSeedModalOpen(false)}
+      />
     </div>
   );
 }

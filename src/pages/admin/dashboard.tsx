@@ -14,6 +14,7 @@ import { SiteLayoutManager } from "@/modules/admin/components/SiteLayoutManager"
 import { NewsManager } from "@/modules/admin/components/NewsManager";
 import { FellowshipApplicationsManager } from "@/modules/admin/components/FellowshipApplicationsManager";
 import { LeadershipManager } from "@/modules/admin/components/LeadershipManager";
+import { PublicationsManager } from "@/modules/admin/components/PublicationsManager";
 import { ProfileSettings } from "@/modules/admin/components/ProfileSettings";
 
 interface DashboardMetrics {
@@ -85,6 +86,7 @@ const VALID_TABS = [
   "departments",
   "site-metrics",
   "testimonials",
+  "publications",
   "profile",
 ] as const;
 
@@ -943,14 +945,15 @@ export default function AdminDashboard() {
                 activeTab === "news" ||
                 activeTab === "departments" ||
                 activeTab === "site-metrics" ||
-                activeTab === "testimonials"
+                activeTab === "testimonials" ||
+                activeTab === "publications"
                   ? "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
                   : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
               }`}
             >
               <div className="flex items-center gap-2 min-w-0">
                 <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                  activeTab === "site-layout" || activeTab === "page-content" || activeTab === "leadership" || activeTab === "news" || activeTab === "departments" || activeTab === "site-metrics" || activeTab === "testimonials"
+                  activeTab === "site-layout" || activeTab === "page-content" || activeTab === "leadership" || activeTab === "news" || activeTab === "departments" || activeTab === "site-metrics" || activeTab === "testimonials" || activeTab === "publications"
                     ? "bg-[#00bfff] text-white"
                     : "bg-[#f0f4f8] text-[#4a5565]"
                 }`}>
@@ -970,7 +973,8 @@ export default function AdminDashboard() {
                   activeTab === "news" ||
                   activeTab === "departments" ||
                   activeTab === "site-metrics" ||
-                  activeTab === "testimonials"
+                  activeTab === "testimonials" ||
+                  activeTab === "publications"
                     ? "rotate-180 text-[#00698c]"
                     : "text-[#4a5565]"
                 }`}
@@ -1037,6 +1041,20 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-2 min-w-0">
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "news" ? "bg-[#00bfff]" : "bg-amber-500"}`}></span>
                     <span className="truncate whitespace-nowrap">News &amp; Media Articles</span>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleTabChange("publications")}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activeTab === "publications"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "publications" ? "bg-[#00bfff]" : "bg-sky-500"}`}></span>
+                    <span className="truncate whitespace-nowrap">Research Publications</span>
                   </div>
                 </button>
 
@@ -1139,6 +1157,7 @@ export default function AdminDashboard() {
               {activeTab === "site-layout" && "Global Layout, Navbar & Footer Branding"}
               {activeTab === "page-content" && "Page Content (CMS) Engine"}
               {activeTab === "news" && "News & Media Articles"}
+              {activeTab === "publications" && "Research Publications Repository"}
               {activeTab === "site-metrics" && "Site Impact Metrics"}
               {activeTab === "testimonials" && "Student & Scholar Testimonials"}
               {activeTab === "departments" && "Academic Departments & Disciplines"}
@@ -1752,6 +1771,14 @@ export default function AdminDashboard() {
           {/* TAB: NEWS & ARTICLES */}
           {activeTab === "news" && token && (
             <NewsManager
+              token={token}
+              onShowToast={(msg, type) => setToast({ message: msg, type })}
+            />
+          )}
+
+          {/* TAB: RESEARCH PUBLICATIONS */}
+          {activeTab === "publications" && token && (
+            <PublicationsManager
               token={token}
               onShowToast={(msg, type) => setToast({ message: msg, type })}
             />

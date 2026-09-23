@@ -9,6 +9,7 @@ import {
   PageSectionData,
 } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
+import ConfirmationModal from "./ConfirmationModal";
 
 interface AdminSectionItem extends PageSectionData {
   sectionKey?: string;
@@ -826,6 +827,10 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
   const [isNewSection, setIsNewSection] = useState(false);
   const [isCustomKey, setIsCustomKey] = useState(false);
   const [editingKey, setEditingKey] = useState("");
+
+  // Delete Confirmation State
+  const [sectionToDelete, setSectionToDelete] = useState<string | null>(null);
+  const [isDeletingSection, setIsDeletingSection] = useState(false);
   const [formData, setFormData] = useState<Partial<PageSectionData>>({
     title: "",
     subtitle: "",
@@ -1790,17 +1795,19 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
     }
   };
 
-  const handleDelete = async (sectionKey: string) => {
-    if (!confirm(`Are you sure you want to delete section '${sectionKey}' from '${selectedPage}'?`)) {
-      return;
-    }
+  const handleConfirmDeleteSection = async () => {
+    if (!sectionToDelete) return;
 
+    setIsDeletingSection(true);
     try {
-      await deleteAdminSection(token, selectedPage, sectionKey);
-      onShowToast(`Section '${sectionKey}' deleted.`, "info");
+      await deleteAdminSection(token, selectedPage, sectionToDelete);
+      onShowToast(`Section '${sectionToDelete}' deleted.`, "info");
+      setSectionToDelete(null);
       loadSections();
     } catch (err: unknown) {
       onShowToast(err instanceof Error ? err.message : "Failed to delete section", "error");
+    } finally {
+      setIsDeletingSection(false);
     }
   };
 
@@ -1947,7 +1954,7 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                     Edit Block
                   </button>
                   <button
-                    onClick={() => handleDelete(sKey)}
+                    onClick={() => setSectionToDelete(sKey)}
                     className="px-3.5 py-1.5 rounded-xl border border-red-200 hover:bg-red-50 text-xs font-bold text-red-600 transition-colors cursor-pointer"
                   >
                     Delete
@@ -5528,6 +5535,23 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
           </div>
         </div>
       )}
+
+      {/* Section Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={!!sectionToDelete}
+        title="Delete Page Section"
+        message={
+          <>
+            Are you sure you want to delete section <strong className="text-gray-900 font-semibold">{sectionToDelete}</strong> from <strong className="text-gray-900 font-semibold">{selectedPage}</strong>? This action cannot be undone.
+          </>
+        }
+        confirmLabel="Confirm Delete"
+        cancelLabel="Cancel"
+        isConfirming={isDeletingSection}
+        variant="danger"
+        onConfirm={handleConfirmDeleteSection}
+        onCancel={() => setSectionToDelete(null)}
+      />
     </div>
   );
 }

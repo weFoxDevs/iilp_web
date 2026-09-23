@@ -9,6 +9,7 @@ import {
   TestimonialItem,
 } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
+import ConfirmationModal from "./ConfirmationModal";
 
 interface TestimonialsManagerProps {
   token: string;
@@ -33,6 +34,10 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  // Delete Confirmation State
+  const [testimonialToDelete, setTestimonialToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
   const [localAvatarPreview, setLocalAvatarPreview] = useState<string | null>(null);
 
@@ -192,17 +197,19 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete testimonial from '${name}'?`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!testimonialToDelete) return;
 
+    setIsDeleting(true);
     try {
-      await deleteAdminTestimonial(token, id);
-      onShowToast(`Testimonial from '${name}' deleted.`, "info");
+      await deleteAdminTestimonial(token, testimonialToDelete.id);
+      onShowToast(`Testimonial from '${testimonialToDelete.name}' deleted.`, "info");
+      setTestimonialToDelete(null);
       loadTestimonials();
     } catch (err: unknown) {
       onShowToast(err instanceof Error ? err.message : "Failed to delete testimonial", "error");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -297,7 +304,7 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(t.id, t.authorName)}
+                    onClick={() => setTestimonialToDelete({ id: t.id, name: t.authorName })}
                     className="px-3 py-1 rounded-lg border border-red-200 hover:bg-red-50 font-bold text-red-600 cursor-pointer"
                   >
                     Delete
@@ -539,6 +546,23 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={!!testimonialToDelete}
+        title="Delete Testimonial"
+        message={
+          <>
+            Are you sure you want to delete testimonial from <strong className="text-gray-900 font-semibold">{testimonialToDelete?.name}</strong>? This action cannot be undone.
+          </>
+        }
+        confirmLabel="Confirm Delete"
+        cancelLabel="Cancel"
+        isConfirming={isDeleting}
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setTestimonialToDelete(null)}
+      />
     </div>
   );
 }

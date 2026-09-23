@@ -1,14 +1,31 @@
 import React from "react";
 import Image from "next/image";
+import { PublicationItem } from "@/common/services/publications.service";
 
-export default function PublicationDetailsHero() {
+interface PublicationDetailsHeroProps {
+  publication?: PublicationItem | null;
+}
+
+export default function PublicationDetailsHero({ publication }: PublicationDetailsHeroProps) {
+  const category = publication?.category || "Policy Briefs";
+  const title =
+    publication?.title ||
+    "Refugee Protection in a Fragmented Global Order: Policy Priorities for 2026";
+  const description =
+    publication?.description ||
+    "This brief examines emerging protection gaps and proposes evidence-based recommendations for strengthening refugee protection mechanisms in the current global context.";
+  const bgImage =
+    publication?.image && !publication.image.includes("faculty-member")
+      ? publication.image
+      : "/assets/department-details-hero.png";
+
   return (
     <section className="relative w-full min-h-[620px] lg:h-[750px] overflow-hidden flex flex-col items-center justify-end pb-[160px] sm:pb-[200px] lg:pb-[240px] pt-[160px] sm:pt-[180px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] text-center isolate">
       {/* Background Image with Dark & Gradient Overlays */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
-          src="/assets/department-details-hero.png"
-          alt="Refugee Protection in a Fragmented Global Order"
+          src={bgImage}
+          alt={title}
           fill
           priority
           sizes="100vw"
@@ -25,21 +42,30 @@ export default function PublicationDetailsHero() {
         {/* Pill Badge */}
         <div className="inline-flex items-center border border-[#e6f9ff] rounded-full px-3.5 py-1.5 sm:py-2 backdrop-blur-xs bg-black/15">
           <span className="text-xs sm:text-sm md:text-[16px] font-sans font-semibold tracking-wider text-[#fdfdfd] uppercase leading-[17.6px]">
-            Policy Briefs
+            {category}
           </span>
         </div>
 
         {/* Heading */}
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-serif font-semibold text-white tracking-[-0.96px] leading-tight sm:leading-[1.2] lg:leading-[60px] max-w-[856px]">
-          Refugee Protection in a Fragmented Global Order: Policy Priorities for 2026
+          {title}
         </h1>
 
         {/* Supporting Text */}
         <p className="text-white/95 text-base sm:text-lg lg:text-[20px] font-sans font-normal leading-relaxed lg:leading-[30px] max-w-[978px] drop-shadow-xs">
-          This brief examines emerging protection gaps and proposes evidence-based
-          recommendations for strengthening refugee protection mechanisms in the
-          current global context.
+          {description}
         </p>
+
+        {/* Author / Date Meta pill */}
+        {publication && (
+          <div className="flex items-center gap-3 mt-2 text-white/90 text-sm font-sans">
+            <span className="font-semibold">{publication.authorName}</span>
+            <span>·</span>
+            <span>{publication.field}</span>
+            <span>·</span>
+            <span>{publication.publicationDate}</span>
+          </div>
+        )}
       </div>
     </section>
   );

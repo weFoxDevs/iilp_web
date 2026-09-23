@@ -9,6 +9,7 @@ import {
 } from "@/common/services/leadership.service";
 import { uploadMediaFile } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
+import ConfirmationModal from "./ConfirmationModal";
 
 interface LeadershipManagerProps {
   token: string;
@@ -24,6 +25,10 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Delete Confirmation State
+  const [memberToDelete, setMemberToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState<Partial<LeadershipMemberItem>>({
     name: "",
     role: "Vice President",
@@ -200,17 +205,19 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}" from the Leadership Directory?`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!memberToDelete) return;
 
+    setIsDeleting(true);
     try {
-      await deleteAdminLeadershipMember(token, id);
+      await deleteAdminLeadershipMember(token, memberToDelete.id);
       onShowToast("Leadership member deleted successfully", "success");
-      setMembers((prev) => prev.filter((m) => m.id !== id));
+      setMembers((prev) => prev.filter((m) => m.id !== memberToDelete.id));
+      setMemberToDelete(null);
     } catch (err: unknown) {
       onShowToast(err instanceof Error ? err.message : "Failed to delete member", "error");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -406,7 +413,7 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
                     </svg>
                   </button>
                   <button
-                    onClick={() => handleDelete(item.id, item.name)}
+                    onClick={() => setMemberToDelete({ id: item.id, name: item.name })}
                     className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer"
                     title="Delete Member"
                   >
@@ -656,6 +663,23 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={!!memberToDelete}
+        title="Delete Leadership Profile"
+        message={
+          <>
+            Are you sure you want to delete <strong className="text-gray-900 font-semibold">{memberToDelete?.name}</strong> from the Leadership Directory? This action cannot be undone.
+          </>
+        }
+        confirmLabel="Confirm Delete"
+        cancelLabel="Cancel"
+        isConfirming={isDeleting}
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setMemberToDelete(null)}
+      />
     </div>
   );
 }
