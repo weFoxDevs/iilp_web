@@ -309,6 +309,53 @@ export const defaultFoundingMembersMetadata: FoundingMembersMetadata = {
   members: defaultFoundingMembersList,
 };
 
+export interface PartnershipTrackItem {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface PartnershipTracksMetadata {
+  tracks: PartnershipTrackItem[];
+}
+
+export const defaultPartnershipTracksList: PartnershipTrackItem[] = [
+  {
+    icon: "🎓",
+    title: "University Partnerships",
+    description:
+      "Collaborative academic programs, joint research initiatives, student and faculty exchanges, and shared educational resources with universities worldwide.",
+  },
+  {
+    icon: "🔬",
+    title: "Research Collaborations",
+    description:
+      "Co-authorship of research publications, joint research projects, shared methodologies, and collaborative grant applications with research institutions.",
+  },
+  {
+    icon: "🌐",
+    title: "International Organizations",
+    description:
+      "Engagement with UN agencies, regional organizations, and international bodies to advance policy dialogue, advocacy, and institutional reform.",
+  },
+  {
+    icon: "🤝",
+    title: "NGO Partnerships",
+    description:
+      "Strategic partnerships with non-governmental organizations working on human rights, humanitarian affairs, development, and civic society engagement.",
+  },
+  {
+    icon: "🏛️",
+    title: "Government Partnerships",
+    description:
+      "Advisory and policy engagement with government ministries, agencies, and institutions committed to evidence-based governance and policy reform.",
+  },
+];
+
+export const defaultPartnershipTracksMetadata: PartnershipTracksMetadata = {
+  tracks: defaultPartnershipTracksList,
+};
+
 export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
   home: [
     { key: "hero", label: "Hero Banner", defaultTitle: "International Institute for Law and Politics (IILP)", defaultBadge: "Global Academic Network", defaultBgImage: "/assets/home-hero-v2.png" },
@@ -789,9 +836,31 @@ export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
     { key: "newsletter", label: "Newsletter Subscription", defaultTitle: "Subscribe to Our Dispatch" },
   ],
   partnerships: [
-    { key: "hero", label: "Partnerships Hero", defaultTitle: "Strategic Global Partnerships" },
-    { key: "framework_tracks", label: "Partnership Framework Tracks", defaultTitle: "Collaborative Tracks" },
-    { key: "become_partner", label: "Become a Partner", defaultTitle: "Partner With Us" },
+    {
+      key: "hero",
+      label: "Partnerships Hero",
+      defaultTitle: "Partnerships With Organization",
+      defaultBadge: "Partnerships",
+      defaultBgImage: "/assets/fellowship-hero-bg.png",
+    },
+    {
+      key: "tracks_intro",
+      label: "Partnership Framework Tracks",
+      defaultTitle: "Partnership Framework",
+      defaultBadge: "Global Network",
+      defaultSubtitle:
+        "IILP actively seeks partnerships across five tracks, each designed to amplify the impact of collaborative knowledge-building and policy engagement.",
+      defaultMetadata: defaultPartnershipTracksMetadata,
+    },
+    {
+      key: "become_partner_banner",
+      label: "Become an IILP Partner",
+      defaultTitle: "Become an IILP Partner",
+      defaultSubtitle:
+        "IILP welcomes new partnerships with institutions, organizations, and governments aligned with its mission. Contact us to discuss collaboration opportunities.",
+      defaultActionText: "Initiate Partnership Inquiry",
+      defaultActionUrl: "/contact",
+    },
   ],
   careers: [
     { key: "hero", label: "Careers Hero", defaultTitle: "Careers & Opportunities" },
@@ -1510,6 +1579,39 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
       setMetadataJson(JSON.stringify(updated, null, 2));
     } catch {
       const base = getFoundingMembersMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const getPartnershipTracksMetadata = (): PartnershipTracksMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed.tracks)) {
+        return {
+          tracks: parsed.tracks.map((t: any) => ({
+            icon: String(t?.icon ?? "🤝"),
+            title: String(t?.title ?? ""),
+            description: String(t?.description ?? ""),
+          })),
+        };
+      }
+      return defaultPartnershipTracksMetadata;
+    } catch {
+      return defaultPartnershipTracksMetadata;
+    }
+  };
+
+  const updatePartnershipTracksMetadata = (
+    updater: (prev: PartnershipTracksMetadata) => PartnershipTracksMetadata
+  ) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const base = getPartnershipTracksMetadata();
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+    } catch {
+      const base = getPartnershipTracksMetadata();
       const updated = updater(base);
       setMetadataJson(JSON.stringify(updated, null, 2));
     }
@@ -5468,6 +5570,237 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                       className="text-xs text-[#2563eb] hover:underline font-semibold cursor-pointer"
                     >
                       Reset to Default 3 Founding Members
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Partnership Framework Tracks Visual Manager */}
+              {(editingKey === "tracks_intro" ||
+                editingKey === "framework_tracks" ||
+                (selectedPage === "partnerships" &&
+                  (editingKey === "tracks_intro" ||
+                    editingKey === "framework_tracks" ||
+                    formData.sectionKey === "tracks_intro"))) && (
+                <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
+                      <h4 className="text-xs font-bold text-[#0369a1] uppercase tracking-wider">
+                        Partnership Framework Tracks ({getPartnershipTracksMetadata().tracks.length} Tracks)
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updatePartnershipTracksMetadata((prev) => ({
+                            ...prev,
+                            tracks: [
+                              ...prev.tracks,
+                              {
+                                icon: "🤝",
+                                title: "",
+                                description: "",
+                              },
+                            ],
+                          }));
+                        }}
+                        className="px-3 py-1 bg-[#0284c7] hover:bg-[#0369a1] text-white text-[11px] font-semibold rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>+ Add Track</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#0369a1]/80">
+                    Configure the partnership tracks displayed in the Partnership Framework section of the Partnerships page.
+                  </p>
+
+                  {/* Tracks List */}
+                  <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+                    {getPartnershipTracksMetadata().tracks.map((trackItem, idx) => (
+                      <div
+                        key={`partnership-track-${idx}`}
+                        className="bg-white p-3.5 rounded-xl border border-[#bae6fd] shadow-xs flex flex-col md:flex-row gap-4 items-start"
+                      >
+                        {/* Index & Order Controls */}
+                        <div className="flex md:flex-col items-center gap-1 shrink-0">
+                          <span className="w-8 h-8 rounded-lg bg-[#f0f9ff] border border-[#7dd3fc] text-[#0284c7] flex items-center justify-center text-xs font-bold font-mono">
+                            {String(idx + 1).padStart(2, "0")}
+                          </span>
+                          <div className="flex items-center gap-1 mt-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                updatePartnershipTracksMetadata((prev) => {
+                                  const list = [...prev.tracks];
+                                  const temp = list[idx - 1];
+                                  list[idx - 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, tracks: list };
+                                });
+                              }}
+                              className="w-6 h-6 rounded bg-[#f8fafc] border border-[#e2e8f0] text-gray-600 hover:bg-[#e2e8f0] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-xs cursor-pointer"
+                              title="Move Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === getPartnershipTracksMetadata().tracks.length - 1}
+                              onClick={() => {
+                                updatePartnershipTracksMetadata((prev) => {
+                                  const list = [...prev.tracks];
+                                  const temp = list[idx + 1];
+                                  list[idx + 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, tracks: list };
+                                });
+                              }}
+                              className="w-6 h-6 rounded bg-[#f8fafc] border border-[#e2e8f0] text-gray-600 hover:bg-[#e2e8f0] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-xs cursor-pointer"
+                              title="Move Down"
+                            >
+                              ▼
+                            </button>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`Remove "${trackItem.title || `Track #${idx + 1}`}"?`)) {
+                                updatePartnershipTracksMetadata((prev) => ({
+                                  ...prev,
+                                  tracks: prev.tracks.filter((_, i) => i !== idx),
+                                }));
+                              }
+                            }}
+                            className="mt-2 text-xs text-red-500 hover:text-red-700 hover:underline cursor-pointer"
+                          >
+                            Delete
+                          </button>
+                        </div>
+
+                        {/* Fields */}
+                        <div className="flex-1 w-full space-y-3">
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <div className="md:col-span-1">
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                                Icon / Emoji
+                              </label>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xl w-8 h-8 flex items-center justify-center bg-[#f0f9ff] border border-[#bae6fd] rounded-lg shrink-0">
+                                  {trackItem.icon || "🤝"}
+                                </span>
+                                <input
+                                  type="text"
+                                  value={trackItem.icon}
+                                  placeholder="e.g. 🎓 or 🔬"
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    updatePartnershipTracksMetadata((prev) => {
+                                      const list = [...prev.tracks];
+                                      list[idx] = { ...list[idx], icon: val };
+                                      return { ...prev, tracks: list };
+                                    });
+                                  }}
+                                  className="w-full text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 focus:border-[#0284c7] focus:outline-hidden"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="md:col-span-3">
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                                Track Title
+                              </label>
+                              <input
+                                type="text"
+                                value={trackItem.title}
+                                placeholder="e.g. University Partnerships"
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  updatePartnershipTracksMetadata((prev) => {
+                                    const list = [...prev.tracks];
+                                    list[idx] = { ...list[idx], title: val };
+                                    return { ...prev, tracks: list };
+                                  });
+                                }}
+                                className="w-full text-xs font-semibold border border-gray-300 rounded-lg px-2.5 py-1.5 focus:border-[#0284c7] focus:outline-hidden"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                              Track Description
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={trackItem.description}
+                              placeholder="Brief description of collaborative opportunities and scope..."
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                updatePartnershipTracksMetadata((prev) => {
+                                  const list = [...prev.tracks];
+                                  list[idx] = { ...list[idx], description: val };
+                                  return { ...prev, tracks: list };
+                                });
+                              }}
+                              className="w-full text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 focus:border-[#0284c7] focus:outline-hidden"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {getPartnershipTracksMetadata().tracks.length === 0 && (
+                    <div className="text-center py-6 border border-dashed border-[#bae6fd] rounded-xl bg-white">
+                      <p className="text-xs text-gray-500 mb-2">No partnership tracks configured yet.</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updatePartnershipTracksMetadata(() => defaultPartnershipTracksMetadata);
+                        }}
+                        className="text-xs text-[#0284c7] font-semibold hover:underline cursor-pointer"
+                      >
+                        Load Default 5 Partnership Tracks
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="pt-2 flex items-center justify-between border-t border-[#bae6fd]/60">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updatePartnershipTracksMetadata((prev) => ({
+                          ...prev,
+                          tracks: [
+                            ...prev.tracks,
+                            {
+                              icon: "🤝",
+                              title: "",
+                              description: "",
+                            },
+                          ],
+                        }));
+                      }}
+                      className="text-xs text-[#0284c7] hover:underline font-semibold cursor-pointer"
+                    >
+                      + Add Another Track
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset all tracks to the default 5 framework tracks?")) {
+                          updatePartnershipTracksMetadata(() => defaultPartnershipTracksMetadata);
+                        }
+                      }}
+                      className="text-xs text-[#0284c7] hover:underline font-semibold cursor-pointer"
+                    >
+                      Reset to Default 5 Tracks
                     </button>
                   </div>
                 </div>

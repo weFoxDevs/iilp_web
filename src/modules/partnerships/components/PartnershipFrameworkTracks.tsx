@@ -112,30 +112,38 @@ export default function PartnershipFrameworkTracks({ data }: PartnershipFramewor
             ))}
           </div>
 
-          {/* Bottom Row: 2 Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-            {bottomTracks.map((track, idx) => (
-              <div
-                key={idx}
-                className="bg-white border border-[#b0ebff] rounded-xl p-6 flex flex-col gap-6 items-start hover:shadow-md transition-shadow"
-              >
-                {/* Icon Container */}
-                <div className="bg-[#e6f9ff] border border-[#b0ebff] rounded-lg w-16 h-16 flex items-center justify-center text-2xl shrink-0">
-                  <span>{track.icon}</span>
-                </div>
+          {/* Bottom Row */}
+          {bottomTracks.length > 0 && (
+            <div
+              className={`grid grid-cols-1 ${
+                bottomTracks.length === 1
+                  ? "md:grid-cols-1 max-w-2xl mx-auto"
+                  : "md:grid-cols-2"
+              } gap-6 w-full`}
+            >
+              {bottomTracks.map((track, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white border border-[#b0ebff] rounded-xl p-6 flex flex-col gap-6 items-start hover:shadow-md transition-shadow"
+                >
+                  {/* Icon Container */}
+                  <div className="bg-[#e6f9ff] border border-[#b0ebff] rounded-lg w-16 h-16 flex items-center justify-center text-2xl shrink-0">
+                    <span>{track.icon}</span>
+                  </div>
 
-                {/* Content */}
-                <div className="flex flex-col gap-3">
-                  <h3 className="font-serif text-[#000080] text-2xl font-bold leading-tight">
-                    {track.title}
-                  </h3>
-                  <p className="font-sans font-normal text-base text-[#414651] leading-relaxed">
-                    {track.description}
-                  </p>
+                  {/* Content */}
+                  <div className="flex flex-col gap-3">
+                    <h3 className="font-serif text-[#000080] text-2xl font-bold leading-tight">
+                      {track.title}
+                    </h3>
+                    <p className="font-sans font-normal text-base text-[#414651] leading-relaxed">
+                      {track.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>
