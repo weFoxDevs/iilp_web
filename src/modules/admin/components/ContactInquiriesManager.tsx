@@ -74,18 +74,19 @@ export function ContactInquiriesManager({
         sortBy: "createdAt",
         order: "DESC",
       });
-      setInquiries(res.data || []);
+      const items = res.data || (res as any).items || [];
+      setInquiries(items);
       setStats(
         res.stats || {
-          total: 0,
+          total: items.length,
           unread: 0,
           read: 0,
           replied: 0,
           archived: 0,
         }
       );
-      setTotalPages(res.meta?.totalPages || 1);
-      setTotalCount(res.meta?.total || 0);
+      setTotalPages(res.meta?.totalPages || (res as any).totalPages || 1);
+      setTotalCount(res.meta?.total ?? (res as any).total ?? items.length);
     } catch (err: unknown) {
       onShowToastRef.current(
         err instanceof Error ? err.message : "Failed to load contact inquiries",

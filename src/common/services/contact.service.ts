@@ -34,12 +34,15 @@ export interface CreateContactInquiryPayload {
 
 export interface ContactInquiriesResponse {
   data: ContactInquiryItem[];
+  items?: ContactInquiryItem[];
   meta: {
     total: number;
     page: number;
     limit: number;
     totalPages: number;
   };
+  total?: number;
+  totalPages?: number;
   stats: {
     total: number;
     unread: number;
@@ -132,7 +135,40 @@ export async function getAdminContactInquiries(
     );
   }
 
-  return res.json();
+  const json = await res.json();
+  const items: ContactInquiryItem[] = Array.isArray(json.data)
+    ? json.data
+    : Array.isArray(json.items)
+    ? json.items
+    : Array.isArray(json)
+    ? json
+    : [];
+
+  const total = json.meta?.total ?? json.total ?? items.length;
+  const page = json.meta?.page ?? json.page ?? (params.page || 1);
+  const limit = json.meta?.limit ?? json.limit ?? (params.limit || 10);
+  const totalPages =
+    json.meta?.totalPages ?? json.totalPages ?? Math.max(1, Math.ceil(total / limit));
+
+  return {
+    data: items,
+    items,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages,
+    },
+    total,
+    totalPages,
+    stats: json.stats || {
+      total: items.length,
+      unread: 0,
+      read: 0,
+      replied: 0,
+      archived: 0,
+    },
+  };
 }
 
 /**
