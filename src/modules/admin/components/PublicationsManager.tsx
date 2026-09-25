@@ -482,6 +482,19 @@ export function PublicationsManager({ token, onShowToast }: PublicationsManagerP
                   </div>
 
                   <div className="flex items-center gap-1.5">
+                    <a
+                      href={pub.slug ? `/publications/${encodeURIComponent(pub.slug)}` : `/publication-details?id=${encodeURIComponent(pub.id)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 text-gray-400 hover:text-[#00698c] hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"
+                      title="View Live Publication"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                    </a>
                     <button
                       type="button"
                       onClick={() => handleOpenEdit(pub)}

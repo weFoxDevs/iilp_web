@@ -12,6 +12,125 @@ import {
   PublicationItem,
 } from "@/common/services/publications.service";
 
+const fallbackPublicationsMap: Record<string, PublicationItem> = {
+  "refugee-protection-in-a-fragmented-global-order-policy-priorities-for-2026": {
+    id: "pub-1",
+    slug: "refugee-protection-in-a-fragmented-global-order-policy-priorities-for-2026",
+    category: "Policy Briefs",
+    field: "Refugee & Displacement Studies",
+    publicationDate: "August 2026",
+    title: "Refugee Protection in a Fragmented Global Order: Policy Priorities for 2026",
+    description:
+      "This brief examines emerging protection gaps and proposes evidence-based recommendations for strengthening refugee protection mechanisms in the current global context.",
+    authorName: "IILP Research Directorate",
+    authorRole: "Policy Brief",
+    authorInitials: "RD",
+    image: "/assets/department-details-hero.png",
+    highlighted: false,
+    overview:
+      "As global displacement reaches unprecedented levels amidst shifting international norms, traditional refugee protection architectures face critical strain. This policy brief provides an analytical assessment of emerging protection gaps across key transit routes, the impact of externalized border regimes, and the challenges confronting the 1951 Refugee Convention in contemporary multi-crises.\n\nDrawing on empirical fieldwork and international humanitarian jurisprudence, this study highlights structural deficiencies in burden-sharing agreements and outlines immediate policy interventions required by regional and multilateral bodies to uphold non-refoulement, guarantee procedural fairness in asylum determinations, and foster durable, dignified integration pathways.",
+    purpose:
+      "To offer policymakers, legal advocates, and international organizations actionable legal and institutional recommendations to reinforce international refugee protection standards, address systemic vulnerabilities, and ensure resilient multilateral cooperation in times of geopolitical fragmentation.",
+    researchAreas: [
+      "Comprehensive analysis of contemporary international legal protection frameworks under the 1951 Convention",
+      "Critical evaluation of externalized border controls and their human rights implications",
+      "Assessment of equitable responsibility-sharing models across regional transit and destination states",
+      "Development of actionable policy protocols to safeguard vulnerable displaced populations and asylum seekers",
+      "Strategic recommendations for international human rights tribunals and humanitarian agencies",
+    ],
+    documentUrl: "https://example.com/papers/refugee-protection-2026.pdf",
+    sortOrder: 0,
+    isActive: true,
+  },
+  "international-humanitarian-law-in-emerging-conflicts-challenges-and-modern-frameworks": {
+    id: "pub-2",
+    slug: "international-humanitarian-law-in-emerging-conflicts-challenges-and-modern-frameworks",
+    category: "Research Papers",
+    field: "Human Rights & Conflict Resolution",
+    publicationDate: "August 2026",
+    title:
+      "International Humanitarian Law in Emerging Conflicts: Challenges and Modern Frameworks",
+    description:
+      "A comprehensive analysis of international humanitarian law compliance and enforcement dilemmas in non-international armed conflicts.",
+    authorName: "Dr. Elena Rostova",
+    authorRole: "Senior Fellow",
+    authorInitials: "ER",
+    image: "/assets/department-details-hero.png",
+    highlighted: true,
+    overview:
+      "Non-international armed conflicts (NIACs) have become the predominant form of modern warfare, posing profound challenges to the Geneva Conventions and Additional Protocols. This research paper evaluates the application of customary international humanitarian law (IHL) in asymmetric combat environments, urban warfare contexts, and the deployment of autonomous weapon systems.\n\nThrough rigorous case evaluations and comparative jurisprudence from international criminal courts, the authors articulate the urgent need for harmonized interpretative guidelines that govern non-state armed actors and reinforce civilian protection norms.",
+    purpose:
+      "To bridge doctrinal gaps between traditional IHL codifications and modern conflict dynamics, providing military legal advisors, diplomats, and international jurists with rigorous legal clarity on combatant accountability and humanitarian compliance.",
+    researchAreas: [
+      "Application of the principle of distinction in asymmetric urban warfare environments",
+      "Legal accountability and customary obligations binding non-state armed entities",
+      "Emerging regulatory frameworks for algorithmic decision-making and autonomous weapons in combat",
+      "Prosecutorial strategies and evidentiary standards before international criminal tribunals",
+    ],
+    documentUrl: "https://example.com/papers/ihl-emerging-conflicts.pdf",
+    sortOrder: 1,
+    isActive: true,
+  },
+  "constitutional-transformations-and-democratic-resilience-in-comparative-perspective": {
+    id: "pub-3",
+    slug: "constitutional-transformations-and-democratic-resilience-in-comparative-perspective",
+    category: "Working Papers",
+    field: "Comparative Politics & Governance",
+    publicationDate: "July 2026",
+    title:
+      "Constitutional Transformations and Democratic Resilience in Comparative Perspective",
+    description:
+      "Examining institutional counterbalances and constitutional judiciary performance amidst rising polarization and democratic erosion.",
+    authorName: "Prof. Marcus Thorne",
+    authorRole: "Principal Investigator",
+    authorInitials: "MT",
+    image: "/assets/department-details-hero.png",
+    highlighted: false,
+    overview:
+      "This working paper interrogates the institutional mechanisms that enable constitutional democracies to withstand systemic stress, partisan capture, and subtle executive aggrandizement. Comparative data across twelve jurisdictions in the Global South and North provides evidence on judicial independence, electoral integrity commissions, and civic counter-weights.\n\nThe findings demonstrate that constitutional courts alone cannot preserve democratic stability without robust structural separation of powers and participatory civic engagement.",
+    purpose:
+      "To examine constitutional engineering strategies that enhance institutional resilience against autocratization and safeguard democratic values across diverse constitutional jurisdictions.",
+    researchAreas: [
+      "Comparative structural analysis of constitutional courts and judicial review efficacy",
+      "Safeguards against unconstitutional constitutional amendments and executive overreach",
+      "Institutional design of independent electoral commissions and integrity oversight bodies",
+      "The role of subnational governance in buffering central democratic regressions",
+    ],
+    documentUrl: "https://example.com/papers/constitutional-transformations-2026.pdf",
+    sortOrder: 2,
+    isActive: true,
+  },
+  "geopolitical-realignments-and-multilateral-treaties-negotiating-global-climate-action": {
+    id: "pub-4",
+    slug: "geopolitical-realignments-and-multilateral-treaties-negotiating-global-climate-action",
+    category: "Research Reports",
+    field: "International Environmental Law",
+    publicationDate: "June 2026",
+    title:
+      "Geopolitical Realignments and Multilateral Treaties: Negotiating Global Climate Action",
+    description:
+      "A strategic policy report on multilateral treaty mechanisms, compliance incentives, and state accountability in transboundary environmental agreements.",
+    authorName: "IILP Climate Law Working Group",
+    authorRole: "Research Report",
+    authorInitials: "CL",
+    image: "/assets/department-details-hero.png",
+    highlighted: false,
+    overview:
+      "Global climate treaties are increasingly mediated by shifting geopolitical alliances, economic sanctions, and green industrial policies. This report synthesizes multilateral negotiations under the UNFCCC framework with international trade and investment regimes to identify pathways for enforceable transboundary environmental compliance.\n\nIt assesses loss-and-damage mechanisms, carbon border adjustments, and the burgeoning advisory jurisdiction of the International Court of Justice on state climate responsibilities.",
+    purpose:
+      "To provide state delegations, international negotiators, and civil society observers with an analytical roadmap for reconciling international trade law with ambitious multilateral climate treaty commitments.",
+    researchAreas: [
+      "Jurisprudential analysis of international advisory opinions on state climate responsibilities",
+      "Interactions between WTO trade disciplines and transboundary carbon border adjustments",
+      "Financing frameworks and dispute resolution under international loss-and-damage agreements",
+      "Multilateral environmental agreement enforcement and dispute settlement mechanisms",
+    ],
+    documentUrl: "https://example.com/papers/climate-action-treaties-2026.pdf",
+    sortOrder: 3,
+    isActive: true,
+  },
+};
+
 export default function PublicationDynamicDetailsPage() {
   const router = useRouter();
   const { slug } = router.query;
@@ -27,16 +146,29 @@ export default function PublicationDynamicDetailsPage() {
 
     fetchPublicPublicationByIdentifier(slug)
       .then((data) => {
-        if (isMounted) {
+        if (!isMounted) return;
+        if (data) {
           setPublication(data);
-          setIsLoading(false);
+        } else {
+          // Check fallback map
+          const fallback =
+            fallbackPublicationsMap[slug] ||
+            Object.values(fallbackPublicationsMap).find(
+              (p) => p.id === slug || p.slug === slug
+            );
+          setPublication(fallback || null);
         }
+        setIsLoading(false);
       })
       .catch(() => {
-        if (isMounted) {
-          setPublication(null);
-          setIsLoading(false);
-        }
+        if (!isMounted) return;
+        const fallback =
+          fallbackPublicationsMap[slug] ||
+          Object.values(fallbackPublicationsMap).find(
+            (p) => p.id === slug || p.slug === slug
+          );
+        setPublication(fallback || null);
+        setIsLoading(false);
       });
 
     return () => {

@@ -116,8 +116,10 @@ export function transformApiEventToEventItem(apiEvent: ApiEvent): EventItem {
 
   return {
     id: apiEvent.slug || apiEvent.id,
+    slug: apiEvent.slug || apiEvent.id,
     title: apiEvent.title,
     description: apiEvent.description,
+    shortSummary: apiEvent.shortSummary || undefined,
     month,
     day,
     fullDate,
@@ -126,8 +128,14 @@ export function transformApiEventToEventItem(apiEvent: ApiEvent): EventItem {
     mode: normalizedMode,
     category: normalizedCat,
     venues: venues.length > 0 ? venues : [{ name: 'IILP Global Hub', type: 'campus' }],
-    image: apiEvent.imageUrl || '/images/events/default-event.jpg',
+    image: apiEvent.imageUrl || apiEvent.bannerImage || '/assets/events-conference-summit.jpg',
     isPopular: apiEvent.isHighlighted,
+    isRegistrationOpen: apiEvent.isRegistrationOpen ?? true,
+    seatsCapacity: apiEvent.seatsCapacity,
+    seatsReserved: apiEvent.seatsReserved,
+    relatedEvents: Array.isArray((apiEvent as any).relatedEvents)
+      ? (apiEvent as any).relatedEvents.map(transformApiEventToEventItem)
+      : undefined,
   };
 }
 

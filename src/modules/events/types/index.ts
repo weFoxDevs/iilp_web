@@ -15,8 +15,10 @@ export interface EventVenue {
 
 export interface EventItem {
   id: string;
+  slug?: string;
   title: string;
   description: string;
+  shortSummary?: string;
   month: string;
   day: string;
   fullDate: string;
@@ -27,6 +29,10 @@ export interface EventItem {
   venues: EventVenue[];
   image: string;
   isPopular?: boolean;
+  isRegistrationOpen?: boolean;
+  seatsCapacity?: number;
+  seatsReserved?: number;
+  relatedEvents?: EventItem[];
 }
 
 export interface RegistrationFormData {

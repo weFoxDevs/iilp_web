@@ -15,6 +15,7 @@ import { NewsManager } from "@/modules/admin/components/NewsManager";
 import { FellowshipApplicationsManager } from "@/modules/admin/components/FellowshipApplicationsManager";
 import { LeadershipManager } from "@/modules/admin/components/LeadershipManager";
 import { PublicationsManager } from "@/modules/admin/components/PublicationsManager";
+import { ContactInquiriesManager } from "@/modules/admin/components/ContactInquiriesManager";
 import { ProfileSettings } from "@/modules/admin/components/ProfileSettings";
 
 interface DashboardMetrics {
@@ -22,6 +23,15 @@ interface DashboardMetrics {
   totalDepartments: number;
   totalRoles: number;
   totalPermissions: number;
+  totalEvents?: number;
+  upcomingEvents?: number;
+  totalFellowships?: number;
+  pendingFellowships?: number;
+  totalInquiries?: number;
+  unreadInquiries?: number;
+  totalNews?: number;
+  totalPublications?: number;
+  totalLeadership?: number;
   systemStatus: string;
 }
 
@@ -31,6 +41,34 @@ interface RecentUser {
   email: string;
   role: string;
   joinedAt: string;
+}
+
+interface RecentInquiry {
+  id: string;
+  firstName: string;
+  lastName: string;
+  organization: string;
+  subject: string;
+  status: string;
+  createdAt: string;
+}
+
+interface RecentFellowship {
+  id: string;
+  firstName: string;
+  lastName: string;
+  country: string;
+  fellowshipType: string;
+  status: string;
+  createdAt: string;
+}
+
+interface RecentEvent {
+  id: string;
+  title: string;
+  category: string;
+  startDate: string;
+  status: string;
 }
 
 interface SystemInfo {
@@ -44,6 +82,13 @@ interface SystemInfo {
 interface DashboardSummary {
   metrics: DashboardMetrics;
   recentUsers: RecentUser[];
+  recentInquiries?: RecentInquiry[];
+  recentFellowships?: RecentFellowship[];
+  recentEvents?: RecentEvent[];
+  departmentsSummary?: {
+    total: number;
+    preview: { id: string; name: string; code: string }[];
+  };
   systemInfo: SystemInfo;
 }
 
@@ -79,6 +124,7 @@ const VALID_TABS = [
   "role-manage",
   "events",
   "fellowship-applications",
+  "contact-inquiries",
   "leadership",
   "news",
   "site-layout",
@@ -95,6 +141,261 @@ type TabType = (typeof VALID_TABS)[number];
 const isTabType = (val: unknown): val is TabType => {
   return typeof val === "string" && (VALID_TABS as readonly string[]).includes(val);
 };
+
+export const TAB_PERMISSION_MAP: Record<TabType, string[]> = {
+  overview: ["dashboard:view"],
+  "admin-manage": ["user:view"],
+  "role-manage": ["role:view"],
+  events: ["event:view"],
+  "fellowship-applications": ["fellowship:view"],
+  "contact-inquiries": ["contact:view"],
+  "site-layout": ["site_layout:view"],
+  "page-content": ["page_content:view"],
+  leadership: ["leadership:view"],
+  news: ["news:view"],
+  publications: ["publication:view"],
+  "site-metrics": ["site_metrics:view"],
+  testimonials: ["testimonial:view"],
+  departments: ["department:view"],
+  profile: [],
+};
+
+export const PERMISSION_CATEGORY_MAP: Record<string, { label: string; icon: string }> = {
+  dashboard: { label: "Executive Dashboard", icon: "📊" },
+  user: { label: "Administrator Accounts", icon: "👤" },
+  role: { label: "Roles & Access Control", icon: "🛡️" },
+  permission: { label: "System Permissions", icon: "🔑" },
+  department: { label: "Academic Departments", icon: "🏛️" },
+  event: { label: "Events & Symposia", icon: "📅" },
+  fellowship: { label: "Fellowship Applications", icon: "🎓" },
+  contact: { label: "Contact Inquiries", icon: "✉️" },
+  page_content: { label: "Page Content (CMS)", icon: "📄" },
+  site_layout: { label: "Site Layout & Branding", icon: "🎨" },
+  leadership: { label: "Leadership Directory", icon: "👥" },
+  news: { label: "News & Media Articles", icon: "📰" },
+  publication: { label: "Research Publications", icon: "📚" },
+  site_metrics: { label: "Site Impact Metrics", icon: "📈" },
+  testimonial: { label: "Testimonials", icon: "💬" },
+  upload: { label: "Media & File Uploads", icon: "📁" },
+};
+
+function PermissionMatrixSelector({
+  permissions,
+  selectedIds,
+  onToggle,
+  onToggleCategory,
+  onToggleAll,
+}: {
+  permissions: PermissionItem[];
+  selectedIds: number[];
+  onToggle: (id: number) => void;
+  onToggleCategory: (category: string, permIds: number[]) => void;
+  onToggleAll: () => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [activeDomain, setActiveDomain] = useState<string>("all");
+
+  const groups = React.useMemo(() => {
+    const map: Record<string, PermissionItem[]> = {};
+    permissions.forEach((p) => {
+      const cat = p.name.includes(":") ? p.name.split(":")[0] : "general";
+      if (!map[cat]) map[cat] = [];
+      map[cat].push(p);
+    });
+    return map;
+  }, [permissions]);
+
+  const domainTabs = React.useMemo(() => [
+    { id: "all", label: "All Modules", icon: "🌐", cats: [] },
+    { id: "admin", label: "Admin & Security", icon: "🛡️", cats: ["dashboard", "user", "role", "permission"] },
+    { id: "academic", label: "Academics & Events", icon: "🎓", cats: ["department", "event", "fellowship"] },
+    { id: "content", label: "CMS & Publications", icon: "📰", cats: ["page_content", "site_layout", "leadership", "news", "publication", "testimonial", "site_metrics"] },
+    { id: "system", label: "Inquiries & Storage", icon: "📁", cats: ["contact", "upload"] },
+  ], []);
+
+  const filteredCategories = Object.entries(groups).filter(([cat, perms]) => {
+    if (activeDomain !== "all") {
+      const domain = domainTabs.find((d) => d.id === activeDomain);
+      if (domain && domain.cats.length > 0 && !domain.cats.includes(cat)) {
+        return false;
+      }
+    }
+    if (!search) return true;
+    const lower = search.toLowerCase();
+    const catLabel = PERMISSION_CATEGORY_MAP[cat]?.label || cat;
+    return (
+      cat.toLowerCase().includes(lower) ||
+      catLabel.toLowerCase().includes(lower) ||
+      perms.some(
+        (p) =>
+          p.name.toLowerCase().includes(lower) ||
+          (p.description && p.description.toLowerCase().includes(lower))
+      )
+    );
+  });
+
+  const percentSelected = Math.round((selectedIds.length / (permissions.length || 1)) * 100);
+
+  return (
+    <div className="space-y-3 font-sans">
+      {/* Top Filter and Controls Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-[#f8fafc] border border-[#e2e8f0] p-2.5 sm:p-3 rounded-xl">
+        <div className="relative flex-1">
+          <span className="absolute left-3 top-2 text-xs text-[#6a7282]">🔍</span>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search permissions by keyword or action (e.g. user, export, delete)..."
+            className="w-full bg-white border border-[#d5d5ed] rounded-lg pl-8 pr-8 py-1.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-1 focus:ring-[#00bfff]"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2.5 top-1.5 text-xs text-[#6a7282] hover:text-[#0a0d12] cursor-pointer"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-[#b0ebff] shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-[#00bfff] animate-pulse"></span>
+            <span className="text-[11px] text-[#00698c] font-bold">
+              {selectedIds.length} / {permissions.length} Selected ({percentSelected}%)
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={onToggleAll}
+            className="px-3 py-1 rounded-lg text-xs font-semibold bg-[#e6f9ff] hover:bg-[#b0ebff]/50 text-[#00698c] border border-[#b0ebff] cursor-pointer transition-colors"
+          >
+            {selectedIds.length === permissions.length ? "Deselect All" : "Select All (50)"}
+          </button>
+        </div>
+      </div>
+
+      {/* Domain Quick Tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
+        {domainTabs.map((tab) => {
+          const isActive = activeDomain === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveDomain(tab.id)}
+              className={`flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold transition-all whitespace-nowrap cursor-pointer border ${
+                isActive
+                  ? "bg-[#000080] text-white border-[#000080] shadow-2xs"
+                  : "bg-white text-[#4a5565] border-[#d5d5ed] hover:bg-gray-50 hover:text-[#000080]"
+              }`}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 2-Column Categories Grid with Generous Height */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 max-h-[58vh] overflow-y-auto pr-1.5 modal-scroll">
+        {filteredCategories.map(([cat, perms]) => {
+          const info = PERMISSION_CATEGORY_MAP[cat] || {
+            label: cat.toUpperCase(),
+            icon: "⚙️",
+          };
+          const categoryIds = perms.map((p) => p.id);
+          const selectedInCategory = categoryIds.filter((id) => selectedIds.includes(id)).length;
+          const allCatSelected = categoryIds.length > 0 && selectedInCategory === categoryIds.length;
+
+          return (
+            <div
+              key={cat}
+              className="border border-[#b0ebff]/80 rounded-xl overflow-hidden bg-white shadow-2xs hover:shadow-xs transition-shadow flex flex-col"
+            >
+              <div className="flex items-center justify-between px-3.5 py-2.5 bg-[#f4faff] border-b border-[#e5e7eb]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-sm shrink-0">{info.icon}</span>
+                  <span className="font-bold text-xs text-[#000080] truncate">{info.label}</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-white border border-[#b0ebff] text-[#00698c] shrink-0">
+                    {selectedInCategory}/{perms.length}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onToggleCategory(cat, categoryIds)}
+                  className={`text-[11px] font-semibold px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                    allCatSelected
+                      ? "text-red-600 hover:bg-red-50"
+                      : "text-[#00698c] hover:bg-[#e6f9ff]"
+                  }`}
+                >
+                  {allCatSelected ? "Deselect Group" : "Select Group"}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-2.5 bg-gray-50/40 flex-1">
+                {perms.map((p) => {
+                  const isChecked = selectedIds.includes(p.id);
+                  const action = p.name.includes(":") ? p.name.split(":")[1] : "action";
+                  let actionColor = "bg-blue-50 text-blue-700 border-blue-200";
+                  if (action === "create") actionColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                  else if (action === "update") actionColor = "bg-amber-50 text-amber-700 border-amber-200";
+                  else if (action === "delete") actionColor = "bg-red-50 text-red-700 border-red-200";
+                  else if (action === "export") actionColor = "bg-purple-50 text-purple-700 border-purple-200";
+
+                  return (
+                    <label
+                      key={p.id}
+                      className={`flex items-start gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
+                        isChecked
+                          ? "bg-[#eef9ff] border-[#00bfff] text-[#000080] shadow-2xs"
+                          : "bg-white border-gray-200 text-[#4a5565] hover:bg-white hover:border-[#b0ebff]"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => onToggle(p.id)}
+                        className="rounded text-[#00bfff] focus:ring-[#00bfff] mt-0.5 cursor-pointer"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span
+                            className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase tracking-wider border ${actionColor}`}
+                          >
+                            {action}
+                          </span>
+                          <span className="font-mono text-[11px] font-semibold text-[#0a0d12] truncate">
+                            {p.name}
+                          </span>
+                        </div>
+                        {p.description && (
+                          <p className="text-[10px] text-[#6a7282] line-clamp-1 mt-0.5">
+                            {p.description}
+                          </p>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {filteredCategories.length === 0 && (
+        <div className="text-center py-10 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-xs text-[#6a7282]">
+          No permissions found matching "{search}".
+        </div>
+      )}
+    </div>
+  );
+}
 
 const getInitialTab = (): TabType => {
   if (typeof window !== "undefined") {
@@ -117,65 +418,73 @@ function AdminRoleSubNav({
   onSelect,
   adminCount,
   roleCount,
+  canManageAdmins = true,
+  canManageRoles = true,
 }: {
   active: "admin-manage" | "role-manage";
   onSelect: (tab: "admin-manage" | "role-manage") => void;
   adminCount: number;
   roleCount: number;
+  canManageAdmins?: boolean;
+  canManageRoles?: boolean;
 }) {
   return (
     <div className="flex items-center gap-1.5 p-1.5 bg-white border border-[#b0ebff] rounded-2xl w-fit shadow-xs">
-      <button
-        onClick={() => onSelect("admin-manage")}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-          active === "admin-manage"
-            ? "bg-[#000080] text-white shadow-xs"
-            : "text-[#00698c] hover:bg-[#f4faff] hover:text-[#000080]"
-        }`}
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-        <span>Administrator Accounts</span>
-        <span
-          className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+      {canManageAdmins && (
+        <button
+          onClick={() => onSelect("admin-manage")}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             active === "admin-manage"
-              ? "bg-white/20 text-white"
-              : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+              ? "bg-[#000080] text-white shadow-xs"
+              : "text-[#00698c] hover:bg-[#f4faff] hover:text-[#000080]"
           }`}
         >
-          {adminCount}
-        </span>
-      </button>
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span>Administrator Accounts</span>
+          <span
+            className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+              active === "admin-manage"
+                ? "bg-white/20 text-white"
+                : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+            }`}
+          >
+            {adminCount}
+          </span>
+        </button>
+      )}
 
-      <button
-        onClick={() => onSelect("role-manage")}
-        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-          active === "role-manage"
-            ? "bg-[#000080] text-white shadow-xs"
-            : "text-[#00698c] hover:bg-[#f4faff] hover:text-[#000080]"
-        }`}
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-        <span>Roles &amp; Permissions</span>
-        <span
-          className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+      {canManageRoles && (
+        <button
+          onClick={() => onSelect("role-manage")}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             active === "role-manage"
-              ? "bg-white/20 text-white"
-              : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+              ? "bg-[#000080] text-white shadow-xs"
+              : "text-[#00698c] hover:bg-[#f4faff] hover:text-[#000080]"
           }`}
         >
-          {roleCount}
-        </span>
-      </button>
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <span>Roles &amp; Permissions</span>
+          <span
+            className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+              active === "role-manage"
+                ? "bg-white/20 text-white"
+                : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+            }`}
+          >
+            {roleCount}
+          </span>
+        </button>
+      )}
     </div>
   );
 }
 
 export default function AdminDashboard() {
-  const { user, token, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, token, isAuthenticated, isLoading, logout, hasPermission, hasAnyPermission } = useAuth();
   const router = useRouter();
 
   // Navigation state (restores tab from URL query or localStorage on initial render)
@@ -192,6 +501,8 @@ export default function AdminDashboard() {
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [lastSynced, setLastSynced] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Modals state - Admin User
   const [createAdminModalOpen, setCreateAdminModalOpen] = useState(false);
@@ -244,6 +555,7 @@ export default function AdminDashboard() {
       }
       const summaryJson: DashboardSummary = await summaryRes.json();
       setSummary(summaryJson);
+      setLastSynced(new Date());
 
       // 2. Fetch Admin Users
       const usersRes = await fetch(`${apiUrl}/users`, {
@@ -287,6 +599,13 @@ export default function AdminDashboard() {
       setIsDataLoading(false);
     }
   }, [token, apiUrl, logout]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchDashboardData();
+    setIsRefreshing(false);
+    setToast({ message: "Dashboard metrics synchronized with live database.", type: "success" });
+  };
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -680,6 +999,29 @@ export default function AdminDashboard() {
     }
   };
 
+  const togglePermissionCategory = (categoryKey: string, categoryPermIds: number[]) => {
+    setRoleFormData((prev) => {
+      const allSelected = categoryPermIds.every((id) => prev.permissionIds.includes(id));
+      let nextIds: number[];
+      if (allSelected) {
+        nextIds = prev.permissionIds.filter((id) => !categoryPermIds.includes(id));
+      } else {
+        const toAdd = categoryPermIds.filter((id) => !prev.permissionIds.includes(id));
+        nextIds = [...prev.permissionIds, ...toAdd];
+      }
+      return { ...prev, permissionIds: nextIds };
+    });
+  };
+
+  const canAccessTab = useCallback(
+    (tab: TabType): boolean => {
+      const required = TAB_PERMISSION_MAP[tab];
+      if (!required || required.length === 0) return true;
+      return hasAnyPermission(required);
+    },
+    [hasAnyPermission]
+  );
+
   // Filtered users for search
   const filteredUsers = adminUsers.filter(
     (u) =>
@@ -760,213 +1102,266 @@ export default function AdminDashboard() {
           data-lenis-prevent="true"
         >
           {/* Section: Overview */}
-          <div className="space-y-1">
-            <div className="px-2.5 text-[11px] font-bold uppercase tracking-wider text-[#6a7282]">
-              Overview
+          {canAccessTab("overview") && (
+            <div className="space-y-1">
+              <div className="px-2.5 text-[11px] font-bold uppercase tracking-wider text-[#6a7282]">
+                Overview
+              </div>
+              <button
+                onClick={() => handleTabChange("overview")}
+                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
+                  activeTab === "overview"
+                    ? "bg-[#000080] text-white shadow-xs font-bold"
+                    : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                }`}
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
+                </svg>
+                <span className="truncate whitespace-nowrap">Dashboard Overview</span>
+              </button>
             </div>
-            <button
-              onClick={() => handleTabChange("overview")}
-              className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
-                activeTab === "overview"
-                  ? "bg-[#000080] text-white shadow-xs font-bold"
-                  : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-              }`}
-            >
-              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
-              </svg>
-              <span className="truncate whitespace-nowrap">Dashboard Overview</span>
-            </button>
-          </div>
+          )}
 
           {/* Section: Access & Role Management */}
-          <div className="space-y-1 pt-1">
-            <div className="px-2.5 text-[11px] font-bold uppercase tracking-wider text-[#6a7282]">
-              Access &amp; Security
-            </div>
-            
-            {/* Collapsible Group Header */}
-            <button
-              onClick={() => setAdminMenuOpen(!adminMenuOpen)}
-              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "admin-manage" || activeTab === "role-manage"
-                  ? "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
-                  : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-              }`}
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                  activeTab === "admin-manage" || activeTab === "role-manage"
-                    ? "bg-[#00bfff] text-white"
-                    : "bg-[#f0f4f8] text-[#4a5565]"
-                }`}>
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <span className="font-bold truncate whitespace-nowrap">Admin &amp; Role Management</span>
+          {(canAccessTab("admin-manage") || canAccessTab("role-manage")) && (
+            <div className="space-y-1 pt-1">
+              <div className="px-2.5 text-[11px] font-bold uppercase tracking-wider text-[#6a7282]">
+                Access &amp; Security
               </div>
               
-              <div className="flex items-center gap-1 shrink-0 ml-1.5">
-                <span className="px-1.5 py-0.5 rounded-full bg-white/90 border border-[#b0ebff] text-[10px] font-extrabold text-[#00698c] leading-none">
-                  {adminUsers.length + roles.length}
-                </span>
-                <svg
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                    adminMenuOpen ? "rotate-180 text-[#00698c]" : "text-[#4a5565]"
-                  }`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </button>
-
-            {/* Sub-items */}
-            {adminMenuOpen && (
-              <div className="pl-2 pr-0 py-1 space-y-1 ml-2.5 border-l-2 border-[#b0ebff]">
-                {/* Sub-item: Admin Accounts */}
-                <button
-                  onClick={() => handleTabChange("admin-manage")}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === "admin-manage"
-                      ? "bg-[#000080] text-white shadow-xs font-bold"
-                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span className="truncate whitespace-nowrap">Admin Accounts</span>
-                  </div>
-                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
-                    activeTab === "admin-manage"
-                      ? "bg-white/20 text-white"
-                      : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+              {/* Collapsible Group Header */}
+              <button
+                onClick={() => setAdminMenuOpen(!adminMenuOpen)}
+                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === "admin-manage" || activeTab === "role-manage"
+                    ? "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                    : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                }`}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                    activeTab === "admin-manage" || activeTab === "role-manage"
+                      ? "bg-[#00bfff] text-white"
+                      : "bg-[#f0f4f8] text-[#4a5565]"
                   }`}>
-                    {adminUsers.length}
-                  </span>
-                </button>
-
-                {/* Sub-item: Role Management */}
-                <button
-                  onClick={() => handleTabChange("role-manage")}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === "role-manage"
-                      ? "bg-[#000080] text-white shadow-xs font-bold"
-                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
-                    <span className="truncate whitespace-nowrap">Role Management</span>
                   </div>
-                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
-                    activeTab === "role-manage"
-                      ? "bg-white/20 text-white"
-                      : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
-                  }`}>
-                    {roles.length}
+                  <span className="font-bold truncate whitespace-nowrap">Admin &amp; Role Management</span>
+                </div>
+                
+                <div className="flex items-center gap-1 shrink-0 ml-1.5">
+                  <span className="px-1.5 py-0.5 rounded-full bg-white/90 border border-[#b0ebff] text-[10px] font-extrabold text-[#00698c] leading-none">
+                    {adminUsers.length + roles.length}
                   </span>
-                </button>
-              </div>
-            )}
-          </div>
+                  <svg
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      adminMenuOpen ? "rotate-180 text-[#00698c]" : "text-[#4a5565]"
+                    }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </button>
+
+              {/* Sub-items */}
+              {adminMenuOpen && (
+                <div className="pl-2 pr-0 py-1 space-y-1 ml-2.5 border-l-2 border-[#b0ebff]">
+                  {/* Sub-item: Admin Accounts */}
+                  {canAccessTab("admin-manage") && (
+                    <button
+                      onClick={() => handleTabChange("admin-manage")}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activeTab === "admin-manage"
+                          ? "bg-[#000080] text-white shadow-xs font-bold"
+                          : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span className="truncate whitespace-nowrap">Admin Accounts</span>
+                      </div>
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                        activeTab === "admin-manage"
+                          ? "bg-white/20 text-white"
+                          : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                      }`}>
+                        {adminUsers.length}
+                      </span>
+                    </button>
+                  )}
+
+                  {/* Sub-item: Role Management */}
+                  {canAccessTab("role-manage") && (
+                    <button
+                      onClick={() => handleTabChange("role-manage")}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activeTab === "role-manage"
+                          ? "bg-[#000080] text-white shadow-xs font-bold"
+                          : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <span className="truncate whitespace-nowrap">Role Management</span>
+                      </div>
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                        activeTab === "role-manage"
+                          ? "bg-white/20 text-white"
+                          : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                      }`}>
+                        {roles.length}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Section: Academic Programs & Events */}
-          <div className="space-y-1 pt-1">
-            <div className="px-2.5 text-[11px] font-bold uppercase tracking-wider text-[#6a7282]">
-              Academic Programs
+          {(canAccessTab("events") || canAccessTab("fellowship-applications") || canAccessTab("contact-inquiries")) && (
+            <div className="space-y-1 pt-1">
+              <div className="px-2.5 text-[11px] font-bold uppercase tracking-wider text-[#6a7282]">
+                Academic Programs
+              </div>
+
+              {canAccessTab("events") && (
+                <button
+                  onClick={() => handleTabChange("events")}
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "events"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                      activeTab === "events"
+                        ? "bg-[#00bfff] text-white"
+                        : "bg-[#f0f4f8] text-[#4a5565]"
+                    }`}>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <span className="font-bold truncate whitespace-nowrap">Events &amp; Symposia</span>
+                  </div>
+                  {typeof summary?.metrics.totalEvents === "number" && (
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                      activeTab === "events"
+                        ? "bg-white/20 text-white"
+                        : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                    }`}>
+                      {summary.metrics.totalEvents}
+                    </span>
+                  )}
+                </button>
+              )}
+
+              {canAccessTab("fellowship-applications") && (
+                <button
+                  onClick={() => handleTabChange("fellowship-applications")}
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "fellowship-applications"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                      activeTab === "fellowship-applications"
+                        ? "bg-[#00bfff] text-white"
+                        : "bg-[#f0f4f8] text-[#4a5565]"
+                    }`}>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                      </svg>
+                    </div>
+                    <span className="font-bold truncate whitespace-nowrap">Fellowships</span>
+                  </div>
+                  {typeof summary?.metrics.totalFellowships === "number" && (
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                      activeTab === "fellowship-applications"
+                        ? "bg-white/20 text-white"
+                        : summary.metrics.pendingFellowships
+                        ? "bg-amber-100 text-amber-800 border border-amber-300"
+                        : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                    }`}>
+                      {summary.metrics.pendingFellowships
+                        ? `${summary.metrics.pendingFellowships} Pnd`
+                        : summary.metrics.totalFellowships}
+                    </span>
+                  )}
+                </button>
+              )}
+
+              {canAccessTab("contact-inquiries") && (
+                <button
+                  onClick={() => handleTabChange("contact-inquiries")}
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "contact-inquiries"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                      activeTab === "contact-inquiries"
+                        ? "bg-[#00bfff] text-white"
+                        : "bg-[#f0f4f8] text-[#4a5565]"
+                    }`}>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <span className="font-bold truncate whitespace-nowrap">Contact Messages</span>
+                  </div>
+                  {typeof summary?.metrics.totalInquiries === "number" && (
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                      activeTab === "contact-inquiries"
+                        ? "bg-white/20 text-white"
+                        : summary.metrics.unreadInquiries
+                        ? "bg-red-100 text-red-700 border border-red-300 animate-pulse"
+                        : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                    }`}>
+                      {summary.metrics.unreadInquiries
+                        ? `${summary.metrics.unreadInquiries} New`
+                        : summary.metrics.totalInquiries}
+                    </span>
+                  )}
+                </button>
+              )}
             </div>
-
-            <button
-              onClick={() => handleTabChange("events")}
-              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "events"
-                  ? "bg-[#000080] text-white shadow-xs font-bold"
-                  : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-              }`}
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                  activeTab === "events"
-                    ? "bg-[#00bfff] text-white"
-                    : "bg-[#f0f4f8] text-[#4a5565]"
-                }`}>
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <span className="font-bold truncate whitespace-nowrap">Events &amp; Symposia</span>
-              </div>
-            </button>
-
-            <button
-              onClick={() => handleTabChange("fellowship-applications")}
-              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "fellowship-applications"
-                  ? "bg-[#000080] text-white shadow-xs font-bold"
-                  : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-              }`}
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                  activeTab === "fellowship-applications"
-                    ? "bg-[#00bfff] text-white"
-                    : "bg-[#f0f4f8] text-[#4a5565]"
-                }`}>
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                  </svg>
-                </div>
-                <span className="font-bold truncate whitespace-nowrap">Fellowships</span>
-              </div>
-            </button>
-          </div>
+          )}
 
           {/* Section: Dynamic Content Management (CMS) */}
-          <div className="space-y-1 pt-1">
-            <div className="px-2.5 text-[11px] font-bold uppercase tracking-wider text-[#6a7282]">
-              Website &amp; Content
-            </div>
-            
-            <button
-              onClick={() => setCmsMenuOpen(!cmsMenuOpen)}
-              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "site-layout" ||
-                activeTab === "page-content" ||
-                activeTab === "leadership" ||
-                activeTab === "news" ||
-                activeTab === "departments" ||
-                activeTab === "site-metrics" ||
-                activeTab === "testimonials" ||
-                activeTab === "publications"
-                  ? "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
-                  : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-              }`}
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                  activeTab === "site-layout" || activeTab === "page-content" || activeTab === "leadership" || activeTab === "news" || activeTab === "departments" || activeTab === "site-metrics" || activeTab === "testimonials" || activeTab === "publications"
-                    ? "bg-[#00bfff] text-white"
-                    : "bg-[#f0f4f8] text-[#4a5565]"
-                }`}>
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                </div>
-                <span className="font-bold truncate whitespace-nowrap">CMS &amp; Page Blocks</span>
+          {(canAccessTab("site-layout") ||
+            canAccessTab("page-content") ||
+            canAccessTab("leadership") ||
+            canAccessTab("news") ||
+            canAccessTab("publications") ||
+            canAccessTab("site-metrics") ||
+            canAccessTab("testimonials") ||
+            canAccessTab("departments")) && (
+            <div className="space-y-1 pt-1">
+              <div className="px-2.5 text-[11px] font-bold uppercase tracking-wider text-[#6a7282]">
+                Website &amp; Content
               </div>
               
-              <svg
-                className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ml-1.5 ${
-                  cmsMenuOpen ||
+              <button
+                onClick={() => setCmsMenuOpen(!cmsMenuOpen)}
+                className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === "site-layout" ||
                   activeTab === "page-content" ||
                   activeTab === "leadership" ||
@@ -975,133 +1370,178 @@ export default function AdminDashboard() {
                   activeTab === "site-metrics" ||
                   activeTab === "testimonials" ||
                   activeTab === "publications"
-                    ? "rotate-180 text-[#00698c]"
-                    : "text-[#4a5565]"
+                    ? "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                    : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
                 }`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {cmsMenuOpen && (
-              <div className="pl-2 pr-0 py-1 space-y-1 ml-2.5 border-l-2 border-[#b0ebff]">
-                <button
-                  onClick={() => handleTabChange("site-layout")}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === "site-layout"
-                      ? "bg-[#000080] text-white shadow-xs font-bold"
-                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "site-layout" ? "bg-[#00bfff]" : "bg-purple-500"}`}></span>
-                    <span className="truncate whitespace-nowrap">Site Layout &amp; Branding</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                    activeTab === "site-layout" || activeTab === "page-content" || activeTab === "leadership" || activeTab === "news" || activeTab === "departments" || activeTab === "site-metrics" || activeTab === "testimonials" || activeTab === "publications"
+                      ? "bg-[#00bfff] text-white"
+                      : "bg-[#f0f4f8] text-[#4a5565]"
+                  }`}>
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
                   </div>
-                </button>
-
-                <button
-                  onClick={() => handleTabChange("page-content")}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === "page-content"
-                      ? "bg-[#000080] text-white shadow-xs font-bold"
-                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "page-content" ? "bg-[#00bfff]" : "bg-[#00698c]"}`}></span>
-                    <span className="truncate whitespace-nowrap">Page Content (CMS)</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleTabChange("leadership")}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === "leadership"
-                      ? "bg-[#000080] text-white shadow-xs font-bold"
-                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "leadership" ? "bg-[#00bfff]" : "bg-[#0284c7]"}`}></span>
-                    <span className="truncate whitespace-nowrap">Leadership Directory</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleTabChange("news")}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === "news"
-                      ? "bg-[#000080] text-white shadow-xs font-bold"
-                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "news" ? "bg-[#00bfff]" : "bg-amber-500"}`}></span>
-                    <span className="truncate whitespace-nowrap">News &amp; Media Articles</span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleTabChange("publications")}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  <span className="font-bold truncate whitespace-nowrap">CMS &amp; Page Blocks</span>
+                </div>
+                
+                <svg
+                  className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ml-1.5 ${
+                    cmsMenuOpen ||
+                    activeTab === "site-layout" ||
+                    activeTab === "page-content" ||
+                    activeTab === "leadership" ||
+                    activeTab === "news" ||
+                    activeTab === "departments" ||
+                    activeTab === "site-metrics" ||
+                    activeTab === "testimonials" ||
                     activeTab === "publications"
-                      ? "bg-[#000080] text-white shadow-xs font-bold"
-                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                      ? "rotate-180 text-[#00698c]"
+                      : "text-[#4a5565]"
                   }`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "publications" ? "bg-[#00bfff]" : "bg-sky-500"}`}></span>
-                    <span className="truncate whitespace-nowrap">Research Publications</span>
-                  </div>
-                </button>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-                <button
-                  onClick={() => handleTabChange("site-metrics")}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === "site-metrics"
-                      ? "bg-[#000080] text-white shadow-xs font-bold"
-                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "site-metrics" ? "bg-[#00bfff]" : "bg-[#00698c]"}`}></span>
-                    <span className="truncate whitespace-nowrap">Site Impact Metrics</span>
-                  </div>
-                </button>
+              {cmsMenuOpen && (
+                <div className="pl-2 pr-0 py-1 space-y-1 ml-2.5 border-l-2 border-[#b0ebff]">
+                  {canAccessTab("site-layout") && (
+                    <button
+                      onClick={() => handleTabChange("site-layout")}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activeTab === "site-layout"
+                          ? "bg-[#000080] text-white shadow-xs font-bold"
+                          : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "site-layout" ? "bg-[#00bfff]" : "bg-purple-500"}`}></span>
+                        <span className="truncate whitespace-nowrap">Site Layout &amp; Branding</span>
+                      </div>
+                    </button>
+                  )}
 
-                <button
-                  onClick={() => handleTabChange("testimonials")}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === "testimonials"
-                      ? "bg-[#000080] text-white shadow-xs font-bold"
-                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "testimonials" ? "bg-[#00bfff]" : "bg-emerald-500"}`}></span>
-                    <span className="truncate whitespace-nowrap">Testimonials</span>
-                  </div>
-                </button>
+                  {canAccessTab("page-content") && (
+                    <button
+                      onClick={() => handleTabChange("page-content")}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activeTab === "page-content"
+                          ? "bg-[#000080] text-white shadow-xs font-bold"
+                          : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "page-content" ? "bg-[#00bfff]" : "bg-[#00698c]"}`}></span>
+                        <span className="truncate whitespace-nowrap">Page Content (CMS)</span>
+                      </div>
+                    </button>
+                  )}
 
-                <button
-                  onClick={() => handleTabChange("departments")}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === "departments"
-                      ? "bg-[#000080] text-white shadow-xs font-bold"
-                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "departments" ? "bg-[#00bfff]" : "bg-purple-500"}`}></span>
-                    <span className="truncate whitespace-nowrap">Academic Departments</span>
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
+                  {canAccessTab("leadership") && (
+                    <button
+                      onClick={() => handleTabChange("leadership")}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activeTab === "leadership"
+                          ? "bg-[#000080] text-white shadow-xs font-bold"
+                          : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "leadership" ? "bg-[#00bfff]" : "bg-[#0284c7]"}`}></span>
+                        <span className="truncate whitespace-nowrap">Leadership Directory</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {canAccessTab("news") && (
+                    <button
+                      onClick={() => handleTabChange("news")}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activeTab === "news"
+                          ? "bg-[#000080] text-white shadow-xs font-bold"
+                          : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "news" ? "bg-[#00bfff]" : "bg-amber-500"}`}></span>
+                        <span className="truncate whitespace-nowrap">News &amp; Media Articles</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {canAccessTab("publications") && (
+                    <button
+                      onClick={() => handleTabChange("publications")}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activeTab === "publications"
+                          ? "bg-[#000080] text-white shadow-xs font-bold"
+                          : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "publications" ? "bg-[#00bfff]" : "bg-sky-500"}`}></span>
+                        <span className="truncate whitespace-nowrap">Research Publications</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {canAccessTab("site-metrics") && (
+                    <button
+                      onClick={() => handleTabChange("site-metrics")}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activeTab === "site-metrics"
+                          ? "bg-[#000080] text-white shadow-xs font-bold"
+                          : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "site-metrics" ? "bg-[#00bfff]" : "bg-[#00698c]"}`}></span>
+                        <span className="truncate whitespace-nowrap">Site Impact Metrics</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {canAccessTab("testimonials") && (
+                    <button
+                      onClick={() => handleTabChange("testimonials")}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activeTab === "testimonials"
+                          ? "bg-[#000080] text-white shadow-xs font-bold"
+                          : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "testimonials" ? "bg-[#00bfff]" : "bg-emerald-500"}`}></span>
+                        <span className="truncate whitespace-nowrap">Testimonials</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {canAccessTab("departments") && (
+                    <button
+                      onClick={() => handleTabChange("departments")}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activeTab === "departments"
+                          ? "bg-[#000080] text-white shadow-xs font-bold"
+                          : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "departments" ? "bg-[#00bfff]" : "bg-purple-500"}`}></span>
+                        <span className="truncate whitespace-nowrap">Academic Departments</span>
+                      </div>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </nav>
 
         {/* User Session Footer - Fixed at Bottom */}
@@ -1153,6 +1593,7 @@ export default function AdminDashboard() {
               {activeTab === "role-manage" && "Role & RBAC Security"}
               {activeTab === "events" && "Events & Conferences Management"}
               {activeTab === "fellowship-applications" && "Fellowship Applications & Admissions"}
+              {activeTab === "contact-inquiries" && "Contact Form Inquiries & Submissions"}
               {activeTab === "leadership" && "Leadership Directory Management"}
               {activeTab === "site-layout" && "Global Layout, Navbar & Footer Branding"}
               {activeTab === "page-content" && "Page Content (CMS) Engine"}
@@ -1235,227 +1676,695 @@ export default function AdminDashboard() {
           className="flex-1 overflow-y-auto min-h-0 p-6 sm:p-8 space-y-8"
           data-lenis-prevent="true"
         >
-          {/* TAB 1: OVERVIEW */}
-          {activeTab === "overview" && (
-            <div className="space-y-8">
-              {/* Welcome Banner with Official Seal */}
-              <div className="relative overflow-hidden rounded-2xl border border-[#b0ebff] bg-gradient-to-r from-[#e6f9ff] via-[#e6f9ff]/50 to-white p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-xs">
-                {/* Watermark Emblem in Background */}
-                <div className="absolute -right-8 -bottom-10 w-52 h-52 opacity-[0.06] pointer-events-none select-none">
-                  <Image src="/assets/logo.png" alt="" fill className="object-contain" />
-                </div>
-
-                <div className="space-y-2 text-center sm:text-left z-10">
-                  <div className="inline-flex items-center border border-[#b0ebff] rounded-full px-3 py-1 bg-white">
-                    <span className="font-sans font-semibold text-xs text-[#00698c] uppercase tracking-wider">
-                      Welcome Back
-                    </span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-playfair font-bold text-[#000080]">
-                    Greetings, {user?.name || "Administrator"}
-                  </h2>
-                  <p className="text-sm font-sans text-[#4a5565] max-w-xl leading-relaxed">
-                    Your authenticated session is active. You have executive access to manage CMS content, admin accounts, and security roles.
-                  </p>
-                </div>
-
-                {/* Official Institutional Badge Card with Logo */}
-                <div className="flex items-center gap-4 bg-white/90 backdrop-blur-xs p-4 rounded-2xl border border-[#b0ebff] shadow-xs shrink-0 z-10 font-sans">
-                  <div className="relative w-14 h-14 shrink-0 drop-shadow-xs">
-                    <Image
-                      src="/assets/logo.png"
-                      alt="IILP Official Seal"
-                      fill
-                      className="object-contain select-none"
-                    />
-                  </div>
-                  <div className="flex flex-col text-left">
-                    <span className="text-xs font-bold text-[#0a0d12]">Institute for International Law &amp; Public Policy</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="px-2.5 py-0.5 rounded-full bg-[#000080] text-white text-[11px] font-bold uppercase tracking-wider">
-                        {user?.role || "Super Admin"}
-                      </span>
-                      <span className="text-[11px] text-[#4a5565]">
-                        Env: <code className="font-mono text-[#00698c] font-semibold">{summary?.systemInfo?.nodeEnv || "production"}</code>
-                      </span>
-                    </div>
-                  </div>
-                </div>
+          {/* Access Guard for current activeTab */}
+          {!canAccessTab(activeTab) ? (
+            <div className="bg-white border border-red-200 rounded-2xl p-8 sm:p-12 shadow-xs text-center max-w-lg mx-auto my-12 space-y-5 font-sans">
+              <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 text-red-600 mx-auto flex items-center justify-center shadow-xs">
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
               </div>
-
-              {/* 4 Metric Stats Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 font-sans">
-                {/* Stat 1: Registered Admins */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
-                      Admins &amp; Users
-                    </span>
-                    <div className="w-9 h-9 rounded-xl bg-[#e6f9ff] text-[#00698c] flex items-center justify-center">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-playfair font-bold text-[#000080]">
-                      {adminUsers.length || summary?.metrics.totalUsers || (isDataLoading ? "..." : 0)}
-                    </span>
-                    <span className="text-xs text-[#4a5565]">Registered accounts</span>
-                  </div>
-                </div>
-
-                {/* Stat 2: Security Roles */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
-                      Security Roles
-                    </span>
-                    <div className="w-9 h-9 rounded-xl bg-[#e6f9ff] text-[#00698c] flex items-center justify-center">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-playfair font-bold text-[#000080]">
-                      {roles.length || summary?.metrics.totalRoles || (isDataLoading ? "..." : 0)}
-                    </span>
-                    <span className="text-xs text-[#4a5565]">RBAC tiers</span>
-                  </div>
-                </div>
-
-                {/* Stat 3: Permissions */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
-                      Permissions
-                    </span>
-                    <div className="w-9 h-9 rounded-xl bg-[#e6f9ff] text-[#00698c] flex items-center justify-center">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-playfair font-bold text-[#000080]">
-                      {permissions.length || summary?.metrics.totalPermissions || (isDataLoading ? "..." : 0)}
-                    </span>
-                    <span className="text-xs text-[#4a5565]">Dynamic privileges</span>
-                  </div>
-                </div>
-
-                {/* Stat 4: Departments */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
-                      Academic Units
-                    </span>
-                    <div className="w-9 h-9 rounded-xl bg-[#e6f9ff] text-[#00698c] flex items-center justify-center">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-playfair font-bold text-[#000080]">
-                      {summary?.metrics.totalDepartments ?? (isDataLoading ? "..." : 0)}
-                    </span>
-                    <span className="text-xs text-[#4a5565]">Departments</span>
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <h3 className="text-xl sm:text-2xl font-playfair font-bold text-[#000080]">
+                  Access Restricted
+                </h3>
+                <p className="text-xs text-[#4a5565] leading-relaxed">
+                  Your current account role (<span className="font-bold text-[#000080]">{user?.role || "Staff"}</span>) does not possess the administrative privileges required to view or manage this module.
+                </p>
               </div>
-
-              {/* Two Column Layout: System Runtime & Recent Users */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
-                {/* System Info Box */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-4 lg:col-span-1">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-playfair font-bold text-[#0a0d12]">System Health</h3>
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      Operational
-                    </span>
-                  </div>
-                  <hr className="border-[#e5e7eb]" />
-                  <div className="space-y-3 text-xs">
-                    <div className="flex justify-between py-1 border-b border-[#f4f4fa]">
-                      <span className="text-[#4a5565]">Backend Engine</span>
-                      <span className="font-semibold text-[#0a0d12]">NestJS + TypeORM</span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-[#f4f4fa]">
-                      <span className="text-[#4a5565]">Server Uptime</span>
-                      <span className="font-mono text-[#00698c] font-semibold">
-                        {summary?.systemInfo ? formatUptime(summary.systemInfo.uptimeSeconds) : "N/A"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-[#f4f4fa]">
-                      <span className="text-[#4a5565]">Database Engine</span>
-                      <span className="font-semibold text-[#0a0d12]">PostgreSQL 15+</span>
-                    </div>
-                    <div className="flex justify-between py-1">
-                      <span className="text-[#4a5565]">API Gateway URI</span>
-                      <span className="font-mono text-[#000080] font-semibold">/api/v1</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recent Accounts Table */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-4 lg:col-span-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-playfair font-bold text-[#0a0d12]">Registered System Accounts</h3>
-                    <button
-                      onClick={() => handleTabChange("admin-manage")}
-                      className="text-xs text-[#00698c] font-semibold hover:text-[#000080] transition-colors"
-                    >
-                      Manage All →
-                    </button>
-                  </div>
-                  <hr className="border-[#e5e7eb]" />
-
-                  {adminUsers.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead>
-                          <tr className="border-b border-[#e5e7eb] text-[#4a5565]">
-                            <th className="pb-3 font-semibold">Administrator</th>
-                            <th className="pb-3 font-semibold">Email</th>
-                            <th className="pb-3 font-semibold">Role</th>
-                            <th className="pb-3 font-semibold">Registered</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#f4f4fa]">
-                          {adminUsers.slice(0, 5).map((u) => (
-                            <tr key={u.id} className="hover:bg-[#f9fafb] transition-colors">
-                              <td className="py-3 font-semibold text-[#0a0d12] flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-[#e6f9ff] text-[#000080] font-bold text-[10px] flex items-center justify-center">
-                                  {u.name.charAt(0).toUpperCase()}
-                                </div>
-                                {u.name}
-                              </td>
-                              <td className="py-3 text-[#4a5565] font-mono">{u.email}</td>
-                              <td className="py-3">
-                                <span className="px-2.5 py-1 rounded-full bg-[#e6f9ff] text-[#00698c] font-semibold text-[11px] border border-[#b0ebff]">
-                                  {u.role?.name || "Unassigned"}
-                                </span>
-                              </td>
-                              <td className="py-3 text-[#4a5565]">
-                                {new Date(u.createdAt).toLocaleDateString()}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-[#4a5565] py-4 text-center">
-                      {isDataLoading ? "Loading accounts..." : "No accounts found."}
-                    </p>
-                  )}
-                </div>
+              <div className="bg-red-50/70 border border-red-200 rounded-xl p-3 text-[11px] font-mono text-red-700 text-left space-y-1">
+                <div className="font-sans font-bold text-[10px] uppercase tracking-wider text-red-800">Required Privilege</div>
+                <div>{TAB_PERMISSION_MAP[activeTab]?.join(", ") || "Administrative Access"}</div>
+              </div>
+              <div className="pt-2 flex justify-center gap-3">
+                <button
+                  onClick={() => handleTabChange("profile")}
+                  className="px-5 py-2.5 rounded-full bg-[#000080] hover:bg-[#002855] text-white text-xs font-semibold cursor-pointer transition-colors shadow-xs"
+                >
+                  Go to Profile
+                </button>
+                {canAccessTab("overview") && (
+                  <button
+                    onClick={() => handleTabChange("overview")}
+                    className="px-5 py-2.5 rounded-full border border-[#b0ebff] text-[#00698c] hover:bg-[#e6f9ff] text-xs font-semibold cursor-pointer transition-colors"
+                  >
+                    Return to Overview
+                  </button>
+                )}
               </div>
             </div>
-          )}
+          ) : (
+            <>
+              {/* TAB 1: OVERVIEW */}
+              {activeTab === "overview" && (
+                <div className="space-y-8 font-sans">
+                  {/* Executive Hero Banner with Official Seal */}
+                  <div className="relative overflow-hidden rounded-3xl border border-[#b0ebff] bg-gradient-to-br from-[#000080] via-[#001042] to-[#001a4e] text-white p-6 sm:p-8 shadow-xl">
+                    {/* Ambient Lighting Accents */}
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-[#00bfff]/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+                    <div className="absolute bottom-0 left-1/4 w-72 h-72 bg-[#002b80]/40 rounded-full blur-2xl pointer-events-none"></div>
+
+                    {/* Watermark Official Emblem */}
+                    <div className="absolute -right-8 -bottom-10 w-64 h-64 opacity-[0.08] pointer-events-none select-none">
+                      <Image src="/assets/logo.png" alt="" fill className="object-contain brightness-0 invert" />
+                    </div>
+
+                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                      <div className="space-y-3 max-w-2xl">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs text-[#b0ebff]">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                          <span className="font-semibold tracking-wide uppercase text-[10px]">
+                            Institutional Executive Console • Live Production
+                          </span>
+                        </div>
+
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-playfair font-bold text-white tracking-tight">
+                          Welcome, {user?.name || "Administrator"}
+                        </h1>
+
+                        <p className="text-xs sm:text-sm text-blue-100/80 leading-relaxed font-light">
+                          Institute for International Law &amp; Public Policy enterprise administrative portal. Centralized governance for academic departments, international symposia, fellowship admissions, and institutional research.
+                        </p>
+
+                        {/* Quick Status Bar */}
+                        <div className="flex flex-wrap items-center gap-2 pt-2 text-xs">
+                          <span className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/15 text-white/90 font-medium flex items-center gap-1.5">
+                            <span>🛡️</span> {user?.role || "Super Admin"}
+                          </span>
+                          <span className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/15 text-white/90 font-mono text-[11px] flex items-center gap-1.5">
+                            <span>🌐</span> Env: {summary?.systemInfo?.nodeEnv || "production"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleRefresh}
+                            disabled={isRefreshing}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#00bfff]/20 hover:bg-[#00bfff]/30 border border-[#00bfff]/40 text-[#b0ebff] font-medium transition-colors cursor-pointer text-xs disabled:opacity-50"
+                          >
+                            <svg className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span>{isRefreshing ? "Synchronizing..." : "Sync Live Data"}</span>
+                          </button>
+                          <span className="text-[11px] text-blue-200/60 font-mono">
+                            Last synced: {lastSynced.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Quick Action Navigation on Hero */}
+                      <div className="flex flex-row lg:flex-col gap-2.5 shrink-0 z-10">
+                        {canAccessTab("events") && (
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange("events")}
+                            className="flex-1 lg:flex-initial flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-semibold transition-all cursor-pointer group shadow-xs hover:shadow-md"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span>📅</span> Add / View Events
+                            </span>
+                            <span className="text-white/60 group-hover:translate-x-0.5 transition-transform">→</span>
+                          </button>
+                        )}
+
+                        {canAccessTab("fellowship-applications") && (
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange("fellowship-applications")}
+                            className="flex-1 lg:flex-initial flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-semibold transition-all cursor-pointer group shadow-xs hover:shadow-md"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span>🎓</span> Review Fellowships
+                            </span>
+                            {summary?.metrics.pendingFellowships ? (
+                              <span className="px-1.5 py-0.5 rounded-full bg-amber-400 text-amber-950 font-bold text-[10px]">
+                                {summary.metrics.pendingFellowships} Pnd
+                              </span>
+                            ) : (
+                              <span className="text-white/60 group-hover:translate-x-0.5 transition-transform">→</span>
+                            )}
+                          </button>
+                        )}
+
+                        {canAccessTab("contact-inquiries") && (
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange("contact-inquiries")}
+                            className="flex-1 lg:flex-initial flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-[#00bfff] hover:bg-[#009ecc] text-[#000080] text-xs font-bold transition-all cursor-pointer group shadow-[0_2px_12px_rgba(0,191,255,0.4)]"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span>✉️</span> Inquiries Inbox
+                            </span>
+                            {summary?.metrics.unreadInquiries ? (
+                              <span className="px-1.5 py-0.5 rounded-full bg-red-600 text-white font-bold text-[10px] animate-pulse">
+                                {summary.metrics.unreadInquiries} New
+                              </span>
+                            ) : (
+                              <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Core 6-Metric Executive KPI Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                    {/* Stat 1: Academic Units */}
+                    <div
+                      onClick={() => handleTabChange("departments")}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-[#00698c] uppercase tracking-wider">
+                          Departments
+                        </span>
+                        <div className="w-8 h-8 rounded-lg bg-[#e6f9ff] text-[#000080] flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                          🏛️
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-playfair font-bold text-[#000080]">
+                          {summary?.metrics.totalDepartments ?? (isDataLoading ? "..." : 0)}
+                        </div>
+                        <p className="text-[11px] text-[#4a5565] mt-0.5">Academic Divisions</p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#00698c]">
+                        <span>Manage</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
+
+                    {/* Stat 2: Events & Symposia */}
+                    <div
+                      onClick={() => handleTabChange("events")}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-[#00698c] uppercase tracking-wider">
+                          Symposia
+                        </span>
+                        <div className="w-8 h-8 rounded-lg bg-[#e6f9ff] text-[#000080] flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                          📅
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-playfair font-bold text-[#000080]">
+                          {summary?.metrics.totalEvents ?? (isDataLoading ? "..." : 0)}
+                        </div>
+                        <p className="text-[11px] text-[#4a5565] mt-0.5">
+                          {summary?.metrics.upcomingEvents ?? 0} published
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#00698c]">
+                        <span>Schedule</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
+
+                    {/* Stat 3: Fellowship Applications */}
+                    <div
+                      onClick={() => handleTabChange("fellowship-applications")}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-[#00698c] uppercase tracking-wider">
+                          Fellowships
+                        </span>
+                        <div className="w-8 h-8 rounded-lg bg-[#e6f9ff] text-[#000080] flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                          🎓
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-playfair font-bold text-[#000080]">
+                          {summary?.metrics.totalFellowships ?? (isDataLoading ? "..." : 0)}
+                        </div>
+                        <p className="text-[11px] text-[#4a5565] mt-0.5">
+                          {summary?.metrics.pendingFellowships ?? 0} pending review
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#00698c]">
+                        <span>Review</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
+
+                    {/* Stat 4: Contact Inquiries */}
+                    <div
+                      onClick={() => handleTabChange("contact-inquiries")}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-[#00698c] uppercase tracking-wider">
+                          Inquiries
+                        </span>
+                        <div className="w-8 h-8 rounded-lg bg-[#e6f9ff] text-[#000080] flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                          ✉️
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-playfair font-bold text-[#000080]">
+                          {summary?.metrics.totalInquiries ?? (isDataLoading ? "..." : 0)}
+                        </div>
+                        <p className="text-[11px] text-[#4a5565] mt-0.5">
+                          {summary?.metrics.unreadInquiries ? (
+                            <span className="text-red-600 font-bold">{summary.metrics.unreadInquiries} unread</span>
+                          ) : (
+                            "All answered"
+                          )}
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#00698c]">
+                        <span>Inbox</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
+
+                    {/* Stat 5: Publications & News */}
+                    <div
+                      onClick={() => handleTabChange("publications")}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-[#00698c] uppercase tracking-wider">
+                          Research &amp; News
+                        </span>
+                        <div className="w-8 h-8 rounded-lg bg-[#e6f9ff] text-[#000080] flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                          📚
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-playfair font-bold text-[#000080]">
+                          {(summary?.metrics.totalPublications ?? 0) + (summary?.metrics.totalNews ?? 0)}
+                        </div>
+                        <p className="text-[11px] text-[#4a5565] mt-0.5">
+                          {summary?.metrics.totalPublications ?? 0} papers • {summary?.metrics.totalNews ?? 0} articles
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#00698c]">
+                        <span>Library</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
+
+                    {/* Stat 6: Administrators & RBAC */}
+                    <div
+                      onClick={() => handleTabChange("role-manage")}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-[#00698c] uppercase tracking-wider">
+                          Security &amp; RBAC
+                        </span>
+                        <div className="w-8 h-8 rounded-lg bg-[#e6f9ff] text-[#000080] flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                          🛡️
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-playfair font-bold text-[#000080]">
+                          {adminUsers.length || summary?.metrics.totalUsers || (isDataLoading ? "..." : 0)}
+                        </div>
+                        <p className="text-[11px] text-[#4a5565] mt-0.5">
+                          {roles.length || summary?.metrics.totalRoles || 0} roles • 50 privileges
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#00698c]">
+                        <span>Security</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Institutional Subsystems Launchpad (8 Modular Cards) */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-lg font-playfair font-bold text-[#000080]">
+                          Subsystems Control &amp; Launchpad
+                        </h2>
+                        <p className="text-xs text-[#4a5565]">
+                          Direct access to institutional management suites and operational consoles
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-bold text-[#00698c] bg-[#e6f9ff] px-2.5 py-1 rounded-full border border-[#b0ebff]">
+                        16 Modules Protected by RBAC
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* Module 1 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("departments")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">🏛️</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4faff] text-[#00698c] border border-[#b0ebff]">
+                            {summary?.metrics.totalDepartments ?? 0} Units
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Academic Departments
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Manage academic chairs, curricula definitions, and institutional branches.
+                        </p>
+                      </button>
+
+                      {/* Module 2 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("events")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">📅</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4faff] text-[#00698c] border border-[#b0ebff]">
+                            {summary?.metrics.totalEvents ?? 0} Events
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Events &amp; Symposia
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Schedule international legal summits, webinars, keynote speaker panels, and workshops.
+                        </p>
+                      </button>
+
+                      {/* Module 3 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("fellowship-applications")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">🎓</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                            summary?.metrics.pendingFellowships
+                              ? "bg-amber-50 text-amber-800 border-amber-300"
+                              : "bg-[#f4faff] text-[#00698c] border-[#b0ebff]"
+                          }`}>
+                            {summary?.metrics.pendingFellowships ?? 0} Pending
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Fellowship Applications
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Review global research scholar candidates, evaluate degrees, and manage admissions.
+                        </p>
+                      </button>
+
+                      {/* Module 4 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("contact-inquiries")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">✉️</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                            summary?.metrics.unreadInquiries
+                              ? "bg-red-50 text-red-700 border-red-300"
+                              : "bg-[#f4faff] text-[#00698c] border-[#b0ebff]"
+                          }`}>
+                            {summary?.metrics.unreadInquiries ?? 0} Unread
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Contact Inquiries
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Direct public messages, institutional partnership proposals, and media requests.
+                        </p>
+                      </button>
+
+                      {/* Module 5 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("news")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">📰</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4faff] text-[#00698c] border border-[#b0ebff]">
+                            {summary?.metrics.totalNews ?? 0} Articles
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          News &amp; Media Articles
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Editorial content publishing, institutional press statements, and updates.
+                        </p>
+                      </button>
+
+                      {/* Module 6 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("publications")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">📚</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4faff] text-[#00698c] border border-[#b0ebff]">
+                            {summary?.metrics.totalPublications ?? 0} Papers
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Research Publications
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Catalog peer-reviewed journals, public policy briefs, and legal monographs.
+                        </p>
+                      </button>
+
+                      {/* Module 7 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("leadership")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">👥</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4faff] text-[#00698c] border border-[#b0ebff]">
+                            {summary?.metrics.totalLeadership ?? 0} Officers
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Leadership Directory
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Manage Board of Trustees, advisory councils, and resident academic faculty.
+                        </p>
+                      </button>
+
+                      {/* Module 8 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("role-manage")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">🛡️</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4faff] text-[#00698c] border border-[#b0ebff]">
+                            50 Privileges
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Roles &amp; Access Control
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Fine-grained RBAC matrix with custom tiers, module privileges, and permission auditing.
+                        </p>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Multi-Stream Live Activity Hub (3 Responsive Columns) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Column 1: Recent Inquiries & Messages */}
+                    <div className="bg-white border border-[#b0ebff] rounded-2xl p-5 shadow-xs space-y-4 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">✉️</span>
+                            <h3 className="font-bold text-sm text-[#000080]">Recent Inquiries</h3>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange("contact-inquiries")}
+                            className="text-xs font-semibold text-[#00698c] hover:text-[#000080] transition-colors cursor-pointer"
+                          >
+                            Inbox →
+                          </button>
+                        </div>
+
+                        <div className="divide-y divide-gray-100 pt-1">
+                          {summary?.recentInquiries && summary.recentInquiries.length > 0 ? (
+                            summary.recentInquiries.slice(0, 4).map((inq) => {
+                              const isUnread = inq.status === "UNREAD";
+                              return (
+                                <div key={inq.id} className="py-2.5 space-y-1 hover:bg-[#fcfdff] transition-colors">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="font-bold text-xs text-[#0a0d12] truncate">
+                                      {inq.firstName} {inq.lastName}
+                                    </span>
+                                    <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase ${
+                                      isUnread
+                                        ? "bg-red-50 text-red-700 border border-red-200 font-extrabold"
+                                        : "bg-gray-100 text-gray-700"
+                                    }`}>
+                                      {inq.status}
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-[#4a5565] line-clamp-1 font-medium">
+                                    {inq.subject}
+                                  </p>
+                                  <div className="flex items-center justify-between text-[10px] text-[#6a7282]">
+                                    <span className="truncate max-w-[150px]">{inq.organization || "Public Inquirer"}</span>
+                                    <span>{new Date(inq.createdAt).toLocaleDateString([], { month: "short", day: "numeric" })}</span>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className="py-8 text-center text-xs text-[#6a7282]">
+                              No recent contact inquiries recorded.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("contact-inquiries")}
+                        className="w-full py-2 text-center text-xs font-semibold text-[#00698c] hover:bg-[#e6f9ff] rounded-xl transition-colors border border-[#b0ebff]/60"
+                      >
+                        Manage All Inquiries
+                      </button>
+                    </div>
+
+                    {/* Column 2: Recent Fellowship Candidates */}
+                    <div className="bg-white border border-[#b0ebff] rounded-2xl p-5 shadow-xs space-y-4 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🎓</span>
+                            <h3 className="font-bold text-sm text-[#000080]">Fellowship Candidates</h3>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange("fellowship-applications")}
+                            className="text-xs font-semibold text-[#00698c] hover:text-[#000080] transition-colors cursor-pointer"
+                          >
+                            Review →
+                          </button>
+                        </div>
+
+                        <div className="divide-y divide-gray-100 pt-1">
+                          {summary?.recentFellowships && summary.recentFellowships.length > 0 ? (
+                            summary.recentFellowships.slice(0, 4).map((f) => {
+                              const isPending = f.status === "PENDING";
+                              return (
+                                <div key={f.id} className="py-2.5 space-y-1 hover:bg-[#fcfdff] transition-colors">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="font-bold text-xs text-[#0a0d12] truncate">
+                                      {f.firstName} {f.lastName}
+                                    </span>
+                                    <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase ${
+                                      isPending
+                                        ? "bg-amber-50 text-amber-800 border border-amber-300"
+                                        : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    }`}>
+                                      {f.status}
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-[#00698c] font-medium truncate">
+                                    {f.fellowshipType}
+                                  </p>
+                                  <div className="flex items-center justify-between text-[10px] text-[#6a7282]">
+                                    <span>{f.country}</span>
+                                    <span>{new Date(f.createdAt).toLocaleDateString([], { month: "short", day: "numeric" })}</span>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className="py-8 text-center text-xs text-[#6a7282]">
+                              No recent fellowship candidates.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("fellowship-applications")}
+                        className="w-full py-2 text-center text-xs font-semibold text-[#00698c] hover:bg-[#e6f9ff] rounded-xl transition-colors border border-[#b0ebff]/60"
+                      >
+                        Evaluate Submissions
+                      </button>
+                    </div>
+
+                    {/* Column 3: Privileged Accounts */}
+                    <div className="bg-white border border-[#b0ebff] rounded-2xl p-5 shadow-xs space-y-4 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🛡️</span>
+                            <h3 className="font-bold text-sm text-[#000080]">System Administrators</h3>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange("admin-manage")}
+                            className="text-xs font-semibold text-[#00698c] hover:text-[#000080] transition-colors cursor-pointer"
+                          >
+                            Manage →
+                          </button>
+                        </div>
+
+                        <div className="divide-y divide-gray-100 pt-1">
+                          {adminUsers.length > 0 ? (
+                            adminUsers.slice(0, 4).map((u) => (
+                              <div key={u.id} className="py-2.5 flex items-center justify-between gap-3 hover:bg-[#fcfdff] transition-colors">
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="w-7 h-7 rounded-full bg-[#000080] text-white text-[11px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
+                                    {u.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <span className="font-bold text-xs text-[#0a0d12] truncate block">
+                                      {u.name}
+                                    </span>
+                                    <span className="text-[10px] text-[#6a7282] font-mono truncate block">
+                                      {u.email}
+                                    </span>
+                                  </div>
+                                </div>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff] shrink-0">
+                                  {u.role?.name || "Unassigned"}
+                                </span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="py-8 text-center text-xs text-[#6a7282]">
+                              {isDataLoading ? "Loading accounts..." : "No accounts found."}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("admin-manage")}
+                        className="w-full py-2 text-center text-xs font-semibold text-[#00698c] hover:bg-[#e6f9ff] rounded-xl transition-colors border border-[#b0ebff]/60"
+                      >
+                        Security &amp; User Accounts
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
           {/* TAB 2: ADMIN MANAGEMENT */}
           {activeTab === "admin-manage" && (
@@ -1466,6 +2375,8 @@ export default function AdminDashboard() {
                 onSelect={handleTabChange}
                 adminCount={adminUsers.length}
                 roleCount={roles.length}
+                canManageAdmins={canAccessTab("admin-manage")}
+                canManageRoles={canAccessTab("role-manage")}
               />
 
               {/* Header & Controls */}
@@ -1476,15 +2387,17 @@ export default function AdminDashboard() {
                     Create, configure, and manage administrative accounts with assigned security roles.
                   </p>
                 </div>
-                <button
-                  onClick={openCreateAdminModal}
-                  className="px-5 py-2.5 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold transition-all shadow-[0px_4px_14px_rgba(0,191,255,0.35)] flex items-center gap-2 cursor-pointer self-start sm:self-auto"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  <span>Add Administrator</span>
-                </button>
+                {hasPermission("user:create") && (
+                  <button
+                    onClick={openCreateAdminModal}
+                    className="px-5 py-2.5 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold transition-all shadow-[0px_4px_14px_rgba(0,191,255,0.35)] flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Add Administrator</span>
+                  </button>
+                )}
               </div>
 
               {/* Search Bar */}
@@ -1566,30 +2479,34 @@ export default function AdminDashboard() {
                               </td>
                               <td className="py-4 px-6 text-right">
                                 <div className="flex items-center justify-end gap-2">
-                                  <button
-                                    onClick={() => openEditAdminModal(u)}
-                                    className="p-1.5 text-[#00698c] hover:text-[#000080] hover:bg-[#e6f9ff] rounded-lg transition-colors cursor-pointer"
-                                    title="Edit Administrator"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                  </button>
+                                  {hasPermission("user:update") && (
+                                    <button
+                                      onClick={() => openEditAdminModal(u)}
+                                      className="p-1.5 text-[#00698c] hover:text-[#000080] hover:bg-[#e6f9ff] rounded-lg transition-colors cursor-pointer"
+                                      title="Edit Administrator"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                      </svg>
+                                    </button>
+                                  )}
 
-                                  <button
-                                    onClick={() => openDeleteAdminModal(u)}
-                                    disabled={isCurrentUser}
-                                    className={`p-1.5 rounded-lg transition-colors ${
-                                      isCurrentUser
-                                        ? "text-gray-300 cursor-not-allowed"
-                                        : "text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
-                                    }`}
-                                    title={isCurrentUser ? "Cannot delete own account" : "Delete Administrator"}
-                                  >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                  </button>
+                                  {hasPermission("user:delete") && (
+                                    <button
+                                      onClick={() => openDeleteAdminModal(u)}
+                                      disabled={isCurrentUser}
+                                      className={`p-1.5 rounded-lg transition-colors ${
+                                        isCurrentUser
+                                          ? "text-gray-300 cursor-not-allowed"
+                                          : "text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                                      }`}
+                                      title={isCurrentUser ? "Cannot delete own account" : "Delete Administrator"}
+                                    >
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    </button>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -1618,6 +2535,8 @@ export default function AdminDashboard() {
                 onSelect={handleTabChange}
                 adminCount={adminUsers.length}
                 roleCount={roles.length}
+                canManageAdmins={canAccessTab("admin-manage")}
+                canManageRoles={canAccessTab("role-manage")}
               />
 
               {/* Header & Controls */}
@@ -1628,15 +2547,17 @@ export default function AdminDashboard() {
                     Configure institutional user roles and associate fine-grained API permission matrices.
                   </p>
                 </div>
-                <button
-                  onClick={openCreateRoleModal}
-                  className="px-5 py-2.5 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold transition-all shadow-[0px_4px_14px_rgba(0,191,255,0.35)] flex items-center gap-2 cursor-pointer self-start sm:self-auto"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  <span>Create New Role</span>
-                </button>
+                {hasPermission("role:create") && (
+                  <button
+                    onClick={openCreateRoleModal}
+                    className="px-5 py-2.5 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold transition-all shadow-[0px_4px_14px_rgba(0,191,255,0.35)] flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Create New Role</span>
+                  </button>
+                )}
               </div>
 
               {/* Roles Cards Grid */}
@@ -1694,31 +2615,35 @@ export default function AdminDashboard() {
                           Assigned to admins with {r.name} authority
                         </span>
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => openEditRoleModal(r)}
-                            className="px-3 py-1.5 rounded-lg border border-[#b0ebff] text-[#00698c] hover:text-[#000080] hover:bg-[#e6f9ff] font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            Edit
-                          </button>
+                          {hasPermission("role:update") && (
+                            <button
+                              onClick={() => openEditRoleModal(r)}
+                              className="px-3 py-1.5 rounded-lg border border-[#b0ebff] text-[#00698c] hover:text-[#000080] hover:bg-[#e6f9ff] font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              Edit
+                            </button>
+                          )}
 
-                          <button
-                            onClick={() => openDeleteRoleModal(r)}
-                            disabled={isProtected}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 ${
-                              isProtected
-                                ? "text-gray-300 border border-gray-200 cursor-not-allowed"
-                                : "text-red-600 border border-red-200 hover:bg-red-50 cursor-pointer"
-                            }`}
-                            title={isProtected ? "Core Admin role cannot be deleted" : "Delete Role"}
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Delete
-                          </button>
+                          {hasPermission("role:delete") && (
+                            <button
+                              onClick={() => openDeleteRoleModal(r)}
+                              disabled={isProtected}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 ${
+                                isProtected
+                                  ? "text-gray-300 border border-gray-200 cursor-not-allowed"
+                                  : "text-red-600 border border-red-200 hover:bg-red-50 cursor-pointer"
+                              }`}
+                              title={isProtected ? "Core Admin role cannot be deleted" : "Delete Role"}
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              Delete
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1747,6 +2672,14 @@ export default function AdminDashboard() {
           {/* TAB: FELLOWSHIP APPLICATIONS */}
           {activeTab === "fellowship-applications" && token && (
             <FellowshipApplicationsManager
+              token={token}
+              onShowToast={(msg, type) => setToast({ message: msg, type })}
+            />
+          )}
+
+          {/* TAB: CONTACT INQUIRIES */}
+          {activeTab === "contact-inquiries" && token && (
+            <ContactInquiriesManager
               token={token}
               onShowToast={(msg, type) => setToast({ message: msg, type })}
             />
@@ -1815,7 +2748,9 @@ export default function AdminDashboard() {
               onShowToast={(msg, type) => setToast({ message: msg, type })}
             />
           )}
-        </main>
+        </>
+      )}
+    </main>
 
       </div>
 
@@ -2048,91 +2983,82 @@ export default function AdminDashboard() {
 
       {/* ================= MODAL: CREATE ROLE ================= */}
       {createRoleModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
-          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 sm:px-8 py-5 shrink-0">
-              <div>
-                <h3 className="text-xl font-playfair font-bold text-[#000080]">Create New Role</h3>
-                <p className="text-xs text-[#4a5565] mt-0.5">Define security level and check authorized permissions</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 lg:p-6 bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-5xl lg:max-w-6xl w-full flex flex-col max-h-[92vh] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 sm:px-8 py-4 shrink-0 bg-[#fbfdff]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#e6f9ff] border border-[#b0ebff] flex items-center justify-center text-lg text-[#00698c] shadow-2xs">
+                  🛡️
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-playfair font-bold text-[#000080]">Create New Role</h3>
+                  <p className="text-xs text-[#4a5565] mt-0.5">Define security level and select authorized module permissions</p>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => setCreateRoleModalOpen(false)}
-                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer hover:bg-gray-100"
+                className="text-[#6a7282] hover:text-[#0a0d12] p-1.5 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
               >
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleCreateRole} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 overflow-y-auto modal-scroll px-6 sm:px-8 py-5 space-y-4 text-xs">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-[#0a0d12]">
-                    Role Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={roleFormData.name}
-                    onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
-                    placeholder="e.g. Academic Officer, Media Manager"
-                    className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
-                  />
+              <div className="flex-1 overflow-y-auto modal-scroll px-6 sm:px-8 py-4 space-y-4 text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center bg-[#f4faff] border border-[#b0ebff] rounded-xl p-3.5">
+                  <div className="md:col-span-2 space-y-1">
+                    <label className="block text-xs font-bold text-[#000080]">
+                      Role Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={roleFormData.name}
+                      onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
+                      placeholder="e.g. Academic Officer, Media Manager, Symposia Lead"
+                      className="w-full bg-white border border-[#d5d5ed] rounded-lg px-3.5 py-2 text-xs text-[#0a0d12] placeholder-[#6a7282] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                    />
+                  </div>
+                  <div className="text-[11px] text-[#4a5565] border-t md:border-t-0 md:border-l border-[#b0ebff] pt-2 md:pt-0 md:pl-4 space-y-0.5">
+                    <span className="font-semibold text-[#00698c] block">Institutional RBAC</span>
+                    <span>Assign fine-grained capabilities across administration, content, events, and research modules.</span>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold text-[#0a0d12]">Associated Permissions</label>
-                    <button
-                      type="button"
-                      onClick={toggleAllPermissions}
-                      className="text-xs text-[#00698c] hover:text-[#000080] font-semibold cursor-pointer underline"
-                    >
-                      {roleFormData.permissionIds.length === permissions.length ? "Deselect All" : "Select All"}
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-3 bg-[#f4faff] rounded-xl border border-[#e5e7eb] modal-scroll">
-                    {permissions.map((p) => {
-                      const isChecked = roleFormData.permissionIds.includes(p.id);
-                      return (
-                        <label
-                          key={p.id}
-                          className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
-                            isChecked
-                              ? "bg-white border-[#b0ebff] text-[#000080] font-semibold shadow-2xs"
-                              : "bg-transparent border-transparent text-[#4a5565] hover:bg-white/60"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => togglePermission(p.id)}
-                            className="rounded text-[#00bfff] focus:ring-[#00bfff]"
-                          />
-                          <span className="font-mono text-[11px] truncate">{p.name}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
+                  <label className="block text-xs font-bold text-[#000080]">Associated Privileges &amp; Permissions</label>
+                  <PermissionMatrixSelector
+                    permissions={permissions}
+                    selectedIds={roleFormData.permissionIds}
+                    onToggle={togglePermission}
+                    onToggleCategory={togglePermissionCategory}
+                    onToggleAll={toggleAllPermissions}
+                  />
                 </div>
               </div>
 
               {/* Sticky Footer */}
-              <div className="flex items-center justify-end gap-3 px-6 sm:px-8 py-4 border-t border-[#e5e7eb] bg-[#fcfdff] shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setCreateRoleModalOpen(false)}
-                  className="px-4 py-2 rounded-full border border-[#d5d5ed] text-xs font-semibold text-[#4a5565] hover:bg-gray-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingRole}
-                  className="px-5 py-2 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold shadow-[0px_2px_8px_rgba(0,191,255,0.35)] cursor-pointer disabled:opacity-50"
-                >
-                  {isSubmittingRole ? "Creating..." : "Create Role"}
-                </button>
+              <div className="flex items-center justify-between gap-3 px-6 sm:px-8 py-3.5 border-t border-[#e5e7eb] bg-[#fcfdff] shrink-0">
+                <div className="text-xs text-[#4a5565]">
+                  <span className="font-bold text-[#000080]">{roleFormData.permissionIds.length}</span> privileges currently selected
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setCreateRoleModalOpen(false)}
+                    className="px-4 py-2 rounded-full border border-[#d5d5ed] text-xs font-semibold text-[#4a5565] hover:bg-gray-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingRole}
+                    className="px-6 py-2 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold shadow-[0px_2px_8px_rgba(0,191,255,0.35)] cursor-pointer disabled:opacity-50"
+                  >
+                    {isSubmittingRole ? "Creating..." : "Create Role"}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
@@ -2141,88 +3067,79 @@ export default function AdminDashboard() {
 
       {/* ================= MODAL: EDIT ROLE ================= */}
       {editRoleModalOpen && selectedRole && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs font-sans">
-          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-lg w-full flex flex-col max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 sm:px-8 py-5 shrink-0">
-              <div>
-                <h3 className="text-xl font-playfair font-bold text-[#000080]">Edit Role: {selectedRole.name}</h3>
-                <p className="text-xs text-[#4a5565] mt-0.5">Modify permission scope and privileges</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 lg:p-6 bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-2xl max-w-5xl lg:max-w-6xl w-full flex flex-col max-h-[92vh] overflow-hidden">
+            <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 sm:px-8 py-4 shrink-0 bg-[#fbfdff]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#e6f9ff] border border-[#b0ebff] flex items-center justify-center text-lg text-[#00698c] shadow-2xs">
+                  🛡️
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-playfair font-bold text-[#000080]">Edit Role: {selectedRole.name}</h3>
+                  <p className="text-xs text-[#4a5565] mt-0.5">Modify permission scope and privileges across 16 domain modules</p>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => setEditRoleModalOpen(false)}
-                className="text-[#6a7282] hover:text-[#0a0d12] p-1 rounded-lg cursor-pointer hover:bg-gray-100"
+                className="text-[#6a7282] hover:text-[#0a0d12] p-1.5 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
               >
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleUpdateRole} className="flex flex-col flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 overflow-y-auto modal-scroll px-6 sm:px-8 py-5 space-y-4 text-xs">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-[#0a0d12]">Role Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={roleFormData.name}
-                    onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
-                    className="w-full bg-[#f9fafb] border border-[#d5d5ed] rounded-xl px-3.5 py-2.5 text-xs text-[#0a0d12] focus:bg-white focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
-                  />
+              <div className="flex-1 overflow-y-auto modal-scroll px-6 sm:px-8 py-4 space-y-4 text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center bg-[#f4faff] border border-[#b0ebff] rounded-xl p-3.5">
+                  <div className="md:col-span-2 space-y-1">
+                    <label className="block text-xs font-bold text-[#000080]">Role Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={roleFormData.name}
+                      onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
+                      className="w-full bg-white border border-[#d5d5ed] rounded-lg px-3.5 py-2 text-xs text-[#0a0d12] focus:outline-none focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                    />
+                  </div>
+                  <div className="text-[11px] text-[#4a5565] border-t md:border-t-0 md:border-l border-[#b0ebff] pt-2 md:pt-0 md:pl-4 space-y-0.5">
+                    <span className="font-semibold text-[#00698c] block">Institutional RBAC</span>
+                    <span>Modify fine-grained capabilities across administration, content, events, and research modules.</span>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold text-[#0a0d12]">Associated Permissions</label>
-                    <button
-                      type="button"
-                      onClick={toggleAllPermissions}
-                      className="text-xs text-[#00698c] hover:text-[#000080] font-semibold cursor-pointer underline"
-                    >
-                      {roleFormData.permissionIds.length === permissions.length ? "Deselect All" : "Select All"}
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-3 bg-[#f4faff] rounded-xl border border-[#e5e7eb] modal-scroll">
-                    {permissions.map((p) => {
-                      const isChecked = roleFormData.permissionIds.includes(p.id);
-                      return (
-                        <label
-                          key={p.id}
-                          className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-colors ${
-                            isChecked
-                              ? "bg-white border-[#b0ebff] text-[#000080] font-semibold shadow-2xs"
-                              : "bg-transparent border-transparent text-[#4a5565] hover:bg-white/60"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => togglePermission(p.id)}
-                            className="rounded text-[#00bfff] focus:ring-[#00bfff]"
-                          />
-                          <span className="font-mono text-[11px] truncate">{p.name}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
+                  <label className="block text-xs font-bold text-[#000080]">Associated Privileges &amp; Permissions</label>
+                  <PermissionMatrixSelector
+                    permissions={permissions}
+                    selectedIds={roleFormData.permissionIds}
+                    onToggle={togglePermission}
+                    onToggleCategory={togglePermissionCategory}
+                    onToggleAll={toggleAllPermissions}
+                  />
                 </div>
               </div>
 
               {/* Sticky Footer */}
-              <div className="flex items-center justify-end gap-3 px-6 sm:px-8 py-4 border-t border-[#e5e7eb] bg-[#fcfdff] shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setEditRoleModalOpen(false)}
-                  className="px-4 py-2 rounded-full border border-[#d5d5ed] text-xs font-semibold text-[#4a5565] hover:bg-gray-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingRole}
-                  className="px-5 py-2 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold shadow-[0px_2px_8px_rgba(0,191,255,0.35)] cursor-pointer disabled:opacity-50"
-                >
-                  {isSubmittingRole ? "Saving..." : "Save Role"}
-                </button>
+              <div className="flex items-center justify-between gap-3 px-6 sm:px-8 py-3.5 border-t border-[#e5e7eb] bg-[#fcfdff] shrink-0">
+                <div className="text-xs text-[#4a5565]">
+                  <span className="font-bold text-[#000080]">{roleFormData.permissionIds.length}</span> privileges currently selected
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditRoleModalOpen(false)}
+                    className="px-4 py-2 rounded-full border border-[#d5d5ed] text-xs font-semibold text-[#4a5565] hover:bg-gray-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmittingRole}
+                    className="px-6 py-2 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white text-xs font-semibold shadow-[0px_2px_8px_rgba(0,191,255,0.35)] cursor-pointer disabled:opacity-50"
+                  >
+                    {isSubmittingRole ? "Saving..." : "Save Role"}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

@@ -4,7 +4,10 @@ import { EventItem, EventCategory } from "../types";
 import { initialEvents } from "../data/eventsData";
 import { EventCard } from "./EventCard";
 import { EventRegistrationModal } from "./EventRegistrationModal";
-import { fetchPublicEvents, transformApiEventToEventItem } from "@/common/services/events.service";
+import {
+  fetchPublicEvents,
+  transformApiEventToEventItem,
+} from "@/common/services/events.service";
 
 const categories: EventCategory[] = [
   "All",
@@ -37,27 +40,34 @@ export function EventsCalendar({ data }: EventsCalendarProps = {}) {
     async function loadEvents() {
       setIsLoading(true);
       try {
-        const res = await fetchPublicEvents({ limit: 50 });
-        if (isMounted && res && res.items && res.items.length > 0) {
+        const res = await fetchPublicEvents({
+          category: activeCategory !== "All" ? activeCategory : undefined,
+          limit: 50,
+        });
+        if (isMounted && res && res.items) {
           const transformed = res.items.map(transformApiEventToEventItem);
           setEventsList(transformed);
         }
       } catch (err) {
         console.warn("[EventsCalendar] Using initial events fallback:", err);
+        if (isMounted) {
+          const fallback =
+            activeCategory === "All"
+              ? initialEvents
+              : initialEvents.filter((item) => item.category === activeCategory);
+          setEventsList(fallback);
+        }
       } finally {
         if (isMounted) setIsLoading(false);
       }
     }
+
     loadEvents();
+
     return () => {
       isMounted = false;
     };
-  }, []);
-
-  const filteredEvents = useMemo(() => {
-    if (activeCategory === "All") return eventsList;
-    return eventsList.filter((item) => item.category === activeCategory);
-  }, [activeCategory, eventsList]);
+  }, [activeCategory]);
 
   return (
     <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
@@ -103,10 +113,16 @@ export function EventsCalendar({ data }: EventsCalendarProps = {}) {
           })}
         </div>
 
-        {/* Events Grid */}
-        {filteredEvents.length > 0 ? (
+        {/* Loading Spinner */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="w-10 h-10 border-4 border-[#00bfff] border-t-transparent rounded-full animate-spin" />
+            <p className="text-gray-500 text-sm">Loading events...</p>
+          </div>
+        ) : eventsList.length > 0 ? (
+          /* Events Grid */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full items-stretch">
-            {filteredEvents.map((event) => (
+            {eventsList.map((event) => (
               <EventCard
                 key={event.id}
                 event={event}

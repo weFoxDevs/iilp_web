@@ -1,14 +1,66 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { PageSectionData } from "@/common/services/cms.service";
+
+export interface ContactInfoCardItem {
+  title: string;
+  value: string;
+  timing: string;
+  iconAlt?: string;
+  iconSrc?: string;
+  link?: string;
+}
+
+export const defaultContactCards: ContactInfoCardItem[] = [
+  {
+    title: "Email",
+    value: "info@iilp.org",
+    timing: "Online Support",
+    iconAlt: "Email Icon",
+    iconSrc: "/images/contact-icon-email.svg",
+  },
+  {
+    title: "Phone",
+    value: "+880 1819-254425",
+    timing: "Sunday to Thursday 9am to 5pm",
+    iconAlt: "Phone Icon",
+    iconSrc: "/images/contact-icon-phone.svg",
+  },
+  {
+    title: "Office",
+    value: "Dhaka, Bangladesh",
+    timing: "Visit Our Head Office",
+    iconAlt: "Office Icon",
+    iconSrc: "/images/contact-icon-office.svg",
+  },
+  {
+    title: "Media Relations",
+    value: "media@iilp.org",
+    timing: "Press and Communications",
+    iconAlt: "Media Icon",
+    iconSrc: "/images/contact-icon-media.svg",
+  },
+];
 
 interface ContactCardProps {
-  iconSrc: string;
-  iconAlt: string;
+  iconSrc?: string;
+  iconAlt?: string;
   title: string;
   timing: string;
-  nodeId: string;
-  children: React.ReactNode;
+  value: string;
+  link?: string;
+  nodeId?: string;
+}
+
+function getFallbackIcon(title: string): string {
+  const lower = title.toLowerCase();
+  if (lower.includes("mail")) return "/images/contact-icon-email.svg";
+  if (lower.includes("phone") || lower.includes("call"))
+    return "/images/contact-icon-phone.svg";
+  if (lower.includes("office") || lower.includes("location") || lower.includes("address"))
+    return "/images/contact-icon-office.svg";
+  return "/images/contact-icon-media.svg";
 }
 
 function ContactCard({
@@ -16,50 +68,115 @@ function ContactCard({
   iconAlt,
   title,
   timing,
+  value,
+  link,
   nodeId,
-  children,
 }: ContactCardProps) {
+  const finalIconSrc = iconSrc || getFallbackIcon(title);
+  const isRemote =
+    finalIconSrc.startsWith("http://") || finalIconSrc.startsWith("https://");
+
+  const renderValue = () => {
+    if (link) {
+      return (
+        <a
+          href={link}
+          target={link.startsWith("http") ? "_blank" : undefined}
+          rel={link.startsWith("http") ? "noopener noreferrer" : undefined}
+          className="hover:text-[#00698c] transition-colors break-words"
+        >
+          {value}
+        </a>
+      );
+    }
+
+    if (value.includes("@") && !value.includes(" ")) {
+      return (
+        <a
+          href={`mailto:${value}`}
+          className="hover:text-[#00698c] transition-colors break-words"
+        >
+          {value}
+        </a>
+      );
+    }
+
+    const isPhone =
+      title.toLowerCase().includes("phone") ||
+      title.toLowerCase().includes("call") ||
+      /^[+\d\s()-]{7,}$/.test(value.trim());
+
+    if (isPhone) {
+      return (
+        <a
+          href={`tel:${value.replace(/[^\d+]/g, "")}`}
+          className="hover:text-[#00698c] transition-colors whitespace-nowrap"
+        >
+          {value}
+        </a>
+      );
+    }
+
+    if (value.startsWith("http://") || value.startsWith("https://")) {
+      return (
+        <a
+          href={value}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-[#00698c] transition-colors break-words"
+        >
+          {value}
+        </a>
+      );
+    }
+
+    return (
+      <p className="leading-[1.3] text-[20px] sm:text-[22px] break-words">
+        {value}
+      </p>
+    );
+  };
+
   return (
     <div
-      className="bg-white flex flex-col gap-[60px] lg:gap-[80px] h-full items-start overflow-hidden p-[28px] sm:p-[32px] relative shadow-xs hover:shadow-md transition-shadow flex-1 w-full"
+      className="bg-white flex flex-col justify-between gap-[40px] lg:gap-[60px] h-full items-start overflow-hidden p-[28px] sm:p-[32px] relative shadow-xs hover:shadow-md transition-shadow flex-1 w-full rounded-2xl border border-sky-100/60"
       data-node-id={nodeId}
     >
       {/* Icon: 40x40 dark teal container */}
-      <div className="bg-[#00506b] flex items-center justify-center relative shrink-0 size-[40px]">
+      <div className="bg-[#00506b] rounded-lg flex items-center justify-center relative shrink-0 size-[44px] shadow-2xs">
         <div className="relative shrink-0 size-[24px]">
           <Image
-            src={iconSrc}
-            alt={iconAlt}
+            src={finalIconSrc}
+            alt={iconAlt || title}
             width={24}
             height={24}
+            unoptimized={isRemote}
             className="block size-full object-contain"
           />
         </div>
       </div>
 
       {/* Content Container */}
-      <div className="flex flex-col gap-[20px] items-start justify-center relative shrink-0 w-full">
-        <div className="flex flex-col gap-[8px] items-start justify-center relative shrink-0 w-full">
+      <div className="flex flex-col gap-[16px] items-start justify-center relative shrink-0 w-full">
+        <div className="flex flex-col gap-[6px] items-start justify-center relative shrink-0 w-full">
           {/* Subheading: 24px */}
-          <h3 className="font-serif font-bold text-[#0a0d12] text-[24px] leading-normal whitespace-nowrap">
+          <h3 className="font-serif font-bold text-[#0a0d12] text-[22px] sm:text-[24px] leading-snug">
             {title}
           </h3>
-          {/* Paragraph: 16px text-[#414651] */}
-          <p className="font-sans font-normal leading-[27.2px] text-[16px] text-[#414651] whitespace-nowrap">
+          {/* Paragraph: 15-16px text-[#414651] */}
+          <p className="font-sans font-normal leading-[24px] text-[15px] sm:text-[16px] text-[#414651]">
             {timing}
           </p>
         </div>
 
-        {/* Highlighted Value: 22px text-[#0a0d12] tracking-[-0.5px] */}
-        <div className="font-sans font-medium text-[20px] sm:text-[22px] leading-[35.2px] text-[#0a0d12] tracking-[-0.5px] w-full">
-          {children}
+        {/* Highlighted Value: 20-22px text-[#0a0d12] tracking-[-0.5px] */}
+        <div className="font-sans font-medium text-[19px] sm:text-[21px] leading-[30px] sm:leading-[32px] text-[#0a0d12] tracking-[-0.5px] w-full">
+          {renderValue()}
         </div>
       </div>
     </div>
   );
 }
-
-import { PageSectionData } from "@/common/services/cms.service";
 
 interface ContactInfoGridProps {
   data?: Partial<PageSectionData>;
@@ -69,175 +186,61 @@ export function ContactInfoGrid({ data }: ContactInfoGridProps = {}) {
   const badge = data?.badge || "Reach Us";
   const title = data?.title || "Contact Information";
 
+  const rawCards = (data?.metadata as any)?.cards;
+  const cards: ContactInfoCardItem[] =
+    Array.isArray(rawCards) && rawCards.length > 0 ? rawCards : defaultContactCards;
+
   return (
     <section
       className="bg-[#e6f9ff] flex flex-col gap-[60px] lg:gap-[80px] items-center px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] py-16 sm:py-24 lg:py-[140px] relative w-full"
       data-node-id="150:72328"
-      data-name="Academic Programs"
+      data-name="Contact Information Grid"
     >
       <div className="max-w-[1440px] mx-auto w-full flex flex-col gap-[60px] lg:gap-[80px] items-center">
-        {/* Header Container (Figma node 150:72329) */}
+        {/* Header Container */}
         <div
           className="flex flex-col gap-4 items-center relative shrink-0 w-full text-center"
           data-node-id="150:72329"
         >
-          {/* Pill Badge (Figma node 150:72330) */}
+          {/* Pill Badge */}
           <div
-            className="border border-[#00698c] border-solid flex flex-col items-start px-[12px] py-[8px] relative rounded-[1000px] shrink-0"
+            className="border border-[#00698c] border-solid flex flex-col items-start px-[14px] py-[6px] relative rounded-[1000px] shrink-0 bg-white/40"
             data-node-id="150:72330"
           >
             <span
-              className="font-sans font-semibold leading-[17.6px] text-[#0a0d12] text-[16px] uppercase whitespace-nowrap"
+              className="font-sans font-semibold leading-[17.6px] text-[#0a0d12] text-[14px] sm:text-[15px] uppercase whitespace-nowrap tracking-wider"
               data-node-id="150:72332"
             >
               {badge}
             </span>
           </div>
 
-          {/* Title (Figma node 150:72333) */}
+          {/* Title */}
           <h2
-            className="font-serif font-medium leading-tight sm:leading-[44px] text-[#0a0d12] text-3xl sm:text-4xl lg:text-[36px] text-center tracking-[-0.72px] max-w-[580px]"
+            className="font-serif font-medium leading-tight sm:leading-[44px] text-[#0a0d12] text-3xl sm:text-4xl lg:text-[36px] text-center tracking-[-0.72px] max-w-[680px]"
             data-node-id="150:72333"
           >
             {title}
           </h2>
         </div>
 
-        {/* 4 Cards Grid Container (Figma node 150:73332) */}
+        {/* Cards Grid Container */}
         <div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[24px] items-stretch relative shrink-0 w-full"
           data-node-id="150:73332"
         >
-          {/* Card 1: Call us */}
-          <ContactCard
-            nodeId="150:73333"
-            iconSrc="/icons/contact/phone.svg"
-            iconAlt="Call Icon"
-            title="Call us"
-            timing="Mon-Fri from 8am to 5pm."
-          >
-            <a
-              href="tel:+15550000000"
-              className="hover:text-[#00698c] transition-colors whitespace-nowrap"
-            >
-              +1 (555)000-0000
-            </a>
-          </ContactCard>
-
-          {/* Card 2: Email us. */}
-          <ContactCard
-            nodeId="150:73347"
-            iconSrc="/icons/contact/email.svg"
-            iconAlt="Email Icon"
-            title="Email us."
-            timing="24/7 any day"
-          >
-            <a
-              href="mailto:info@iilp.org"
-              className="hover:text-[#00698c] transition-colors whitespace-nowrap"
-            >
-              info@iilp.org
-            </a>
-          </ContactCard>
-
-          {/* Card 3: Office Address */}
-          <ContactCard
-            nodeId="150:73362"
-            iconSrc="/icons/contact/location.svg"
-            iconAlt="Location Pin Icon"
-            title="Office Address"
-            timing="Mon-Fri from 8am to 5pm."
-          >
-            <p className="leading-[1.3] text-[20px] sm:text-[22px]">
-              International Institute for Law and Politics (IILP)
-            </p>
-          </ContactCard>
-
-          {/* Card 4: Follow IILP */}
-          <ContactCard
-            nodeId="150:73384"
-            iconSrc="/icons/contact/globe.svg"
-            iconAlt="Globe Search Icon"
-            title="Follow IILP"
-            timing="Official Social Media"
-          >
-            <div
-              className="flex gap-[12px] h-[18px] items-center pt-2 relative shrink-0"
-              data-node-id="150:73414"
-            >
-              {/* Facebook */}
-              <Link
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Follow IILP on Facebook"
-                className="flex items-center justify-center hover:opacity-75 transition-opacity"
-                data-node-id="150:73415"
-              >
-                <Image
-                  src="/icons/contact/fb.svg"
-                  alt="Facebook"
-                  width={20}
-                  height={18}
-                  className="w-[20px] h-[18px]"
-                />
-              </Link>
-
-              {/* X / Twitter */}
-              <Link
-                href="https://x.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Follow IILP on X"
-                className="flex items-center justify-center hover:opacity-75 transition-opacity"
-                data-node-id="150:73420"
-              >
-                <Image
-                  src="/icons/contact/x.svg"
-                  alt="X (Twitter)"
-                  width={20}
-                  height={18}
-                  className="w-[20px] h-[18px]"
-                />
-              </Link>
-
-              {/* Instagram */}
-              <Link
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Follow IILP on Instagram"
-                className="flex items-center justify-center hover:opacity-75 transition-opacity"
-                data-node-id="150:73425"
-              >
-                <Image
-                  src="/icons/contact/instagram.svg"
-                  alt="Instagram"
-                  width={20}
-                  height={18}
-                  className="w-[20px] h-[18px]"
-                />
-              </Link>
-
-              {/* LinkedIn */}
-              <Link
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Follow IILP on LinkedIn"
-                className="flex items-center justify-center hover:opacity-75 transition-opacity"
-                data-node-id="150:73430"
-              >
-                <Image
-                  src="/icons/contact/linkedin.svg"
-                  alt="LinkedIn"
-                  width={20}
-                  height={18}
-                  className="w-[20px] h-[18px]"
-                />
-              </Link>
-            </div>
-          </ContactCard>
+          {cards.map((card, idx) => (
+            <ContactCard
+              key={`${card.title}-${idx}`}
+              nodeId={`contact-card-${idx}`}
+              iconSrc={card.iconSrc}
+              iconAlt={card.iconAlt || `${card.title} Icon`}
+              title={card.title}
+              timing={card.timing}
+              value={card.value}
+              link={card.link}
+            />
+          ))}
         </div>
       </div>
     </section>

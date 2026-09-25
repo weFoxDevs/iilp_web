@@ -356,6 +356,245 @@ export const defaultPartnershipTracksMetadata: PartnershipTracksMetadata = {
   tracks: defaultPartnershipTracksList,
 };
 
+export interface ContactInfoCardItem {
+  title: string;
+  value: string;
+  timing: string;
+  iconAlt?: string;
+  iconSrc?: string;
+  link?: string;
+}
+
+export interface ContactInfoCardsMetadata {
+  [key: string]: unknown;
+  cards: ContactInfoCardItem[];
+}
+
+export const defaultContactInfoCardsList: ContactInfoCardItem[] = [
+  {
+    title: "Email",
+    value: "info@iilp.org",
+    timing: "Online Support",
+    iconAlt: "Email Icon",
+    iconSrc: "/images/contact-icon-email.svg",
+  },
+  {
+    title: "Phone",
+    value: "+880 1819-254425",
+    timing: "Sunday to Thursday 9am to 5pm",
+    iconAlt: "Phone Icon",
+    iconSrc: "/images/contact-icon-phone.svg",
+  },
+  {
+    title: "Office",
+    value: "Dhaka, Bangladesh",
+    timing: "Visit Our Head Office",
+    iconAlt: "Office Icon",
+    iconSrc: "/images/contact-icon-office.svg",
+  },
+  {
+    title: "Media Relations",
+    value: "media@iilp.org",
+    timing: "Press and Communications",
+    iconAlt: "Media Icon",
+    iconSrc: "/images/contact-icon-media.svg",
+  },
+];
+
+export const defaultContactInfoCardsMetadata: ContactInfoCardsMetadata = {
+  cards: defaultContactInfoCardsList,
+};
+
+export interface ContactMapMetadata {
+  mapType: "embed" | "image";
+  embedUrl: string;
+  mapImage: string;
+  address: string;
+  phone: string;
+  email: string;
+  officeHours: string;
+}
+
+export const defaultContactMapMetadata: ContactMapMetadata = {
+  mapType: "embed",
+  embedUrl:
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d116834.00977789308!2d90.3492857469792!3d23.78077772076043!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755b8b087026b81%3A0x8fa563bbdd5904c2!2sDhaka%2C%20Bangladesh!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd",
+  mapImage: "/images/contact-map.png",
+  address: "Dhaka, Bangladesh",
+  phone: "+880 1819-254425",
+  email: "info@iilp.org",
+  officeHours: "Sunday to Thursday 9am to 5pm",
+};
+
+export interface PolicySectionItem {
+  id: string;
+  heading: string;
+  content: string;
+}
+
+export interface PolicySectionsMetadata {
+  lastUpdated: string;
+  sections: PolicySectionItem[];
+}
+
+export const defaultPolicySectionsList: PolicySectionItem[] = [
+  {
+    id: "information-we-collect",
+    heading: "1. Information We Collect",
+    content:
+      "IILP collects personal information that you voluntarily provide when completing contact forms, fellowship applications, event registrations, donation forms, careers applications, and newsletter subscriptions. This may include your name, email address, phone number, institution, country of residence, and supporting documents you upload.",
+  },
+  {
+    id: "how-we-use-information",
+    heading: "2. How We Use Your Information",
+    content:
+      "We use your information to respond to your inquiries, process applications and registrations, send communications you have requested (such as newsletters and event confirmations), improve our website and services, and fulfill our institutional mission. We do not sell or share your personal information with third parties for commercial purposes.",
+  },
+  {
+    id: "academic-integrity",
+    heading: "3. Academic Integrity",
+    content:
+      "Users who access IILP's research publications and academic content are expected to uphold standards of academic integrity, including proper citation and attribution of IILP's work.",
+  },
+  {
+    id: "user-conduct",
+    heading: "4. User Conduct",
+    content:
+      "You agree not to use the IILP website for any unlawful purpose; to upload malicious content; to misrepresent your identity or affiliation with IILP; or to engage in conduct that could harm IILP's reputation, mission, or institutional integrity.",
+  },
+  {
+    id: "disclaimer",
+    heading: "5. Disclaimer",
+    content:
+      "The information on this website is provided in good faith for informational and educational purposes. IILP makes no warranties, expressed or implied, about the completeness, accuracy, or reliability of the content.",
+  },
+  {
+    id: "third-party-links",
+    heading: "6. Links to Third-Party Websites",
+    content:
+      "The IILP website may contain links to external websites. IILP is not responsible for the content, accuracy, or privacy practices of third-party websites.",
+  },
+  {
+    id: "changes-to-terms",
+    heading: "7. Changes to Terms",
+    content:
+      "IILP reserves the right to update these Terms of Use at any time. Continued use of the website following any changes constitutes acceptance of the updated terms.",
+  },
+  {
+    id: "contact",
+    heading: "8. Contact",
+    content:
+      "For questions about these Terms of Use, please contact IILP at info@iilp.org.",
+  },
+];
+
+export const defaultPolicySectionsMetadata: PolicySectionsMetadata = {
+  lastUpdated: "January 2026",
+  sections: defaultPolicySectionsList,
+};
+
+export interface DonateValueCard {
+  emoji: string;
+  title: string;
+  description: string;
+}
+
+export interface DonateImpactMetadata {
+  cards: DonateValueCard[];
+  formBadge: string;
+  formTitle: string;
+  presetAmounts: number[];
+  defaultAmount: number;
+  securityNotice: string;
+  thankYouHeading: string;
+  thankYouMessage: string;
+}
+
+export const defaultDonateImpactMetadata: DonateImpactMetadata = {
+  cards: [
+    {
+      emoji: "🎓",
+      title: "Fund Research & Scholarships",
+      description:
+        "Support emerging scholars and researchers advancing human rights, governance, and development.",
+    },
+    {
+      emoji: "📚",
+      title: "Publications & Policy Briefs",
+      description:
+        "Enable the production of open-access research, policy briefs, and scholarly publications.",
+    },
+    {
+      emoji: "🌐",
+      title: "Global Fellowship Network",
+      description:
+        "Support the Global Fellowship Network connecting researchers and emerging leaders worldwide.",
+    },
+    {
+      emoji: "🎤",
+      title: "Conferences & Events",
+      description:
+        "Fund conferences, seminars, and workshops that advance policy dialogue and knowledge exchange.",
+    },
+    {
+      emoji: "🏛️",
+      title: "Institutional Development",
+      description:
+        "Contribute to IILP's long-term institutional capacity building and growth.",
+    },
+  ],
+  formBadge: "Make a Gift",
+  formTitle: "Donate to IILP",
+  presetAmounts: [25, 50, 100, 150],
+  defaultAmount: 30,
+  securityNotice:
+    "Secure donation. IILP is an independent non-profit institute.",
+  thankYouHeading: "Thank You for Your Support!",
+  thankYouMessage:
+    "Your generous gift empowers scholars and defenders of justice around the world.",
+};
+
+export interface GivingChannel {
+  title: string;
+  description: string;
+  actionText: string;
+  actionUrl: string;
+  badge?: string;
+}
+
+export interface WaysToGiveMetadata {
+  channels: GivingChannel[];
+}
+
+export const defaultWaysToGiveMetadata: WaysToGiveMetadata = {
+  channels: [
+    {
+      title: "Online Card & Wire Transfer",
+      description:
+        "Support directly through recurring monthly or one-off international bank wire transfers.",
+      actionText: "View Bank Details",
+      actionUrl: "mailto:donate@iilp.org?subject=Wire%20Transfer%20Details",
+      badge: "Fast & Direct",
+    },
+    {
+      title: "Endowments & Fellowships",
+      description:
+        "Establish a named research chair, academic scholarship fund, or junior fellowship program.",
+      actionText: "Partner with Us",
+      actionUrl: "/contact",
+      badge: "Institutional",
+    },
+    {
+      title: "Institutional & DAF Giving",
+      description:
+        "Direct philanthropic contributions via Donor-Advised Funds, foundation grants, or institutional partnerships.",
+      actionText: "Contact Advancement",
+      actionUrl: "mailto:giving@iilp.org",
+      badge: "Tax-Exempt",
+    },
+  ],
+};
+
 export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
   home: [
     { key: "hero", label: "Hero Banner", defaultTitle: "International Institute for Law and Politics (IILP)", defaultBadge: "Global Academic Network", defaultBgImage: "/assets/home-hero-v2.png" },
@@ -868,20 +1107,137 @@ export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
     { key: "work_culture", label: "Work Culture", defaultTitle: "Life at IILP" },
   ],
   contact: [
-    { key: "hero", label: "Contact Hero", defaultTitle: "Contact IILP" },
-    { key: "info_grid", label: "Offices & Information", defaultTitle: "Global Contact Details" },
+    {
+      key: "hero",
+      label: "Contact Hero",
+      defaultTitle: "Contact IILP",
+      defaultBadge: "Contact Us",
+      defaultSubtitle:
+        "We welcome inquiries from students, scholars, partner institutions, policymakers, and media organizations. Reach out to our dedicated team below.",
+      defaultBgImage: "/images/contact-hero-bg.png",
+    },
+    {
+      key: "contact_info_cards",
+      label: "Contact Information Cards",
+      defaultTitle: "Contact Information",
+      defaultBadge: "Reach Us",
+      defaultMetadata: defaultContactInfoCardsMetadata,
+    },
+    {
+      key: "info_grid",
+      label: "Offices & Information (Legacy Key)",
+      defaultTitle: "Contact Information",
+      defaultBadge: "Reach Us",
+      defaultMetadata: defaultContactInfoCardsMetadata,
+    },
+    {
+      key: "contact_map",
+      label: "Campus & Location Map",
+      defaultTitle: "Dhaka Campus & Head Office",
+      defaultBadge: "Location & Directions",
+      defaultSubtitle:
+        "Dhaka, Bangladesh — Sunday to Thursday 9am to 5pm",
+      defaultActionUrl: "https://maps.google.com/?q=Dhaka,+Bangladesh",
+      defaultActionText: "Open in Google Maps",
+      defaultBgImage: "/images/contact-map.png",
+      defaultMetadata: {
+        mapType: "embed",
+        embedUrl:
+          "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d116834.00977789308!2d90.3492857469792!3d23.78077772076043!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755b8b087026b81%3A0x8fa563bbdd5904c2!2sDhaka%2C%20Bangladesh!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd",
+        mapImage: "/images/contact-map.png",
+        address: "Dhaka, Bangladesh",
+        phone: "+880 1819-254425",
+        email: "info@iilp.org",
+        officeHours: "Sunday to Thursday 9am to 5pm",
+      },
+    },
     { key: "form", label: "Inquiry Form", defaultTitle: "Send an Inquiry" },
   ],
   donate: [
-    { key: "hero", label: "Donation Hero", defaultTitle: "Support IILP" },
-    { key: "impact_funds", label: "Impact Funds", defaultTitle: "Endowment & Scholarship Funds" },
-    { key: "ways_to_give", label: "Ways to Give", defaultTitle: "Donation Channels" },
+    {
+      key: "hero",
+      label: "Donation Hero Banner",
+      defaultTitle: "Support Our Mission",
+      defaultBadge: "Invest in Global Change",
+      defaultSubtitle:
+        "Your contribution powers world-class legal research, student fellowships, and policy dialogues that strengthen democracy worldwide.",
+      defaultBgImage: "/images/contact-hero-bg.png",
+    },
+    {
+      key: "impact_intro",
+      label: "Why Give & Make a Gift Form",
+      defaultBadge: "Why Give",
+      defaultTitle: "Invest in Education and Advocacy for a Brighter Future",
+      defaultSubtitle:
+        "Every contribution fuels our mission to advance human rights, good governance, and rule of law across the globe.",
+      defaultMetadata: defaultDonateImpactMetadata,
+    },
+    {
+      key: "ways_to_give",
+      label: "Ways to Give / Donation Channels",
+      defaultBadge: "Giving Channels",
+      defaultTitle: "Other Ways to Give",
+      defaultSubtitle:
+        "Explore additional opportunities to partner with IILP through wire transfers, endowments, and institutional philanthropy.",
+      defaultMetadata: defaultWaysToGiveMetadata,
+    },
   ],
   "privacy-policy": [
-    { key: "content", label: "Privacy Policy Content", defaultTitle: "Privacy Policy" },
+    {
+      key: "hero",
+      label: "Privacy Policy Hero Banner",
+      defaultTitle: "Your Privacy, Our Priority",
+      defaultBadge: "Privacy Policy",
+      defaultSubtitle:
+        "How IILP collects, uses, and protects your personal information.",
+      defaultBgImage: "/images/contact-hero-bg.png",
+    },
+    {
+      key: "policy_sections",
+      label: "Privacy Policy Articles & Sections",
+      defaultTitle: "Privacy Policy",
+      defaultSubtitle: "Last updated: January 2026",
+      defaultMetadata: defaultPolicySectionsMetadata,
+    },
+    {
+      key: "content",
+      label: "Privacy Policy Content (Legacy Key)",
+      defaultTitle: "Privacy Policy",
+      defaultSubtitle: "Last updated: January 2026",
+      defaultMetadata: defaultPolicySectionsMetadata,
+    },
   ],
   "terms-of-use": [
-    { key: "content", label: "Terms of Use Content", defaultTitle: "Terms of Use" },
+    {
+      key: "hero",
+      label: "Terms of Use Hero Banner",
+      defaultTitle: "Agreement to Terms",
+      defaultBadge: "Terms of Use",
+      defaultSubtitle:
+        "Terms and conditions governing your use of the IILP website.",
+      defaultBgImage: "/images/contact-hero-bg.png",
+    },
+    {
+      key: "policy_sections",
+      label: "Terms of Use Articles & Sections",
+      defaultTitle: "Terms of Use",
+      defaultSubtitle: "Last updated: January 2026",
+      defaultMetadata: defaultPolicySectionsMetadata,
+    },
+    {
+      key: "terms_sections",
+      label: "Terms Sections (Legacy Key)",
+      defaultTitle: "Terms of Use",
+      defaultSubtitle: "Last updated: January 2026",
+      defaultMetadata: defaultPolicySectionsMetadata,
+    },
+    {
+      key: "content",
+      label: "Terms of Use Content (Legacy Key)",
+      defaultTitle: "Terms of Use",
+      defaultSubtitle: "Last updated: January 2026",
+      defaultMetadata: defaultPolicySectionsMetadata,
+    },
   ],
 };
 
@@ -1614,6 +1970,261 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
       const base = getPartnershipTracksMetadata();
       const updated = updater(base);
       setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const getContactInfoCardsMetadata = (): ContactInfoCardsMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed?.cards) && parsed.cards.length > 0) {
+        return {
+          cards: parsed.cards.map((c: any) => ({
+            title: String(c?.title ?? ""),
+            value: String(c?.value ?? ""),
+            timing: String(c?.timing ?? ""),
+            iconAlt: String(c?.iconAlt ?? ""),
+            iconSrc: String(c?.iconSrc ?? ""),
+            link: c?.link ? String(c.link) : undefined,
+          })),
+        };
+      }
+      return defaultContactInfoCardsMetadata;
+    } catch {
+      return defaultContactInfoCardsMetadata;
+    }
+  };
+
+  const updateContactInfoCardsMetadata = (
+    updater: (prev: ContactInfoCardsMetadata) => ContactInfoCardsMetadata
+  ) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const base = getContactInfoCardsMetadata();
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as Record<string, unknown>,
+      }));
+    } catch {
+      const base = getContactInfoCardsMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as Record<string, unknown>,
+      }));
+    }
+  };
+
+  const handleContactCardIconUpload = async (file: File, cardIdx: number) => {
+    try {
+      const res = await uploadMediaFile(token, file, "icons");
+      if (res?.url) {
+        updateContactInfoCardsMetadata((prev) => {
+          const list = [...prev.cards];
+          list[cardIdx] = { ...list[cardIdx], iconSrc: res.url };
+          return { ...prev, cards: list };
+        });
+        onShowToast("Icon uploaded successfully!", "success");
+      }
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to upload icon", "error");
+    }
+  };
+
+  const getContactMapMetadata = (): ContactMapMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      return {
+        mapType: parsed?.mapType === "image" || parsed?.map_type === "image" ? "image" : "embed",
+        embedUrl: String(parsed?.embedUrl || parsed?.embed_url || defaultContactMapMetadata.embedUrl),
+        mapImage: String(parsed?.mapImage || parsed?.map_image || defaultContactMapMetadata.mapImage),
+        address: String(parsed?.address || defaultContactMapMetadata.address),
+        phone: String(parsed?.phone || defaultContactMapMetadata.phone),
+        email: String(parsed?.email || defaultContactMapMetadata.email),
+        officeHours: String(parsed?.officeHours || parsed?.office_hours || defaultContactMapMetadata.officeHours),
+      };
+    } catch {
+      return defaultContactMapMetadata;
+    }
+  };
+
+  const updateContactMapMetadata = (
+    updater: (prev: ContactMapMetadata) => ContactMapMetadata
+  ) => {
+    try {
+      const base = getContactMapMetadata();
+      const cur = JSON.parse(metadataJson || "{}");
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    } catch {
+      const base = getContactMapMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    }
+  };
+
+  const getPolicySectionsMetadata = (): PolicySectionsMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      const lastUpdated = String(
+        parsed?.lastUpdated || parsed?.last_updated || "January 2026"
+      );
+      if (Array.isArray(parsed?.sections) && parsed.sections.length > 0) {
+        return {
+          lastUpdated,
+          sections: parsed.sections.map((s: any, idx: number) => ({
+            id: String(s?.id || `section-${idx + 1}`),
+            heading: String(s?.heading || `Section ${idx + 1}`),
+            content: String(s?.content || ""),
+          })),
+        };
+      }
+      return defaultPolicySectionsMetadata;
+    } catch {
+      return defaultPolicySectionsMetadata;
+    }
+  };
+
+  const updatePolicySectionsMetadata = (
+    updater: (prev: PolicySectionsMetadata) => PolicySectionsMetadata
+  ) => {
+    try {
+      const base = getPolicySectionsMetadata();
+      const cur = JSON.parse(metadataJson || "{}");
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    } catch {
+      const base = getPolicySectionsMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    }
+  };
+
+  const getDonateImpactMetadata = (): DonateImpactMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      const formBadge = String(parsed?.formBadge || defaultDonateImpactMetadata.formBadge);
+      const formTitle = String(parsed?.formTitle || defaultDonateImpactMetadata.formTitle);
+      const presetAmounts = Array.isArray(parsed?.presetAmounts)
+        ? parsed.presetAmounts.map((n: any) => Number(n) || 0).filter((n: number) => n > 0)
+        : defaultDonateImpactMetadata.presetAmounts;
+      const defaultAmount = Number(parsed?.defaultAmount) || defaultDonateImpactMetadata.defaultAmount;
+      const securityNotice = String(parsed?.securityNotice || defaultDonateImpactMetadata.securityNotice);
+      const thankYouHeading = String(parsed?.thankYouHeading || defaultDonateImpactMetadata.thankYouHeading);
+      const thankYouMessage = String(parsed?.thankYouMessage || defaultDonateImpactMetadata.thankYouMessage);
+
+      if (Array.isArray(parsed?.cards) && parsed.cards.length > 0) {
+        return {
+          cards: parsed.cards.map((c: any, idx: number) => ({
+            emoji: String(c?.emoji || "✨"),
+            title: String(c?.title || `Impact Goal ${idx + 1}`),
+            description: String(c?.description || ""),
+          })),
+          formBadge,
+          formTitle,
+          presetAmounts,
+          defaultAmount,
+          securityNotice,
+          thankYouHeading,
+          thankYouMessage,
+        };
+      }
+      return {
+        ...defaultDonateImpactMetadata,
+        formBadge,
+        formTitle,
+        presetAmounts,
+        defaultAmount,
+        securityNotice,
+        thankYouHeading,
+        thankYouMessage,
+      };
+    } catch {
+      return defaultDonateImpactMetadata;
+    }
+  };
+
+  const updateDonateImpactMetadata = (
+    updater: (prev: DonateImpactMetadata) => DonateImpactMetadata
+  ) => {
+    try {
+      const base = getDonateImpactMetadata();
+      const cur = JSON.parse(metadataJson || "{}");
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    } catch {
+      const base = getDonateImpactMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    }
+  };
+
+  const getWaysToGiveMetadata = (): WaysToGiveMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed?.channels) && parsed.channels.length > 0) {
+        return {
+          channels: parsed.channels.map((ch: any, idx: number) => ({
+            title: String(ch?.title || `Giving Channel ${idx + 1}`),
+            description: String(ch?.description || ""),
+            actionText: String(ch?.actionText || "Learn More"),
+            actionUrl: String(ch?.actionUrl || "#"),
+            badge: ch?.badge ? String(ch.badge) : undefined,
+          })),
+        };
+      }
+      return defaultWaysToGiveMetadata;
+    } catch {
+      return defaultWaysToGiveMetadata;
+    }
+  };
+
+  const updateWaysToGiveMetadata = (
+    updater: (prev: WaysToGiveMetadata) => WaysToGiveMetadata
+  ) => {
+    try {
+      const base = getWaysToGiveMetadata();
+      const cur = JSON.parse(metadataJson || "{}");
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    } catch {
+      const base = getWaysToGiveMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
     }
   };
 
@@ -5801,6 +6412,1302 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                       className="text-xs text-[#0284c7] hover:underline font-semibold cursor-pointer"
                     >
                       Reset to Default 5 Tracks
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Contact Information Cards Visual Manager */}
+              {(editingKey === "contact_info_cards" ||
+                editingKey === "info_grid" ||
+                (selectedPage === "contact" &&
+                  (editingKey === "contact_info_cards" ||
+                    editingKey === "info_grid" ||
+                    formData.sectionKey === "contact_info_cards" ||
+                    formData.sectionKey === "info_grid"))) && (
+                <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00506b]"></span>
+                      <h4 className="text-xs font-bold text-[#00506b] uppercase tracking-wider">
+                        Contact Information Cards ({getContactInfoCardsMetadata().cards.length} Cards)
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateContactInfoCardsMetadata((prev) => ({
+                            ...prev,
+                            cards: [
+                              ...prev.cards,
+                              {
+                                title: "New Contact",
+                                value: "info@iilp.org",
+                                timing: "Support Hours",
+                                iconAlt: "Contact Icon",
+                                iconSrc: "/images/contact-icon-email.svg",
+                              },
+                            ],
+                          }));
+                        }}
+                        className="px-3 py-1 bg-[#00506b] hover:bg-[#00384a] text-white text-[11px] font-semibold rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>+ Add Card</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#00506b]/80">
+                    Configure the contact information cards (Email, Phone, Office, Media Relations, etc.) displayed on the Contact page.
+                  </p>
+
+                  {/* Cards List */}
+                  <div className="space-y-3 max-h-[540px] overflow-y-auto pr-1">
+                    {getContactInfoCardsMetadata().cards.map((cardItem, idx) => (
+                      <div
+                        key={`contact-card-${idx}`}
+                        className="bg-white p-3.5 rounded-xl border border-[#bae6fd] shadow-xs flex flex-col md:flex-row gap-4 items-start"
+                      >
+                        {/* Index & Order Controls */}
+                        <div className="flex md:flex-col items-center gap-1 shrink-0">
+                          <span className="w-8 h-8 rounded-lg bg-[#f0f9ff] border border-[#7dd3fc] text-[#00506b] flex items-center justify-center text-xs font-bold font-mono">
+                            {String(idx + 1).padStart(2, "0")}
+                          </span>
+                          <div className="flex md:flex-col gap-0.5">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                if (idx === 0) return;
+                                updateContactInfoCardsMetadata((prev) => {
+                                  const list = [...prev.cards];
+                                  const temp = list[idx - 1];
+                                  list[idx - 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, cards: list };
+                                });
+                              }}
+                              className="w-6 h-5 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-[10px] cursor-pointer"
+                              title="Move Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === getContactInfoCardsMetadata().cards.length - 1}
+                              onClick={() => {
+                                if (idx >= getContactInfoCardsMetadata().cards.length - 1) return;
+                                updateContactInfoCardsMetadata((prev) => {
+                                  const list = [...prev.cards];
+                                  const temp = list[idx + 1];
+                                  list[idx + 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, cards: list };
+                                });
+                              }}
+                              className="w-6 h-5 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-[10px] cursor-pointer"
+                              title="Move Down"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card Inputs */}
+                        <div className="flex-1 space-y-3 w-full">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                                Card Title (e.g. Email, Phone, Office)
+                              </label>
+                              <input
+                                type="text"
+                                value={cardItem.title}
+                                placeholder="e.g. Email"
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  updateContactInfoCardsMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    list[idx] = { ...list[idx], title: val };
+                                    return { ...prev, cards: list };
+                                  });
+                                }}
+                                className="w-full text-xs font-semibold border border-gray-300 rounded-lg px-2.5 py-1.5 focus:border-[#00506b] focus:outline-hidden"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                                Value (e.g. info@iilp.org, +880 1819-254425)
+                              </label>
+                              <input
+                                type="text"
+                                value={cardItem.value}
+                                placeholder="e.g. info@iilp.org"
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  updateContactInfoCardsMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    list[idx] = { ...list[idx], value: val };
+                                    return { ...prev, cards: list };
+                                  });
+                                }}
+                                className="w-full text-xs font-semibold border border-gray-300 rounded-lg px-2.5 py-1.5 focus:border-[#00506b] focus:outline-hidden"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                                Timing / Hours / Subtitle
+                              </label>
+                              <input
+                                type="text"
+                                value={cardItem.timing}
+                                placeholder="e.g. Online Support / Sun-Thu 9am-5pm"
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  updateContactInfoCardsMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    list[idx] = { ...list[idx], timing: val };
+                                    return { ...prev, cards: list };
+                                  });
+                                }}
+                                className="w-full text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 focus:border-[#00506b] focus:outline-hidden"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                                Icon Path or Upload SVG
+                              </label>
+                              <div className="flex gap-2 items-center">
+                                <input
+                                  type="text"
+                                  value={cardItem.iconSrc || ""}
+                                  placeholder="/images/contact-icon-email.svg"
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    updateContactInfoCardsMetadata((prev) => {
+                                      const list = [...prev.cards];
+                                      list[idx] = { ...list[idx], iconSrc: val };
+                                      return { ...prev, cards: list };
+                                    });
+                                  }}
+                                  className="w-full text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 focus:border-[#00506b] focus:outline-hidden font-mono"
+                                />
+                                <label className="shrink-0 px-2 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-[10px] font-semibold text-gray-700 cursor-pointer transition">
+                                  Upload
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const f = e.target.files?.[0];
+                                      if (f) handleContactCardIconUpload(f, idx);
+                                    }}
+                                  />
+                                </label>
+                                {cardItem.iconSrc && (
+                                  <div className="size-8 rounded bg-[#00506b] flex items-center justify-center shrink-0 p-1">
+                                    <img
+                                      src={cardItem.iconSrc}
+                                      alt="Preview"
+                                      className="size-5 object-contain"
+                                      onError={(e) => {
+                                        (e.target as HTMLElement).style.display = "none";
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Delete Button */}
+                        <div className="shrink-0 self-center md:self-start">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`Remove "${cardItem.title || "this card"}"?`)) {
+                                updateContactInfoCardsMetadata((prev) => ({
+                                  ...prev,
+                                  cards: prev.cards.filter((_, i) => i !== idx),
+                                }));
+                              }
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
+                            title="Delete Card"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-between border-t border-[#bae6fd]/60">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateContactInfoCardsMetadata((prev) => ({
+                          ...prev,
+                          cards: [
+                            ...prev.cards,
+                            {
+                              title: "New Contact",
+                              value: "contact@iilp.org",
+                              timing: "Support Hours",
+                              iconAlt: "Contact Icon",
+                              iconSrc: "/images/contact-icon-email.svg",
+                            },
+                          ],
+                        }));
+                      }}
+                      className="text-xs text-[#00506b] hover:underline font-semibold cursor-pointer"
+                    >
+                      + Add Another Card
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset to default 4 contact cards (Email, Phone, Office, Media)?")) {
+                          updateContactInfoCardsMetadata(() => defaultContactInfoCardsMetadata);
+                        }
+                      }}
+                      className="text-xs text-[#00506b] hover:underline font-semibold cursor-pointer"
+                    >
+                      Reset to Default 4 Cards
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Contact Campus & Location Map Visual Manager */}
+              {(editingKey === "contact_map" ||
+                (selectedPage === "contact" &&
+                  (editingKey === "contact_map" ||
+                    formData.sectionKey === "contact_map"))) && (
+                <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00698c]"></span>
+                      <h4 className="text-xs font-bold text-[#00698c] uppercase tracking-wider">
+                        Dynamic Campus &amp; Location Map Configuration
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-semibold text-gray-500">
+                      Displayed on /contact next to the form
+                    </span>
+                  </div>
+
+                  {/* Mode Selector */}
+                  <div className="grid grid-cols-2 gap-2 bg-white/80 p-1.5 rounded-xl border border-[#bae6fd]/60">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateContactMapMetadata((prev) => ({
+                          ...prev,
+                          mapType: "embed",
+                        }))
+                      }
+                      className={`px-3 py-2 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                        getContactMapMetadata().mapType === "embed"
+                          ? "bg-[#000080] text-white shadow-2xs"
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      Interactive Google Map (Embed Iframe)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateContactMapMetadata((prev) => ({
+                          ...prev,
+                          mapType: "image",
+                        }))
+                      }
+                      className={`px-3 py-2 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                        getContactMapMetadata().mapType === "image"
+                          ? "bg-[#000080] text-white shadow-2xs"
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      Static Photo / Graphic Map
+                    </button>
+                  </div>
+
+                  {/* Embed Iframe URL */}
+                  {getContactMapMetadata().mapType === "embed" && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-[#344054]">
+                          Google Maps Embed URL (iframe src)
+                        </label>
+                        <a
+                          href="https://www.google.com/maps"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-[#00698c] hover:underline"
+                        >
+                          Find on Google Maps &rarr; Share &rarr; Embed
+                        </a>
+                      </div>
+                      <textarea
+                        rows={2}
+                        value={getContactMapMetadata().embedUrl}
+                        onChange={(e) => {
+                          const val = e.target.value.trim();
+                          const srcMatch = val.match(/src=["'](.*?)["']/);
+                          const urlToSet = srcMatch ? srcMatch[1] : val;
+                          updateContactMapMetadata((prev) => ({
+                            ...prev,
+                            embedUrl: urlToSet,
+                          }));
+                        }}
+                        placeholder="https://www.google.com/maps/embed?pb=..."
+                        className="w-full text-xs font-mono p-2.5 border border-gray-200 rounded-xl bg-white focus:outline-hidden focus:border-[#000080]"
+                      />
+                    </div>
+                  )}
+
+                  {/* Static Map Image URL */}
+                  {getContactMapMetadata().mapType === "image" && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#344054]">
+                        Map Image URL (or upload custom graphic)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={getContactMapMetadata().mapImage}
+                          onChange={(e) =>
+                            updateContactMapMetadata((prev) => ({
+                              ...prev,
+                              mapImage: e.target.value,
+                            }))
+                          }
+                          placeholder="/images/contact-map.png"
+                          className="flex-1 text-xs p-2.5 border border-gray-200 rounded-xl bg-white focus:outline-hidden focus:border-[#000080]"
+                        />
+                        <label className="px-3 py-2 text-xs font-bold bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 cursor-pointer shadow-2xs shrink-0">
+                          Upload Image
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              try {
+                                const res = await uploadMediaFile(token, file, "maps");
+                                if (res?.url) {
+                                  updateContactMapMetadata((prev) => ({
+                                    ...prev,
+                                    mapImage: res.url,
+                                  }));
+                                  onShowToast("Map image uploaded!", "success");
+                                }
+                              } catch (err: unknown) {
+                                onShowToast(
+                                  err instanceof Error
+                                    ? err.message
+                                    : "Upload failed",
+                                  "error"
+                                );
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Campus Address & Contacts */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                        Campus / Head Office Address
+                      </label>
+                      <input
+                        type="text"
+                        value={getContactMapMetadata().address}
+                        onChange={(e) =>
+                          updateContactMapMetadata((prev) => ({
+                            ...prev,
+                            address: e.target.value,
+                          }))
+                        }
+                        placeholder="Dhaka, Bangladesh"
+                        className="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-white focus:outline-hidden focus:border-[#000080]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                        Office Support Hours
+                      </label>
+                      <input
+                        type="text"
+                        value={getContactMapMetadata().officeHours}
+                        onChange={(e) =>
+                          updateContactMapMetadata((prev) => ({
+                            ...prev,
+                            officeHours: e.target.value,
+                          }))
+                        }
+                        placeholder="Sunday to Thursday 9am to 5pm"
+                        className="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-white focus:outline-hidden focus:border-[#000080]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                        Contact Phone
+                      </label>
+                      <input
+                        type="text"
+                        value={getContactMapMetadata().phone}
+                        onChange={(e) =>
+                          updateContactMapMetadata((prev) => ({
+                            ...prev,
+                            phone: e.target.value,
+                          }))
+                        }
+                        placeholder="+880 1819-254425"
+                        className="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-white focus:outline-hidden focus:border-[#000080]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                        Contact Email
+                      </label>
+                      <input
+                        type="email"
+                        value={getContactMapMetadata().email}
+                        onChange={(e) =>
+                          updateContactMapMetadata((prev) => ({
+                            ...prev,
+                            email: e.target.value,
+                          }))
+                        }
+                        placeholder="info@iilp.org"
+                        className="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-white focus:outline-hidden focus:border-[#000080]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Reset to Default */}
+                  <div className="pt-2 flex items-center justify-end border-t border-[#bae6fd]/60">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset map configuration to defaults?")) {
+                          updateContactMapMetadata(() => defaultContactMapMetadata);
+                        }
+                      }}
+                      className="text-xs text-[#00698c] hover:underline font-semibold cursor-pointer"
+                    >
+                      Reset Map to Defaults
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Policy & Terms Sections Visual Manager */}
+              {(editingKey === "policy_sections" ||
+                formData.sectionKey === "policy_sections" ||
+                editingKey === "terms_sections" ||
+                formData.sectionKey === "terms_sections" ||
+                ((selectedPage === "privacy-policy" ||
+                  selectedPage === "terms-of-use") &&
+                  (editingKey === "content" ||
+                    formData.sectionKey === "content"))) && (
+                <div className="bg-[#f8f9fc] border border-[#d8dce8] rounded-2xl p-4 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#e2e6f0] pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#000080]"></span>
+                      <h4 className="text-xs font-bold text-[#000080] uppercase tracking-wider">
+                        Policy &amp; Terms Articles (
+                        {getPolicySectionsMetadata().sections.length} Sections)
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-[11px] font-bold text-gray-500 whitespace-nowrap">
+                        Last Updated:
+                      </label>
+                      <input
+                        type="text"
+                        value={getPolicySectionsMetadata().lastUpdated}
+                        onChange={(e) =>
+                          updatePolicySectionsMetadata((prev) => ({
+                            ...prev,
+                            lastUpdated: e.target.value,
+                          }))
+                        }
+                        placeholder="January 2026"
+                        className="px-2.5 py-1 text-xs font-semibold border border-gray-300 rounded-lg bg-white focus:outline-hidden focus:border-[#000080]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Section List */}
+                  <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                    {getPolicySectionsMetadata().sections.map((sec, idx) => (
+                      <div
+                        key={`policy-sec-${idx}`}
+                        className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-2.5 shadow-2xs hover:border-[#000080]/30 transition-colors"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="w-6 h-6 rounded-md bg-[#000080]/10 text-[#000080] text-xs font-bold flex items-center justify-center shrink-0">
+                              {idx + 1}
+                            </span>
+                            <input
+                              type="text"
+                              value={sec.heading}
+                              onChange={(e) =>
+                                updatePolicySectionsMetadata((prev) => {
+                                  const list = [...prev.sections];
+                                  list[idx] = {
+                                    ...list[idx],
+                                    heading: e.target.value,
+                                  };
+                                  return { ...prev, sections: list };
+                                })
+                              }
+                              placeholder="e.g. 1. Information We Collect"
+                              className="w-full text-xs sm:text-sm font-bold text-gray-900 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080] bg-gray-50/40"
+                            />
+                          </div>
+
+                          {/* Reorder and Delete Controls */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                if (idx <= 0) return;
+                                updatePolicySectionsMetadata((prev) => {
+                                  const list = [...prev.sections];
+                                  const temp = list[idx - 1];
+                                  list[idx - 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, sections: list };
+                                });
+                              }}
+                              className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                              title="Move Up"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 15l7-7 7 7"
+                                />
+                              </svg>
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={
+                                idx ===
+                                getPolicySectionsMetadata().sections.length - 1
+                              }
+                              onClick={() => {
+                                if (
+                                  idx >=
+                                  getPolicySectionsMetadata().sections.length - 1
+                                )
+                                  return;
+                                updatePolicySectionsMetadata((prev) => {
+                                  const list = [...prev.sections];
+                                  const temp = list[idx + 1];
+                                  list[idx + 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, sections: list };
+                                });
+                              }}
+                              className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                              title="Move Down"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (
+                                  confirm(
+                                    `Delete article "${sec.heading || `Section ${idx + 1}`}"?`
+                                  )
+                                ) {
+                                  updatePolicySectionsMetadata((prev) => ({
+                                    ...prev,
+                                    sections: prev.sections.filter(
+                                      (_, i) => i !== idx
+                                    ),
+                                  }));
+                                }
+                              }}
+                              className="p-1 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                              title="Delete Section"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* ID slug and content */}
+                        <div className="grid grid-cols-1 gap-2">
+                          <div className="flex items-center gap-2">
+                            <label className="text-[11px] font-bold text-gray-500 whitespace-nowrap">
+                              Anchor ID:
+                            </label>
+                            <input
+                              type="text"
+                              value={sec.id}
+                              onChange={(e) =>
+                                updatePolicySectionsMetadata((prev) => {
+                                  const list = [...prev.sections];
+                                  list[idx] = {
+                                    ...list[idx],
+                                    id: e.target.value,
+                                  };
+                                  return { ...prev, sections: list };
+                                })
+                              }
+                              placeholder="e.g. information-we-collect"
+                              className="flex-1 text-xs font-mono text-gray-600 border border-gray-200 rounded-md px-2 py-1 focus:outline-hidden focus:border-[#000080]"
+                            />
+                          </div>
+
+                          <textarea
+                            rows={3}
+                            value={sec.content}
+                            onChange={(e) =>
+                              updatePolicySectionsMetadata((prev) => {
+                                const list = [...prev.sections];
+                                list[idx] = {
+                                  ...list[idx],
+                                  content: e.target.value,
+                                };
+                                return { ...prev, sections: list };
+                              })
+                            }
+                            placeholder="Detailed policy clause text..."
+                            className="w-full text-xs text-gray-700 leading-relaxed border border-gray-200 rounded-lg p-2.5 focus:outline-hidden focus:border-[#000080] resize-y"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Visual Manager Footer */}
+                  <div className="pt-2 flex items-center justify-between border-t border-[#d8dce8]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updatePolicySectionsMetadata((prev) => ({
+                          ...prev,
+                          sections: [
+                            ...prev.sections,
+                            {
+                              id: `section-${prev.sections.length + 1}`,
+                              heading: `${prev.sections.length + 1}. New Policy Article`,
+                              content: "",
+                            },
+                          ],
+                        }));
+                      }}
+                      className="text-xs text-[#000080] font-bold hover:underline cursor-pointer"
+                    >
+                      + Add New Policy Section
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (
+                          confirm(
+                            "Reset to standard 8 policy articles (Information, Use, Integrity, Conduct, Disclaimer, Links, Changes, Contact)?"
+                          )
+                        ) {
+                          updatePolicySectionsMetadata(
+                            () => defaultPolicySectionsMetadata
+                          );
+                        }
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-800 font-semibold cursor-pointer"
+                    >
+                      Reset to Default 8 Articles
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Donate Impact Intro & Form Visual Manager */}
+              {(editingKey === "impact_intro" ||
+                formData.sectionKey === "impact_intro" ||
+                (selectedPage === "donate" &&
+                  (editingKey === "impact_intro" ||
+                    formData.sectionKey === "impact_intro"))) && (
+                <div className="bg-[#f8f9fc] border border-[#d8dce8] rounded-2xl p-4 space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#e2e6f0] pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#000080]"></span>
+                      <h4 className="text-xs font-bold text-[#000080] uppercase tracking-wider">
+                        Donate Impact Goals &amp; Gift Form Settings
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-semibold text-gray-500">
+                      {getDonateImpactMetadata().cards.length} Impact Cards Configured
+                    </span>
+                  </div>
+
+                  {/* Form Configuration Box */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-3">
+                    <h5 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>🎁</span> Make a Gift Form Configuration
+                    </h5>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Form Badge
+                        </label>
+                        <input
+                          type="text"
+                          value={getDonateImpactMetadata().formBadge}
+                          onChange={(e) =>
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              formBadge: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Make a Gift"
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Form Title
+                        </label>
+                        <input
+                          type="text"
+                          value={getDonateImpactMetadata().formTitle}
+                          onChange={(e) =>
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              formTitle: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Donate to IILP"
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Preset Amounts ($ USD, comma-separated)
+                        </label>
+                        <input
+                          type="text"
+                          value={getDonateImpactMetadata().presetAmounts.join(", ")}
+                          onChange={(e) => {
+                            const nums = e.target.value
+                              .split(",")
+                              .map((s) => Number(s.trim()))
+                              .filter((n) => !isNaN(n) && n > 0);
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              presetAmounts: nums.length > 0 ? nums : [25, 50, 100, 150],
+                            }));
+                          }}
+                          placeholder="25, 50, 100, 150"
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Default Amount ($ USD)
+                        </label>
+                        <input
+                          type="number"
+                          value={getDonateImpactMetadata().defaultAmount}
+                          onChange={(e) =>
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              defaultAmount: Number(e.target.value) || 30,
+                            }))
+                          }
+                          placeholder="30"
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Security Notice / Subtext
+                        </label>
+                        <input
+                          type="text"
+                          value={getDonateImpactMetadata().securityNotice}
+                          onChange={(e) =>
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              securityNotice: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Secure donation. IILP is an independent non-profit institute."
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Thank You Heading
+                        </label>
+                        <input
+                          type="text"
+                          value={getDonateImpactMetadata().thankYouHeading}
+                          onChange={(e) =>
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              thankYouHeading: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Thank You for Your Support!"
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Thank You Message
+                        </label>
+                        <input
+                          type="text"
+                          value={getDonateImpactMetadata().thankYouMessage}
+                          onChange={(e) =>
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              thankYouMessage: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Your generous gift empowers scholars..."
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Impact Cards List */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-gray-700 block">
+                      Why Give: Impact Value Cards
+                    </label>
+                    <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                      {getDonateImpactMetadata().cards.map((card, idx) => (
+                        <div
+                          key={`donate-card-${idx}`}
+                          className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-2.5 shadow-2xs hover:border-[#000080]/30 transition-colors"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-1">
+                              <input
+                                type="text"
+                                value={card.emoji}
+                                onChange={(e) =>
+                                  updateDonateImpactMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    list[idx] = { ...list[idx], emoji: e.target.value };
+                                    return { ...prev, cards: list };
+                                  })
+                                }
+                                placeholder="🎓"
+                                className="w-10 text-center text-base border border-gray-200 rounded-lg py-1 focus:outline-hidden focus:border-[#000080] bg-gray-50/50"
+                              />
+                              <input
+                                type="text"
+                                value={card.title}
+                                onChange={(e) =>
+                                  updateDonateImpactMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    list[idx] = { ...list[idx], title: e.target.value };
+                                    return { ...prev, cards: list };
+                                  })
+                                }
+                                placeholder="e.g. Fund Research & Scholarships"
+                                className="w-full text-xs sm:text-sm font-bold text-gray-900 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080] bg-gray-50/40"
+                              />
+                            </div>
+
+                            {/* Reorder and Delete Controls */}
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => {
+                                  if (idx <= 0) return;
+                                  updateDonateImpactMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    const temp = list[idx - 1];
+                                    list[idx - 1] = list[idx];
+                                    list[idx] = temp;
+                                    return { ...prev, cards: list };
+                                  });
+                                }}
+                                className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                title="Move Up"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                </svg>
+                              </button>
+
+                              <button
+                                type="button"
+                                disabled={idx === getDonateImpactMetadata().cards.length - 1}
+                                onClick={() => {
+                                  if (idx >= getDonateImpactMetadata().cards.length - 1) return;
+                                  updateDonateImpactMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    const temp = list[idx + 1];
+                                    list[idx + 1] = list[idx];
+                                    list[idx] = temp;
+                                    return { ...prev, cards: list };
+                                  });
+                                }}
+                                className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                title="Move Down"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm(`Delete card "${card.title || `Card ${idx + 1}`}"?`)) {
+                                    updateDonateImpactMetadata((prev) => ({
+                                      ...prev,
+                                      cards: prev.cards.filter((_, i) => i !== idx),
+                                    }));
+                                  }
+                                }}
+                                className="p-1 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                                title="Delete Card"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+
+                          <textarea
+                            rows={2}
+                            value={card.description}
+                            onChange={(e) =>
+                              updateDonateImpactMetadata((prev) => {
+                                const list = [...prev.cards];
+                                list[idx] = { ...list[idx], description: e.target.value };
+                                return { ...prev, cards: list };
+                              })
+                            }
+                            placeholder="Description of how this donation impact is delivered..."
+                            className="w-full text-xs text-gray-700 leading-relaxed border border-gray-200 rounded-lg p-2.5 focus:outline-hidden focus:border-[#000080] resize-y"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Impact Cards Footer */}
+                  <div className="pt-2 flex items-center justify-between border-t border-[#d8dce8]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateDonateImpactMetadata((prev) => ({
+                          ...prev,
+                          cards: [
+                            ...prev.cards,
+                            {
+                              emoji: "✨",
+                              title: `New Impact Goal`,
+                              description: "Describe the positive impact this contribution achieves.",
+                            },
+                          ],
+                        }));
+                      }}
+                      className="text-xs text-[#000080] font-bold hover:underline cursor-pointer"
+                    >
+                      + Add New Impact Card
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset to default 5 impact value cards?")) {
+                          updateDonateImpactMetadata((prev) => ({
+                            ...prev,
+                            cards: defaultDonateImpactMetadata.cards,
+                          }));
+                        }
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-800 font-semibold cursor-pointer"
+                    >
+                      Reset Cards to Defaults
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Donate Ways to Give Visual Manager */}
+              {(editingKey === "ways_to_give" ||
+                formData.sectionKey === "ways_to_give" ||
+                (selectedPage === "donate" &&
+                  (editingKey === "ways_to_give" ||
+                    formData.sectionKey === "ways_to_give"))) && (
+                <div className="bg-[#f8f9fc] border border-[#d8dce8] rounded-2xl p-4 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#e2e6f0] pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00698c]"></span>
+                      <h4 className="text-xs font-bold text-[#00698c] uppercase tracking-wider">
+                        Ways to Give Channels ({getWaysToGiveMetadata().channels.length} Channels)
+                      </h4>
+                    </div>
+                  </div>
+
+                  {/* Channels List */}
+                  <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                    {getWaysToGiveMetadata().channels.map((ch, idx) => (
+                      <div
+                        key={`channel-${idx}`}
+                        className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-2.5 shadow-2xs hover:border-[#00698c]/30 transition-colors"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="w-6 h-6 rounded-md bg-[#00698c]/10 text-[#00698c] text-xs font-bold flex items-center justify-center shrink-0">
+                              {idx + 1}
+                            </span>
+                            <input
+                              type="text"
+                              value={ch.title}
+                              onChange={(e) =>
+                                updateWaysToGiveMetadata((prev) => {
+                                  const list = [...prev.channels];
+                                  list[idx] = { ...list[idx], title: e.target.value };
+                                  return { ...prev, channels: list };
+                                })
+                              }
+                              placeholder="e.g. Online Card & Wire Transfer"
+                              className="w-full text-xs sm:text-sm font-bold text-gray-900 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#00698c] bg-gray-50/40"
+                            />
+                            <input
+                              type="text"
+                              value={ch.badge || ""}
+                              onChange={(e) =>
+                                updateWaysToGiveMetadata((prev) => {
+                                  const list = [...prev.channels];
+                                  list[idx] = { ...list[idx], badge: e.target.value };
+                                  return { ...prev, channels: list };
+                                })
+                              }
+                              placeholder="Badge (e.g. Fast & Direct)"
+                              className="w-32 text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#00698c] bg-gray-50/40"
+                            />
+                          </div>
+
+                          {/* Reorder and Delete Controls */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                if (idx <= 0) return;
+                                updateWaysToGiveMetadata((prev) => {
+                                  const list = [...prev.channels];
+                                  const temp = list[idx - 1];
+                                  list[idx - 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, channels: list };
+                                });
+                              }}
+                              className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                              title="Move Up"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                              </svg>
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={idx === getWaysToGiveMetadata().channels.length - 1}
+                              onClick={() => {
+                                if (idx >= getWaysToGiveMetadata().channels.length - 1) return;
+                                updateWaysToGiveMetadata((prev) => {
+                                  const list = [...prev.channels];
+                                  const temp = list[idx + 1];
+                                  list[idx + 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, channels: list };
+                                });
+                              }}
+                              className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                              title="Move Down"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`Delete channel "${ch.title || `Channel ${idx + 1}`}"?`)) {
+                                  updateWaysToGiveMetadata((prev) => ({
+                                    ...prev,
+                                    channels: prev.channels.filter((_, i) => i !== idx),
+                                  }));
+                                }
+                              }}
+                              className="p-1 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                              title="Delete Channel"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        <textarea
+                          rows={2}
+                          value={ch.description}
+                          onChange={(e) =>
+                            updateWaysToGiveMetadata((prev) => {
+                              const list = [...prev.channels];
+                              list[idx] = { ...list[idx], description: e.target.value };
+                              return { ...prev, channels: list };
+                            })
+                          }
+                          placeholder="Channel description..."
+                          className="w-full text-xs text-gray-700 leading-relaxed border border-gray-200 rounded-lg p-2.5 focus:outline-hidden focus:border-[#00698c] resize-y"
+                        />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div className="flex items-center gap-2">
+                            <label className="text-[11px] font-bold text-gray-500 whitespace-nowrap">
+                              Button Text:
+                            </label>
+                            <input
+                              type="text"
+                              value={ch.actionText}
+                              onChange={(e) =>
+                                updateWaysToGiveMetadata((prev) => {
+                                  const list = [...prev.channels];
+                                  list[idx] = { ...list[idx], actionText: e.target.value };
+                                  return { ...prev, channels: list };
+                                })
+                              }
+                              placeholder="e.g. View Bank Details"
+                              className="flex-1 text-xs font-semibold text-gray-700 border border-gray-200 rounded-md px-2 py-1 focus:outline-hidden focus:border-[#00698c]"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <label className="text-[11px] font-bold text-gray-500 whitespace-nowrap">
+                              Button URL:
+                            </label>
+                            <input
+                              type="text"
+                              value={ch.actionUrl}
+                              onChange={(e) =>
+                                updateWaysToGiveMetadata((prev) => {
+                                  const list = [...prev.channels];
+                                  list[idx] = { ...list[idx], actionUrl: e.target.value };
+                                  return { ...prev, channels: list };
+                                })
+                              }
+                              placeholder="e.g. mailto:donate@iilp.org or /contact"
+                              className="flex-1 text-xs font-mono text-gray-700 border border-gray-200 rounded-md px-2 py-1 focus:outline-hidden focus:border-[#00698c]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Visual Manager Footer */}
+                  <div className="pt-2 flex items-center justify-between border-t border-[#d8dce8]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateWaysToGiveMetadata((prev) => ({
+                          ...prev,
+                          channels: [
+                            ...prev.channels,
+                            {
+                              title: `New Giving Option`,
+                              description: "Details on how donors can contribute through this channel.",
+                              actionText: "Get in Touch",
+                              actionUrl: "/contact",
+                              badge: "Support",
+                            },
+                          ],
+                        }));
+                      }}
+                      className="text-xs text-[#00698c] font-bold hover:underline cursor-pointer"
+                    >
+                      + Add New Giving Channel
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset to default 3 giving channels?")) {
+                          updateWaysToGiveMetadata(() => defaultWaysToGiveMetadata);
+                        }
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-800 font-semibold cursor-pointer"
+                    >
+                      Reset to Default 3 Channels
                     </button>
                   </div>
                 </div>

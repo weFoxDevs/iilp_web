@@ -1,5 +1,12 @@
 import React, { useState } from "react";
 import Image from "next/image";
+import { PageSectionData } from "@/common/services/cms.service";
+import { submitContactInquiry } from "@/common/services/contact.service";
+
+interface ContactFormSectionProps {
+  data?: PageSectionData | null;
+  mapData?: PageSectionData | null;
+}
 
 const countryDialCodes = [
   { code: "+12", label: "+12", flag: "🇺🇸" },
@@ -25,7 +32,7 @@ const subjectOptions = [
   "Media & Press Relations",
 ];
 
-export function ContactFormSection() {
+export function ContactFormSection({ data, mapData }: ContactFormSectionProps) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -40,16 +47,47 @@ export function ContactFormSection() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isRateLimited, setIsRateLimited] = useState(false);
+  const [showImageMap, setShowImageMap] = useState(false);
+
+  // Dynamic values from CMS
+  const formBadge = data?.badge || "Send a Message";
+  const formTitle = data?.title || "Contact Form";
+
+  // Map dynamic configuration
+  const mapMeta = (mapData?.metadata || {}) as Record<string, unknown>;
+  const configuredMapType = String(mapMeta.mapType || mapMeta.map_type || "embed");
+  const embedUrl = String(
+    mapMeta.embedUrl ||
+      mapMeta.embed_url ||
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d116834.00977789308!2d90.3492857469792!3d23.78077772076043!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755b8b087026b81%3A0x8fa563bbdd5904c2!2sDhaka%2C%20Bangladesh!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd"
+  );
+  const mapImageUrl = String(
+    mapMeta.mapImage || mapMeta.map_image || mapData?.bgImage || "/images/contact-map.png"
+  );
+  const mapTitle = mapData?.title || "Dhaka Campus & Head Office";
+  const mapAddress = String(mapMeta.address || mapData?.subtitle || "Dhaka, Bangladesh");
+  const mapActionUrl =
+    mapData?.actionUrl ||
+    String(mapMeta.actionUrl || "https://maps.google.com/?q=Dhaka,+Bangladesh");
+  const mapActionText = mapData?.actionText || "Open in Google Maps";
+
+  const isInteractiveMap = configuredMapType === "embed" && !showImageMap;
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errorMessage) setErrorMessage("");
+    if (errorMessage) {
+      setErrorMessage("");
+      setIsRateLimited(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
       !formData.firstName.trim() ||
@@ -64,10 +102,35 @@ export function ContactFormSection() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrorMessage("");
+    setIsRateLimited(false);
+
+    try {
+      await submitContactInquiry({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phoneCode: formData.phoneCode,
+        phoneNumber: formData.phoneNumber,
+        organization: formData.organization,
+        subject: formData.subject,
+        message: formData.message,
+      });
+
       setSubmitted(true);
-    }, 600);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to submit message";
+      setErrorMessage(msg);
+      if (
+        msg.toLowerCase().includes("rate limit") ||
+        msg.toLowerCase().includes("too many")
+      ) {
+        setIsRateLimited(true);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
@@ -82,6 +145,8 @@ export function ContactFormSection() {
       message: "",
     });
     setSubmitted(false);
+    setErrorMessage("");
+    setIsRateLimited(false);
   };
 
   return (
@@ -109,7 +174,7 @@ export function ContactFormSection() {
                 className="font-sans font-semibold leading-[17.6px] text-[#0a0d12] text-[16px] uppercase whitespace-nowrap"
                 data-node-id="150:73093"
               >
-                Send a Message
+                {formBadge}
               </span>
             </div>
 
@@ -118,9 +183,58 @@ export function ContactFormSection() {
               className="font-serif font-medium leading-tight sm:leading-[44px] text-[#0a0d12] text-3xl sm:text-4xl lg:text-[36px] tracking-[-0.72px] w-full max-w-[580px]"
               data-node-id="150:73094"
             >
-              Contact Form
+              {formTitle}
             </h2>
           </div>
+
+          {/* Rate Limit / Error Banner */}
+          {errorMessage && (
+            <div
+              className={`w-full p-4 rounded-xl border flex items-start gap-3 text-sm ${
+                isRateLimited
+                  ? "bg-amber-50 border-amber-300 text-amber-900"
+                  : "bg-red-50 border-red-200 text-red-700"
+              }`}
+            >
+              <div className="shrink-0 mt-0.5">
+                {isRateLimited ? (
+                  <svg
+                    className="w-5 h-5 text-amber-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-5 h-5 text-red-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="font-bold">
+                  {isRateLimited ? "Submission Rate Limit" : "Submission Failed"}
+                </div>
+                <div className="text-xs sm:text-sm mt-0.5">{errorMessage}</div>
+              </div>
+            </div>
+          )}
 
           {submitted ? (
             <div className="bg-white rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center text-center gap-4 my-auto min-h-[440px] w-full shadow-xs">
@@ -143,12 +257,17 @@ export function ContactFormSection() {
                 Thank You for Reaching Out
               </h3>
               <p className="font-sans text-gray-600 max-w-[460px] leading-relaxed">
-                Your message has been successfully received. Our admissions and inquiries team will review your message and reply promptly.
+                Your message has been successfully received. Our inquiries and
+                partnerships team will review your message and reply promptly to{" "}
+                <span className="font-semibold text-gray-800">
+                  {formData.email}
+                </span>
+                .
               </p>
               <button
                 type="button"
                 onClick={handleReset}
-                className="mt-4 inline-flex items-center justify-center px-8 py-3 rounded-full bg-[#00bfff] text-white font-semibold hover:bg-[#009cd9] transition-colors shadow-xs"
+                className="mt-4 inline-flex items-center justify-center px-8 py-3 rounded-full bg-[#00bfff] text-white font-semibold hover:bg-[#009cd9] transition-colors shadow-xs cursor-pointer"
               >
                 Send Another Message
               </button>
@@ -159,33 +278,27 @@ export function ContactFormSection() {
               className="flex flex-col gap-[20px] items-start relative shrink-0 w-full"
               data-node-id="150:72797"
             >
-              {errorMessage && (
-                <div className="w-full p-3.5 bg-red-50 border border-red-200 text-red-700 text-sm rounded-md">
-                  {errorMessage}
-                </div>
-              )}
-
-              {/* Row 1: First name & Last Name */}
+              {/* Row 1: First Name & Last Name */}
               <div
-                className="flex flex-col sm:flex-row gap-[20px] items-start justify-center relative shrink-0 w-full"
+                className="flex flex-col sm:flex-row gap-[16px] items-start justify-center relative shrink-0 w-full"
                 data-node-id="150:72798"
               >
-                {/* First name */}
+                {/* First Name */}
                 <div
-                  className="flex flex-col gap-[10px] items-start relative shrink-0 w-full sm:w-[384px] sm:flex-1"
+                  className="flex flex-1 flex-col gap-[10px] items-start relative shrink-0 w-full sm:w-auto"
                   data-node-id="150:72799"
                 >
                   <label className="flex gap-[4px] items-center text-sm font-medium leading-[20px] text-[#101828]">
-                    <span>First name</span>
+                    <span>First Name</span>
                     <span className="text-[#c70036]">*</span>
                   </label>
-                  <div className="bg-[#f9fafb] border border-[#e5e7eb] focus-within:border-[#000080] shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex items-center px-[16px] py-[14px] relative shrink-0 w-full transition-colors">
+                  <div className="bg-[#f9fafb] border border-[#e5e7eb] focus-within:border-[#000080] shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex h-[48px] items-center px-[16px] py-[14px] relative w-full transition-colors">
                     <input
                       type="text"
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      placeholder="Placeholder text"
+                      placeholder="e.g. Eleanor"
                       required
                       className="w-full bg-transparent font-sans text-base text-[#101828] placeholder-[#6a7282] outline-hidden leading-[24px]"
                     />
@@ -194,20 +307,20 @@ export function ContactFormSection() {
 
                 {/* Last Name */}
                 <div
-                  className="flex flex-col gap-[10px] items-start relative shrink-0 w-full sm:w-[384px] sm:flex-1"
-                  data-node-id="150:72800"
+                  className="flex flex-1 flex-col gap-[10px] items-start relative shrink-0 w-full sm:w-auto"
+                  data-node-id="150:72802"
                 >
                   <label className="flex gap-[4px] items-center text-sm font-medium leading-[20px] text-[#101828]">
                     <span>Last Name</span>
                     <span className="text-[#c70036]">*</span>
                   </label>
-                  <div className="bg-[#f9fafb] border border-[#e5e7eb] focus-within:border-[#000080] shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex items-center px-[16px] py-[14px] relative shrink-0 w-full transition-colors">
+                  <div className="bg-[#f9fafb] border border-[#e5e7eb] focus-within:border-[#000080] shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex h-[48px] items-center px-[16px] py-[14px] relative w-full transition-colors">
                     <input
                       type="text"
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      placeholder="Write some text here"
+                      placeholder="e.g. Vance"
                       required
                       className="w-full bg-transparent font-sans text-base text-[#101828] placeholder-[#6a7282] outline-hidden leading-[24px]"
                     />
@@ -215,27 +328,27 @@ export function ContactFormSection() {
                 </div>
               </div>
 
-              {/* Row 2: Email Address & Phone Number */}
+              {/* Row 2: Email & Phone Number */}
               <div
-                className="flex flex-col sm:flex-row gap-[20px] items-start justify-center relative shrink-0 w-full"
-                data-node-id="150:72801"
+                className="flex flex-col sm:flex-row gap-[16px] items-start justify-center relative shrink-0 w-full"
+                data-node-id="150:72805"
               >
                 {/* Email Address */}
                 <div
-                  className="flex flex-col gap-[10px] items-start relative shrink-0 w-full sm:w-[384px] sm:flex-1"
-                  data-node-id="150:72802"
+                  className="flex flex-1 flex-col gap-[10px] items-start relative shrink-0 w-full sm:w-auto"
+                  data-node-id="150:72806"
                 >
                   <label className="flex gap-[4px] items-center text-sm font-medium leading-[20px] text-[#101828]">
                     <span>Email Address</span>
                     <span className="text-[#c70036]">*</span>
                   </label>
-                  <div className="bg-[#f9fafb] border border-[#e5e7eb] focus-within:border-[#000080] shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex items-center px-[16px] py-[14px] relative shrink-0 w-full transition-colors">
+                  <div className="bg-[#f9fafb] border border-[#e5e7eb] focus-within:border-[#000080] shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex h-[48px] items-center px-[16px] py-[14px] relative w-full transition-colors">
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="name@company.com"
+                      placeholder="e.g. eleanor@example.org"
                       required
                       className="w-full bg-transparent font-sans text-base text-[#101828] placeholder-[#6a7282] outline-hidden leading-[24px]"
                     />
@@ -244,49 +357,52 @@ export function ContactFormSection() {
 
                 {/* Phone Number */}
                 <div
-                  className="flex flex-col gap-[10px] items-start relative shrink-0 w-full sm:w-[384px] sm:flex-1"
-                  data-node-id="150:72803"
+                  className="flex flex-1 flex-col gap-[10px] items-start relative shrink-0 w-full sm:w-auto"
+                  data-node-id="150:72809"
                 >
                   <label className="flex gap-[4px] items-center text-sm font-medium leading-[20px] text-[#101828]">
                     <span>Phone Number</span>
-                    <span className="text-[#c70036]">*</span>
                   </label>
-                  <div
-                    className="border border-[#e5e7eb] flex items-center overflow-hidden relative shadow-[0px_1px_0.5px_0px_rgba(29,41,61,0.02)] shrink-0 w-full focus-within:border-[#000080] transition-colors"
-                    data-node-id="150:72805"
-                  >
-                    {/* Country code prefix button matching Figma node 150:72806 */}
-                    <div className="bg-[#f9fafb] border-r border-[#e5e7eb] flex gap-[6px] items-center justify-center px-[16px] sm:px-[20px] py-[14px] relative shrink-0">
-                      <span className="text-base select-none">🇺🇸</span>
+                  <div className="flex w-full h-[48px] items-center">
+                    {/* Country Code Select */}
+                    <div className="relative bg-[#f9fafb] border border-r-0 border-[#e5e7eb] focus-within:border-[#000080] h-full flex items-center px-3 transition-colors">
                       <select
                         name="phoneCode"
                         value={formData.phoneCode}
                         onChange={handleChange}
-                        className="bg-transparent text-[#4a5565] font-sans font-medium text-base outline-hidden cursor-pointer appearance-none pr-3"
+                        className="bg-transparent font-sans text-sm text-[#101828] outline-hidden cursor-pointer pr-4 appearance-none"
                       >
                         {countryDialCodes.map((item, idx) => (
                           <option key={idx} value={item.code}>
-                            {item.code}
+                            {item.flag} {item.code}
                           </option>
                         ))}
                       </select>
-                      <Image
-                        src="/icons/contact/chevron.svg"
-                        alt="Dropdown"
-                        width={12}
-                        height={12}
-                        className="pointer-events-none absolute right-2 w-3 h-3 text-[#4a5565]"
-                      />
+                      <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500">
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
                     </div>
-                    {/* Phone input field */}
-                    <div className="bg-[#f9fafb] flex flex-1 items-center px-[16px] py-[14px] relative">
+
+                    {/* Number Input */}
+                    <div className="bg-[#f9fafb] border border-[#e5e7eb] focus-within:border-[#000080] shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex-1 h-full flex items-center px-[16px] py-[14px] transition-colors">
                       <input
                         type="tel"
                         name="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={handleChange}
-                        placeholder="Enter phone number"
-                        required
+                        placeholder="1819 254425"
                         className="w-full bg-transparent font-sans text-base text-[#101828] placeholder-[#6a7282] outline-hidden leading-[24px]"
                       />
                     </div>
@@ -294,62 +410,68 @@ export function ContactFormSection() {
                 </div>
               </div>
 
-              {/* Row 3: Organization / Institution */}
+              {/* Row 3: Organization */}
               <div
                 className="flex flex-col gap-[10px] items-start relative shrink-0 w-full"
-                data-node-id="150:73146"
+                data-node-id="150:72812"
               >
                 <label className="flex gap-[4px] items-center text-sm font-medium leading-[20px] text-[#101828]">
                   <span>Organization / Institution</span>
                   <span className="text-[#c70036]">*</span>
                 </label>
-                <div className="bg-[#f9fafb] border border-[#e5e7eb] focus-within:border-[#000080] shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex items-center px-[16px] py-[14px] relative shrink-0 w-full transition-colors">
+                <div className="bg-[#f9fafb] border border-[#e5e7eb] focus-within:border-[#000080] shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex h-[48px] items-center px-[16px] py-[14px] relative w-full transition-colors">
                   <input
                     type="text"
                     name="organization"
                     value={formData.organization}
                     onChange={handleChange}
-                    placeholder="Placeholder text"
+                    placeholder="e.g. Harvard Law School / United Nations / Independent Scholar"
                     required
                     className="w-full bg-transparent font-sans text-base text-[#101828] placeholder-[#6a7282] outline-hidden leading-[24px]"
                   />
                 </div>
               </div>
 
-              {/* Row 4: Subject */}
+              {/* Row 4: Subject Select */}
               <div
                 className="flex flex-col gap-[10px] items-start relative shrink-0 w-full"
-                data-node-id="150:73097"
+                data-node-id="150:72815"
               >
                 <label className="flex gap-[4px] items-center text-sm font-medium leading-[20px] text-[#101828]">
                   <span>Subject</span>
                   <span className="text-[#c70036]">*</span>
                 </label>
-                <div className="bg-[#f9fafb] border border-[#e5e7eb] focus-within:border-[#000080] shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex items-center px-[16px] py-[14px] relative shrink-0 w-full transition-colors">
+                <div className="bg-[#f9fafb] border border-[#e5e7eb] focus-within:border-[#000080] shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex h-[48px] items-center px-[16px] relative w-full transition-colors">
                   <select
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="w-full bg-transparent font-sans text-base text-[#101828] placeholder-[#6a7282] outline-hidden appearance-none cursor-pointer leading-[24px]"
+                    className="w-full bg-transparent font-sans text-base text-[#101828] outline-hidden appearance-none cursor-pointer pr-8 leading-[24px]"
                   >
                     <option value="" disabled className="text-gray-400">
-                      Select subject
+                      Select inquiry subject
                     </option>
-                    {subjectOptions.map((opt, idx) => (
-                      <option key={idx} value={opt}>
-                        {opt}
+                    {subjectOptions.map((subj, idx) => (
+                      <option key={idx} value={subj}>
+                        {subj}
                       </option>
                     ))}
                   </select>
-                  <div className="pointer-events-none absolute right-4 flex items-center">
-                    <Image
-                      src="/icons/contact/chevron.svg"
-                      alt="Select Chevron"
-                      width={16}
-                      height={16}
-                      className="w-4 h-4 opacity-70"
-                    />
+                  <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -368,7 +490,7 @@ export function ContactFormSection() {
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
-                    placeholder="Write your message here..."
+                    placeholder="Write your detailed inquiry or collaboration proposal here..."
                     required
                     className="w-full h-full bg-transparent font-sans text-base text-[#101828] placeholder-[#6a7282] outline-hidden resize-none leading-[24px]"
                   />
@@ -382,28 +504,121 @@ export function ContactFormSection() {
                 className="bg-[#00bfff] hover:bg-[#009cd9] active:bg-[#0086bc] drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex gap-[6px] items-center justify-center px-[24px] py-[14px] relative rounded-[100000px] shrink-0 w-full cursor-pointer transition-colors disabled:opacity-70 mt-1"
                 data-node-id="150:72820"
               >
-                <span className="font-['Source_Sans_Pro:SemiBold',sans-serif] font-semibold text-white text-[16px] leading-[24px] whitespace-nowrap">
-                  {isSubmitting ? "Sending..." : "Send Message"}
+                <span className="font-['Source_Sans_Pro:SemiBold',sans-serif] font-semibold text-white text-[16px] leading-[24px] whitespace-nowrap flex items-center gap-2">
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Submitting Inquiry...</span>
+                    </>
+                  ) : (
+                    "Send Message"
+                  )}
                 </span>
               </button>
             </form>
           )}
         </div>
 
-        {/* Right Side: Map Image Container (Figma node 150:73378) */}
+        {/* Right Side: Dynamic Map Container (Figma node 150:73378) */}
         <div
-          className="flex-1 min-w-px relative self-stretch min-h-[460px] lg:min-h-0 overflow-hidden"
+          className="flex-1 min-w-px relative self-stretch min-h-[480px] lg:min-h-0 rounded-2xl overflow-hidden border border-gray-200/80 shadow-xs flex flex-col bg-[#eaf4f7]"
           data-node-id="150:73378"
           data-name="image 1"
         >
-          <Image
-            src="/images/contact-map.png"
-            alt="IILP Location Map"
-            fill
-            priority
-            className="object-cover pointer-events-none size-full"
-            sizes="(max-width: 1024px) 100vw, 508px"
-          />
+          {/* Map view: Interactive Iframe vs Image */}
+          <div className="relative w-full h-full min-h-[420px] flex-1">
+            {isInteractiveMap ? (
+              <iframe
+                title={mapTitle}
+                src={embedUrl}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen={false}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full h-full absolute inset-0"
+              />
+            ) : (
+              <Image
+                src={mapImageUrl}
+                alt={mapTitle}
+                fill
+                priority
+                className="object-cover size-full"
+                sizes="(max-width: 1024px) 100vw, 508px"
+              />
+            )}
+          </div>
+
+          {/* Floating/Bottom Address Card Overlay */}
+          <div className="p-4 sm:p-5 bg-white/95 backdrop-blur-md border-t border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#00698c]">
+                <svg
+                  className="w-3.5 h-3.5 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                <span>{mapTitle}</span>
+              </div>
+              <p className="text-xs sm:text-sm text-gray-700 font-medium mt-0.5 truncate max-w-sm">
+                {mapAddress}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+              {/* Toggle map view button if embed url exists */}
+              {configuredMapType === "embed" && (
+                <button
+                  type="button"
+                  onClick={() => setShowImageMap(!showImageMap)}
+                  className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer"
+                  title="Toggle between Interactive Map and Satellite View"
+                >
+                  {showImageMap ? "Interactive Map" : "Photo View"}
+                </button>
+              )}
+
+              {mapActionUrl && (
+                <a
+                  href={mapActionUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#000080] hover:bg-[#000066] text-white text-xs font-bold transition-colors cursor-pointer shadow-2xs whitespace-nowrap"
+                >
+                  <span>{mapActionText}</span>
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
+                </a>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </section>
