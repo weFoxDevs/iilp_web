@@ -23,6 +23,15 @@ interface DashboardMetrics {
   totalDepartments: number;
   totalRoles: number;
   totalPermissions: number;
+  totalEvents?: number;
+  upcomingEvents?: number;
+  totalFellowships?: number;
+  pendingFellowships?: number;
+  totalInquiries?: number;
+  unreadInquiries?: number;
+  totalNews?: number;
+  totalPublications?: number;
+  totalLeadership?: number;
   systemStatus: string;
 }
 
@@ -32,6 +41,34 @@ interface RecentUser {
   email: string;
   role: string;
   joinedAt: string;
+}
+
+interface RecentInquiry {
+  id: string;
+  firstName: string;
+  lastName: string;
+  organization: string;
+  subject: string;
+  status: string;
+  createdAt: string;
+}
+
+interface RecentFellowship {
+  id: string;
+  firstName: string;
+  lastName: string;
+  country: string;
+  fellowshipType: string;
+  status: string;
+  createdAt: string;
+}
+
+interface RecentEvent {
+  id: string;
+  title: string;
+  category: string;
+  startDate: string;
+  status: string;
 }
 
 interface SystemInfo {
@@ -45,6 +82,13 @@ interface SystemInfo {
 interface DashboardSummary {
   metrics: DashboardMetrics;
   recentUsers: RecentUser[];
+  recentInquiries?: RecentInquiry[];
+  recentFellowships?: RecentFellowship[];
+  recentEvents?: RecentEvent[];
+  departmentsSummary?: {
+    total: number;
+    preview: { id: string; name: string; code: string }[];
+  };
   systemInfo: SystemInfo;
 }
 
@@ -457,6 +501,8 @@ export default function AdminDashboard() {
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [lastSynced, setLastSynced] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Modals state - Admin User
   const [createAdminModalOpen, setCreateAdminModalOpen] = useState(false);
@@ -509,6 +555,7 @@ export default function AdminDashboard() {
       }
       const summaryJson: DashboardSummary = await summaryRes.json();
       setSummary(summaryJson);
+      setLastSynced(new Date());
 
       // 2. Fetch Admin Users
       const usersRes = await fetch(`${apiUrl}/users`, {
@@ -552,6 +599,13 @@ export default function AdminDashboard() {
       setIsDataLoading(false);
     }
   }, [token, apiUrl, logout]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchDashboardData();
+    setIsRefreshing(false);
+    setToast({ message: "Dashboard metrics synchronized with live database.", type: "success" });
+  };
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -1202,6 +1256,15 @@ export default function AdminDashboard() {
                     </div>
                     <span className="font-bold truncate whitespace-nowrap">Events &amp; Symposia</span>
                   </div>
+                  {typeof summary?.metrics.totalEvents === "number" && (
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                      activeTab === "events"
+                        ? "bg-white/20 text-white"
+                        : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                    }`}>
+                      {summary.metrics.totalEvents}
+                    </span>
+                  )}
                 </button>
               )}
 
@@ -1227,6 +1290,19 @@ export default function AdminDashboard() {
                     </div>
                     <span className="font-bold truncate whitespace-nowrap">Fellowships</span>
                   </div>
+                  {typeof summary?.metrics.totalFellowships === "number" && (
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                      activeTab === "fellowship-applications"
+                        ? "bg-white/20 text-white"
+                        : summary.metrics.pendingFellowships
+                        ? "bg-amber-100 text-amber-800 border border-amber-300"
+                        : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                    }`}>
+                      {summary.metrics.pendingFellowships
+                        ? `${summary.metrics.pendingFellowships} Pnd`
+                        : summary.metrics.totalFellowships}
+                    </span>
+                  )}
                 </button>
               )}
 
@@ -1251,6 +1327,19 @@ export default function AdminDashboard() {
                     </div>
                     <span className="font-bold truncate whitespace-nowrap">Contact Messages</span>
                   </div>
+                  {typeof summary?.metrics.totalInquiries === "number" && (
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                      activeTab === "contact-inquiries"
+                        ? "bg-white/20 text-white"
+                        : summary.metrics.unreadInquiries
+                        ? "bg-red-100 text-red-700 border border-red-300 animate-pulse"
+                        : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                    }`}>
+                      {summary.metrics.unreadInquiries
+                        ? `${summary.metrics.unreadInquiries} New`
+                        : summary.metrics.totalInquiries}
+                    </span>
+                  )}
                 </button>
               )}
             </div>
@@ -1628,225 +1717,654 @@ export default function AdminDashboard() {
             <>
               {/* TAB 1: OVERVIEW */}
               {activeTab === "overview" && (
-            <div className="space-y-8">
-              {/* Welcome Banner with Official Seal */}
-              <div className="relative overflow-hidden rounded-2xl border border-[#b0ebff] bg-gradient-to-r from-[#e6f9ff] via-[#e6f9ff]/50 to-white p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-xs">
-                {/* Watermark Emblem in Background */}
-                <div className="absolute -right-8 -bottom-10 w-52 h-52 opacity-[0.06] pointer-events-none select-none">
-                  <Image src="/assets/logo.png" alt="" fill className="object-contain" />
-                </div>
+                <div className="space-y-8 font-sans">
+                  {/* Executive Hero Banner with Official Seal */}
+                  <div className="relative overflow-hidden rounded-3xl border border-[#b0ebff] bg-gradient-to-br from-[#000080] via-[#001042] to-[#001a4e] text-white p-6 sm:p-8 shadow-xl">
+                    {/* Ambient Lighting Accents */}
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-[#00bfff]/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+                    <div className="absolute bottom-0 left-1/4 w-72 h-72 bg-[#002b80]/40 rounded-full blur-2xl pointer-events-none"></div>
 
-                <div className="space-y-2 text-center sm:text-left z-10">
-                  <div className="inline-flex items-center border border-[#b0ebff] rounded-full px-3 py-1 bg-white">
-                    <span className="font-sans font-semibold text-xs text-[#00698c] uppercase tracking-wider">
-                      Welcome Back
-                    </span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-playfair font-bold text-[#000080]">
-                    Greetings, {user?.name || "Administrator"}
-                  </h2>
-                  <p className="text-sm font-sans text-[#4a5565] max-w-xl leading-relaxed">
-                    Your authenticated session is active. You have executive access to manage CMS content, admin accounts, and security roles.
-                  </p>
-                </div>
+                    {/* Watermark Official Emblem */}
+                    <div className="absolute -right-8 -bottom-10 w-64 h-64 opacity-[0.08] pointer-events-none select-none">
+                      <Image src="/assets/logo.png" alt="" fill className="object-contain brightness-0 invert" />
+                    </div>
 
-                {/* Official Institutional Badge Card with Logo */}
-                <div className="flex items-center gap-4 bg-white/90 backdrop-blur-xs p-4 rounded-2xl border border-[#b0ebff] shadow-xs shrink-0 z-10 font-sans">
-                  <div className="relative w-14 h-14 shrink-0 drop-shadow-xs">
-                    <Image
-                      src="/assets/logo.png"
-                      alt="IILP Official Seal"
-                      fill
-                      className="object-contain select-none"
-                    />
-                  </div>
-                  <div className="flex flex-col text-left">
-                    <span className="text-xs font-bold text-[#0a0d12]">Institute for International Law &amp; Public Policy</span>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="px-2.5 py-0.5 rounded-full bg-[#000080] text-white text-[11px] font-bold uppercase tracking-wider">
-                        {user?.role || "Super Admin"}
-                      </span>
-                      <span className="text-[11px] text-[#4a5565]">
-                        Env: <code className="font-mono text-[#00698c] font-semibold">{summary?.systemInfo?.nodeEnv || "production"}</code>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                    <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                      <div className="space-y-3 max-w-2xl">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs text-[#b0ebff]">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                          <span className="font-semibold tracking-wide uppercase text-[10px]">
+                            Institutional Executive Console • Live Production
+                          </span>
+                        </div>
 
-              {/* 4 Metric Stats Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 font-sans">
-                {/* Stat 1: Registered Admins */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
-                      Admins &amp; Users
-                    </span>
-                    <div className="w-9 h-9 rounded-xl bg-[#e6f9ff] text-[#00698c] flex items-center justify-center">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-playfair font-bold text-[#000080]">
-                      {adminUsers.length || summary?.metrics.totalUsers || (isDataLoading ? "..." : 0)}
-                    </span>
-                    <span className="text-xs text-[#4a5565]">Registered accounts</span>
-                  </div>
-                </div>
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-playfair font-bold text-white tracking-tight">
+                          Welcome, {user?.name || "Administrator"}
+                        </h1>
 
-                {/* Stat 2: Security Roles */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
-                      Security Roles
-                    </span>
-                    <div className="w-9 h-9 rounded-xl bg-[#e6f9ff] text-[#00698c] flex items-center justify-center">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-playfair font-bold text-[#000080]">
-                      {roles.length || summary?.metrics.totalRoles || (isDataLoading ? "..." : 0)}
-                    </span>
-                    <span className="text-xs text-[#4a5565]">RBAC tiers</span>
-                  </div>
-                </div>
+                        <p className="text-xs sm:text-sm text-blue-100/80 leading-relaxed font-light">
+                          Institute for International Law &amp; Public Policy enterprise administrative portal. Centralized governance for academic departments, international symposia, fellowship admissions, and institutional research.
+                        </p>
 
-                {/* Stat 3: Permissions */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
-                      Permissions
-                    </span>
-                    <div className="w-9 h-9 rounded-xl bg-[#e6f9ff] text-[#00698c] flex items-center justify-center">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-playfair font-bold text-[#000080]">
-                      {permissions.length || summary?.metrics.totalPermissions || (isDataLoading ? "..." : 0)}
-                    </span>
-                    <span className="text-xs text-[#4a5565]">Dynamic privileges</span>
-                  </div>
-                </div>
+                        {/* Quick Status Bar */}
+                        <div className="flex flex-wrap items-center gap-2 pt-2 text-xs">
+                          <span className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/15 text-white/90 font-medium flex items-center gap-1.5">
+                            <span>🛡️</span> {user?.role || "Super Admin"}
+                          </span>
+                          <span className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/15 text-white/90 font-mono text-[11px] flex items-center gap-1.5">
+                            <span>🌐</span> Env: {summary?.systemInfo?.nodeEnv || "production"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleRefresh}
+                            disabled={isRefreshing}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#00bfff]/20 hover:bg-[#00bfff]/30 border border-[#00bfff]/40 text-[#b0ebff] font-medium transition-colors cursor-pointer text-xs disabled:opacity-50"
+                          >
+                            <svg className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span>{isRefreshing ? "Synchronizing..." : "Sync Live Data"}</span>
+                          </button>
+                          <span className="text-[11px] text-blue-200/60 font-mono">
+                            Last synced: {lastSynced.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
 
-                {/* Stat 4: Departments */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-3 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#00698c] uppercase tracking-wider">
-                      Academic Units
-                    </span>
-                    <div className="w-9 h-9 rounded-xl bg-[#e6f9ff] text-[#00698c] flex items-center justify-center">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-playfair font-bold text-[#000080]">
-                      {summary?.metrics.totalDepartments ?? (isDataLoading ? "..." : 0)}
-                    </span>
-                    <span className="text-xs text-[#4a5565]">Departments</span>
-                  </div>
-                </div>
-              </div>
+                      {/* Quick Action Navigation on Hero */}
+                      <div className="flex flex-row lg:flex-col gap-2.5 shrink-0 z-10">
+                        {canAccessTab("events") && (
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange("events")}
+                            className="flex-1 lg:flex-initial flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-semibold transition-all cursor-pointer group shadow-xs hover:shadow-md"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span>📅</span> Add / View Events
+                            </span>
+                            <span className="text-white/60 group-hover:translate-x-0.5 transition-transform">→</span>
+                          </button>
+                        )}
 
-              {/* Two Column Layout: System Runtime & Recent Users */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
-                {/* System Info Box */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-4 lg:col-span-1">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-playfair font-bold text-[#0a0d12]">System Health</h3>
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      Operational
-                    </span>
-                  </div>
-                  <hr className="border-[#e5e7eb]" />
-                  <div className="space-y-3 text-xs">
-                    <div className="flex justify-between py-1 border-b border-[#f4f4fa]">
-                      <span className="text-[#4a5565]">Backend Engine</span>
-                      <span className="font-semibold text-[#0a0d12]">NestJS + TypeORM</span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-[#f4f4fa]">
-                      <span className="text-[#4a5565]">Server Uptime</span>
-                      <span className="font-mono text-[#00698c] font-semibold">
-                        {summary?.systemInfo ? formatUptime(summary.systemInfo.uptimeSeconds) : "N/A"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-[#f4f4fa]">
-                      <span className="text-[#4a5565]">Database Engine</span>
-                      <span className="font-semibold text-[#0a0d12]">PostgreSQL 15+</span>
-                    </div>
-                    <div className="flex justify-between py-1">
-                      <span className="text-[#4a5565]">API Gateway URI</span>
-                      <span className="font-mono text-[#000080] font-semibold">/api/v1</span>
-                    </div>
-                  </div>
-                </div>
+                        {canAccessTab("fellowship-applications") && (
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange("fellowship-applications")}
+                            className="flex-1 lg:flex-initial flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-xs font-semibold transition-all cursor-pointer group shadow-xs hover:shadow-md"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span>🎓</span> Review Fellowships
+                            </span>
+                            {summary?.metrics.pendingFellowships ? (
+                              <span className="px-1.5 py-0.5 rounded-full bg-amber-400 text-amber-950 font-bold text-[10px]">
+                                {summary.metrics.pendingFellowships} Pnd
+                              </span>
+                            ) : (
+                              <span className="text-white/60 group-hover:translate-x-0.5 transition-transform">→</span>
+                            )}
+                          </button>
+                        )}
 
-                {/* Recent Accounts Table */}
-                <div className="bg-white border border-[#b0ebff] rounded-2xl p-6 shadow-xs space-y-4 lg:col-span-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-playfair font-bold text-[#0a0d12]">Registered System Accounts</h3>
-                    <button
-                      onClick={() => handleTabChange("admin-manage")}
-                      className="text-xs text-[#00698c] font-semibold hover:text-[#000080] transition-colors"
+                        {canAccessTab("contact-inquiries") && (
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange("contact-inquiries")}
+                            className="flex-1 lg:flex-initial flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-[#00bfff] hover:bg-[#009ecc] text-[#000080] text-xs font-bold transition-all cursor-pointer group shadow-[0_2px_12px_rgba(0,191,255,0.4)]"
+                          >
+                            <span className="flex items-center gap-2">
+                              <span>✉️</span> Inquiries Inbox
+                            </span>
+                            {summary?.metrics.unreadInquiries ? (
+                              <span className="px-1.5 py-0.5 rounded-full bg-red-600 text-white font-bold text-[10px] animate-pulse">
+                                {summary.metrics.unreadInquiries} New
+                              </span>
+                            ) : (
+                              <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Core 6-Metric Executive KPI Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                    {/* Stat 1: Academic Units */}
+                    <div
+                      onClick={() => handleTabChange("departments")}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
                     >
-                      Manage All →
-                    </button>
-                  </div>
-                  <hr className="border-[#e5e7eb]" />
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-[#00698c] uppercase tracking-wider">
+                          Departments
+                        </span>
+                        <div className="w-8 h-8 rounded-lg bg-[#e6f9ff] text-[#000080] flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                          🏛️
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-playfair font-bold text-[#000080]">
+                          {summary?.metrics.totalDepartments ?? (isDataLoading ? "..." : 0)}
+                        </div>
+                        <p className="text-[11px] text-[#4a5565] mt-0.5">Academic Divisions</p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#00698c]">
+                        <span>Manage</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
 
-                  {adminUsers.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead>
-                          <tr className="border-b border-[#e5e7eb] text-[#4a5565]">
-                            <th className="pb-3 font-semibold">Administrator</th>
-                            <th className="pb-3 font-semibold">Email</th>
-                            <th className="pb-3 font-semibold">Role</th>
-                            <th className="pb-3 font-semibold">Registered</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#f4f4fa]">
-                          {adminUsers.slice(0, 5).map((u) => (
-                            <tr key={u.id} className="hover:bg-[#f9fafb] transition-colors">
-                              <td className="py-3 font-semibold text-[#0a0d12] flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-[#e6f9ff] text-[#000080] font-bold text-[10px] flex items-center justify-center">
-                                  {u.name.charAt(0).toUpperCase()}
+                    {/* Stat 2: Events & Symposia */}
+                    <div
+                      onClick={() => handleTabChange("events")}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-[#00698c] uppercase tracking-wider">
+                          Symposia
+                        </span>
+                        <div className="w-8 h-8 rounded-lg bg-[#e6f9ff] text-[#000080] flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                          📅
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-playfair font-bold text-[#000080]">
+                          {summary?.metrics.totalEvents ?? (isDataLoading ? "..." : 0)}
+                        </div>
+                        <p className="text-[11px] text-[#4a5565] mt-0.5">
+                          {summary?.metrics.upcomingEvents ?? 0} published
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#00698c]">
+                        <span>Schedule</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
+
+                    {/* Stat 3: Fellowship Applications */}
+                    <div
+                      onClick={() => handleTabChange("fellowship-applications")}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-[#00698c] uppercase tracking-wider">
+                          Fellowships
+                        </span>
+                        <div className="w-8 h-8 rounded-lg bg-[#e6f9ff] text-[#000080] flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                          🎓
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-playfair font-bold text-[#000080]">
+                          {summary?.metrics.totalFellowships ?? (isDataLoading ? "..." : 0)}
+                        </div>
+                        <p className="text-[11px] text-[#4a5565] mt-0.5">
+                          {summary?.metrics.pendingFellowships ?? 0} pending review
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#00698c]">
+                        <span>Review</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
+
+                    {/* Stat 4: Contact Inquiries */}
+                    <div
+                      onClick={() => handleTabChange("contact-inquiries")}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-[#00698c] uppercase tracking-wider">
+                          Inquiries
+                        </span>
+                        <div className="w-8 h-8 rounded-lg bg-[#e6f9ff] text-[#000080] flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                          ✉️
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-playfair font-bold text-[#000080]">
+                          {summary?.metrics.totalInquiries ?? (isDataLoading ? "..." : 0)}
+                        </div>
+                        <p className="text-[11px] text-[#4a5565] mt-0.5">
+                          {summary?.metrics.unreadInquiries ? (
+                            <span className="text-red-600 font-bold">{summary.metrics.unreadInquiries} unread</span>
+                          ) : (
+                            "All answered"
+                          )}
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#00698c]">
+                        <span>Inbox</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
+
+                    {/* Stat 5: Publications & News */}
+                    <div
+                      onClick={() => handleTabChange("publications")}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-[#00698c] uppercase tracking-wider">
+                          Research &amp; News
+                        </span>
+                        <div className="w-8 h-8 rounded-lg bg-[#e6f9ff] text-[#000080] flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                          📚
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-playfair font-bold text-[#000080]">
+                          {(summary?.metrics.totalPublications ?? 0) + (summary?.metrics.totalNews ?? 0)}
+                        </div>
+                        <p className="text-[11px] text-[#4a5565] mt-0.5">
+                          {summary?.metrics.totalPublications ?? 0} papers • {summary?.metrics.totalNews ?? 0} articles
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#00698c]">
+                        <span>Library</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
+
+                    {/* Stat 6: Administrators & RBAC */}
+                    <div
+                      onClick={() => handleTabChange("role-manage")}
+                      className="bg-white border border-[#b0ebff] rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-bold text-[#00698c] uppercase tracking-wider">
+                          Security &amp; RBAC
+                        </span>
+                        <div className="w-8 h-8 rounded-lg bg-[#e6f9ff] text-[#000080] flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+                          🛡️
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-playfair font-bold text-[#000080]">
+                          {adminUsers.length || summary?.metrics.totalUsers || (isDataLoading ? "..." : 0)}
+                        </div>
+                        <p className="text-[11px] text-[#4a5565] mt-0.5">
+                          {roles.length || summary?.metrics.totalRoles || 0} roles • 50 privileges
+                        </p>
+                      </div>
+                      <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-[#00698c]">
+                        <span>Security</span>
+                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Institutional Subsystems Launchpad (8 Modular Cards) */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-lg font-playfair font-bold text-[#000080]">
+                          Subsystems Control &amp; Launchpad
+                        </h2>
+                        <p className="text-xs text-[#4a5565]">
+                          Direct access to institutional management suites and operational consoles
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-bold text-[#00698c] bg-[#e6f9ff] px-2.5 py-1 rounded-full border border-[#b0ebff]">
+                        16 Modules Protected by RBAC
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* Module 1 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("departments")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">🏛️</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4faff] text-[#00698c] border border-[#b0ebff]">
+                            {summary?.metrics.totalDepartments ?? 0} Units
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Academic Departments
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Manage academic chairs, curricula definitions, and institutional branches.
+                        </p>
+                      </button>
+
+                      {/* Module 2 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("events")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">📅</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4faff] text-[#00698c] border border-[#b0ebff]">
+                            {summary?.metrics.totalEvents ?? 0} Events
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Events &amp; Symposia
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Schedule international legal summits, webinars, keynote speaker panels, and workshops.
+                        </p>
+                      </button>
+
+                      {/* Module 3 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("fellowship-applications")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">🎓</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                            summary?.metrics.pendingFellowships
+                              ? "bg-amber-50 text-amber-800 border-amber-300"
+                              : "bg-[#f4faff] text-[#00698c] border-[#b0ebff]"
+                          }`}>
+                            {summary?.metrics.pendingFellowships ?? 0} Pending
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Fellowship Applications
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Review global research scholar candidates, evaluate degrees, and manage admissions.
+                        </p>
+                      </button>
+
+                      {/* Module 4 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("contact-inquiries")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">✉️</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                            summary?.metrics.unreadInquiries
+                              ? "bg-red-50 text-red-700 border-red-300"
+                              : "bg-[#f4faff] text-[#00698c] border-[#b0ebff]"
+                          }`}>
+                            {summary?.metrics.unreadInquiries ?? 0} Unread
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Contact Inquiries
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Direct public messages, institutional partnership proposals, and media requests.
+                        </p>
+                      </button>
+
+                      {/* Module 5 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("news")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">📰</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4faff] text-[#00698c] border border-[#b0ebff]">
+                            {summary?.metrics.totalNews ?? 0} Articles
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          News &amp; Media Articles
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Editorial content publishing, institutional press statements, and updates.
+                        </p>
+                      </button>
+
+                      {/* Module 6 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("publications")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">📚</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4faff] text-[#00698c] border border-[#b0ebff]">
+                            {summary?.metrics.totalPublications ?? 0} Papers
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Research Publications
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Catalog peer-reviewed journals, public policy briefs, and legal monographs.
+                        </p>
+                      </button>
+
+                      {/* Module 7 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("leadership")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">👥</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4faff] text-[#00698c] border border-[#b0ebff]">
+                            {summary?.metrics.totalLeadership ?? 0} Officers
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Leadership Directory
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Manage Board of Trustees, advisory councils, and resident academic faculty.
+                        </p>
+                      </button>
+
+                      {/* Module 8 */}
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("role-manage")}
+                        className="p-4 rounded-2xl border border-[#e2e8f0] bg-white hover:border-[#00bfff] hover:shadow-md transition-all text-left group cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl">🛡️</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#f4faff] text-[#00698c] border border-[#b0ebff]">
+                            50 Privileges
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xs text-[#000080] group-hover:text-[#00bfff] transition-colors">
+                          Roles &amp; Access Control
+                        </h3>
+                        <p className="text-[11px] text-[#4a5565] mt-1 line-clamp-2">
+                          Fine-grained RBAC matrix with custom tiers, module privileges, and permission auditing.
+                        </p>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Multi-Stream Live Activity Hub (3 Responsive Columns) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Column 1: Recent Inquiries & Messages */}
+                    <div className="bg-white border border-[#b0ebff] rounded-2xl p-5 shadow-xs space-y-4 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">✉️</span>
+                            <h3 className="font-bold text-sm text-[#000080]">Recent Inquiries</h3>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange("contact-inquiries")}
+                            className="text-xs font-semibold text-[#00698c] hover:text-[#000080] transition-colors cursor-pointer"
+                          >
+                            Inbox →
+                          </button>
+                        </div>
+
+                        <div className="divide-y divide-gray-100 pt-1">
+                          {summary?.recentInquiries && summary.recentInquiries.length > 0 ? (
+                            summary.recentInquiries.slice(0, 4).map((inq) => {
+                              const isUnread = inq.status === "UNREAD";
+                              return (
+                                <div key={inq.id} className="py-2.5 space-y-1 hover:bg-[#fcfdff] transition-colors">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="font-bold text-xs text-[#0a0d12] truncate">
+                                      {inq.firstName} {inq.lastName}
+                                    </span>
+                                    <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase ${
+                                      isUnread
+                                        ? "bg-red-50 text-red-700 border border-red-200 font-extrabold"
+                                        : "bg-gray-100 text-gray-700"
+                                    }`}>
+                                      {inq.status}
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-[#4a5565] line-clamp-1 font-medium">
+                                    {inq.subject}
+                                  </p>
+                                  <div className="flex items-center justify-between text-[10px] text-[#6a7282]">
+                                    <span className="truncate max-w-[150px]">{inq.organization || "Public Inquirer"}</span>
+                                    <span>{new Date(inq.createdAt).toLocaleDateString([], { month: "short", day: "numeric" })}</span>
+                                  </div>
                                 </div>
-                                {u.name}
-                              </td>
-                              <td className="py-3 text-[#4a5565] font-mono">{u.email}</td>
-                              <td className="py-3">
-                                <span className="px-2.5 py-1 rounded-full bg-[#e6f9ff] text-[#00698c] font-semibold text-[11px] border border-[#b0ebff]">
+                              );
+                            })
+                          ) : (
+                            <div className="py-8 text-center text-xs text-[#6a7282]">
+                              No recent contact inquiries recorded.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("contact-inquiries")}
+                        className="w-full py-2 text-center text-xs font-semibold text-[#00698c] hover:bg-[#e6f9ff] rounded-xl transition-colors border border-[#b0ebff]/60"
+                      >
+                        Manage All Inquiries
+                      </button>
+                    </div>
+
+                    {/* Column 2: Recent Fellowship Candidates */}
+                    <div className="bg-white border border-[#b0ebff] rounded-2xl p-5 shadow-xs space-y-4 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🎓</span>
+                            <h3 className="font-bold text-sm text-[#000080]">Fellowship Candidates</h3>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange("fellowship-applications")}
+                            className="text-xs font-semibold text-[#00698c] hover:text-[#000080] transition-colors cursor-pointer"
+                          >
+                            Review →
+                          </button>
+                        </div>
+
+                        <div className="divide-y divide-gray-100 pt-1">
+                          {summary?.recentFellowships && summary.recentFellowships.length > 0 ? (
+                            summary.recentFellowships.slice(0, 4).map((f) => {
+                              const isPending = f.status === "PENDING";
+                              return (
+                                <div key={f.id} className="py-2.5 space-y-1 hover:bg-[#fcfdff] transition-colors">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="font-bold text-xs text-[#0a0d12] truncate">
+                                      {f.firstName} {f.lastName}
+                                    </span>
+                                    <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase ${
+                                      isPending
+                                        ? "bg-amber-50 text-amber-800 border border-amber-300"
+                                        : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    }`}>
+                                      {f.status}
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-[#00698c] font-medium truncate">
+                                    {f.fellowshipType}
+                                  </p>
+                                  <div className="flex items-center justify-between text-[10px] text-[#6a7282]">
+                                    <span>{f.country}</span>
+                                    <span>{new Date(f.createdAt).toLocaleDateString([], { month: "short", day: "numeric" })}</span>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className="py-8 text-center text-xs text-[#6a7282]">
+                              No recent fellowship candidates.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("fellowship-applications")}
+                        className="w-full py-2 text-center text-xs font-semibold text-[#00698c] hover:bg-[#e6f9ff] rounded-xl transition-colors border border-[#b0ebff]/60"
+                      >
+                        Evaluate Submissions
+                      </button>
+                    </div>
+
+                    {/* Column 3: Privileged Accounts */}
+                    <div className="bg-white border border-[#b0ebff] rounded-2xl p-5 shadow-xs space-y-4 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🛡️</span>
+                            <h3 className="font-bold text-sm text-[#000080]">System Administrators</h3>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleTabChange("admin-manage")}
+                            className="text-xs font-semibold text-[#00698c] hover:text-[#000080] transition-colors cursor-pointer"
+                          >
+                            Manage →
+                          </button>
+                        </div>
+
+                        <div className="divide-y divide-gray-100 pt-1">
+                          {adminUsers.length > 0 ? (
+                            adminUsers.slice(0, 4).map((u) => (
+                              <div key={u.id} className="py-2.5 flex items-center justify-between gap-3 hover:bg-[#fcfdff] transition-colors">
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="w-7 h-7 rounded-full bg-[#000080] text-white text-[11px] font-bold flex items-center justify-center shrink-0 shadow-2xs">
+                                    {u.name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <span className="font-bold text-xs text-[#0a0d12] truncate block">
+                                      {u.name}
+                                    </span>
+                                    <span className="text-[10px] text-[#6a7282] font-mono truncate block">
+                                      {u.email}
+                                    </span>
+                                  </div>
+                                </div>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff] shrink-0">
                                   {u.role?.name || "Unassigned"}
                                 </span>
-                              </td>
-                              <td className="py-3 text-[#4a5565]">
-                                {new Date(u.createdAt).toLocaleDateString()}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="py-8 text-center text-xs text-[#6a7282]">
+                              {isDataLoading ? "Loading accounts..." : "No accounts found."}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange("admin-manage")}
+                        className="w-full py-2 text-center text-xs font-semibold text-[#00698c] hover:bg-[#e6f9ff] rounded-xl transition-colors border border-[#b0ebff]/60"
+                      >
+                        Security &amp; User Accounts
+                      </button>
                     </div>
-                  ) : (
-                    <p className="text-xs text-[#4a5565] py-4 text-center">
-                      {isDataLoading ? "Loading accounts..." : "No accounts found."}
-                    </p>
-                  )}
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
 
           {/* TAB 2: ADMIN MANAGEMENT */}
           {activeTab === "admin-manage" && (
