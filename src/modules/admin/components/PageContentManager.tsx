@@ -1789,6 +1789,46 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
     }
   };
 
+  const getContactMapMetadata = (): ContactMapMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      return {
+        mapType: parsed?.mapType === "image" || parsed?.map_type === "image" ? "image" : "embed",
+        embedUrl: String(parsed?.embedUrl || parsed?.embed_url || defaultContactMapMetadata.embedUrl),
+        mapImage: String(parsed?.mapImage || parsed?.map_image || defaultContactMapMetadata.mapImage),
+        address: String(parsed?.address || defaultContactMapMetadata.address),
+        phone: String(parsed?.phone || defaultContactMapMetadata.phone),
+        email: String(parsed?.email || defaultContactMapMetadata.email),
+        officeHours: String(parsed?.officeHours || parsed?.office_hours || defaultContactMapMetadata.officeHours),
+      };
+    } catch {
+      return defaultContactMapMetadata;
+    }
+  };
+
+  const updateContactMapMetadata = (
+    updater: (prev: ContactMapMetadata) => ContactMapMetadata
+  ) => {
+    try {
+      const base = getContactMapMetadata();
+      const cur = JSON.parse(metadataJson || "{}");
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    } catch {
+      const base = getContactMapMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    }
+  };
+
   const handleFoundingMemberImageUpload = async (file: File, memberIdx: number) => {
     setUploadingFoundingMemberIdx(memberIdx);
     try {
@@ -6245,6 +6285,238 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                       className="text-xs text-[#00506b] hover:underline font-semibold cursor-pointer"
                     >
                       Reset to Default 4 Cards
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Contact Campus & Location Map Visual Manager */}
+              {(editingKey === "contact_map" ||
+                (selectedPage === "contact" &&
+                  (editingKey === "contact_map" ||
+                    formData.sectionKey === "contact_map"))) && (
+                <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00698c]"></span>
+                      <h4 className="text-xs font-bold text-[#00698c] uppercase tracking-wider">
+                        Dynamic Campus &amp; Location Map Configuration
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-semibold text-gray-500">
+                      Displayed on /contact next to the form
+                    </span>
+                  </div>
+
+                  {/* Mode Selector */}
+                  <div className="grid grid-cols-2 gap-2 bg-white/80 p-1.5 rounded-xl border border-[#bae6fd]/60">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateContactMapMetadata((prev) => ({
+                          ...prev,
+                          mapType: "embed",
+                        }))
+                      }
+                      className={`px-3 py-2 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                        getContactMapMetadata().mapType === "embed"
+                          ? "bg-[#000080] text-white shadow-2xs"
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      Interactive Google Map (Embed Iframe)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateContactMapMetadata((prev) => ({
+                          ...prev,
+                          mapType: "image",
+                        }))
+                      }
+                      className={`px-3 py-2 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                        getContactMapMetadata().mapType === "image"
+                          ? "bg-[#000080] text-white shadow-2xs"
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      Static Photo / Graphic Map
+                    </button>
+                  </div>
+
+                  {/* Embed Iframe URL */}
+                  {getContactMapMetadata().mapType === "embed" && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-[#344054]">
+                          Google Maps Embed URL (iframe src)
+                        </label>
+                        <a
+                          href="https://www.google.com/maps"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-[#00698c] hover:underline"
+                        >
+                          Find on Google Maps &rarr; Share &rarr; Embed
+                        </a>
+                      </div>
+                      <textarea
+                        rows={2}
+                        value={getContactMapMetadata().embedUrl}
+                        onChange={(e) => {
+                          const val = e.target.value.trim();
+                          const srcMatch = val.match(/src=["'](.*?)["']/);
+                          const urlToSet = srcMatch ? srcMatch[1] : val;
+                          updateContactMapMetadata((prev) => ({
+                            ...prev,
+                            embedUrl: urlToSet,
+                          }));
+                        }}
+                        placeholder="https://www.google.com/maps/embed?pb=..."
+                        className="w-full text-xs font-mono p-2.5 border border-gray-200 rounded-xl bg-white focus:outline-hidden focus:border-[#000080]"
+                      />
+                    </div>
+                  )}
+
+                  {/* Static Map Image URL */}
+                  {getContactMapMetadata().mapType === "image" && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-[#344054]">
+                        Map Image URL (or upload custom graphic)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={getContactMapMetadata().mapImage}
+                          onChange={(e) =>
+                            updateContactMapMetadata((prev) => ({
+                              ...prev,
+                              mapImage: e.target.value,
+                            }))
+                          }
+                          placeholder="/images/contact-map.png"
+                          className="flex-1 text-xs p-2.5 border border-gray-200 rounded-xl bg-white focus:outline-hidden focus:border-[#000080]"
+                        />
+                        <label className="px-3 py-2 text-xs font-bold bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 cursor-pointer shadow-2xs shrink-0">
+                          Upload Image
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              try {
+                                const res = await uploadMediaFile(token, file, "maps");
+                                if (res?.url) {
+                                  updateContactMapMetadata((prev) => ({
+                                    ...prev,
+                                    mapImage: res.url,
+                                  }));
+                                  onShowToast("Map image uploaded!", "success");
+                                }
+                              } catch (err: unknown) {
+                                onShowToast(
+                                  err instanceof Error
+                                    ? err.message
+                                    : "Upload failed",
+                                  "error"
+                                );
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Campus Address & Contacts */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                        Campus / Head Office Address
+                      </label>
+                      <input
+                        type="text"
+                        value={getContactMapMetadata().address}
+                        onChange={(e) =>
+                          updateContactMapMetadata((prev) => ({
+                            ...prev,
+                            address: e.target.value,
+                          }))
+                        }
+                        placeholder="Dhaka, Bangladesh"
+                        className="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-white focus:outline-hidden focus:border-[#000080]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                        Office Support Hours
+                      </label>
+                      <input
+                        type="text"
+                        value={getContactMapMetadata().officeHours}
+                        onChange={(e) =>
+                          updateContactMapMetadata((prev) => ({
+                            ...prev,
+                            officeHours: e.target.value,
+                          }))
+                        }
+                        placeholder="Sunday to Thursday 9am to 5pm"
+                        className="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-white focus:outline-hidden focus:border-[#000080]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                        Contact Phone
+                      </label>
+                      <input
+                        type="text"
+                        value={getContactMapMetadata().phone}
+                        onChange={(e) =>
+                          updateContactMapMetadata((prev) => ({
+                            ...prev,
+                            phone: e.target.value,
+                          }))
+                        }
+                        placeholder="+880 1819-254425"
+                        className="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-white focus:outline-hidden focus:border-[#000080]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                        Contact Email
+                      </label>
+                      <input
+                        type="email"
+                        value={getContactMapMetadata().email}
+                        onChange={(e) =>
+                          updateContactMapMetadata((prev) => ({
+                            ...prev,
+                            email: e.target.value,
+                          }))
+                        }
+                        placeholder="info@iilp.org"
+                        className="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-white focus:outline-hidden focus:border-[#000080]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Reset to Default */}
+                  <div className="pt-2 flex items-center justify-end border-t border-[#bae6fd]/60">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset map configuration to defaults?")) {
+                          updateContactMapMetadata(() => defaultContactMapMetadata);
+                        }
+                      }}
+                      className="text-xs text-[#00698c] hover:underline font-semibold cursor-pointer"
+                    >
+                      Reset Map to Defaults
                     </button>
                   </div>
                 </div>
