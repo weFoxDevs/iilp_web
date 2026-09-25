@@ -91,8 +91,13 @@ interface PrivacyPolicyContentProps {
 }
 
 export function PrivacyPolicyContent({ data }: PrivacyPolicyContentProps = {}) {
-  const lastUpdated =
-    (data?.metadata?.lastUpdated as string) || "Last updated: January 2026";
+  const rawLastUpdated =
+    (data?.metadata?.lastUpdated as string) ||
+    (data?.subtitle as string) ||
+    "January 2026";
+  const lastUpdated = rawLastUpdated.toLowerCase().startsWith("last updated")
+    ? rawLastUpdated
+    : `Last updated: ${rawLastUpdated}`;
   const sections =
     Array.isArray(data?.metadata?.sections) && data?.metadata?.sections.length > 0
       ? (data.metadata.sections as { heading: string; content: string; id?: string }[])
@@ -126,13 +131,14 @@ export function PrivacyPolicyContent({ data }: PrivacyPolicyContentProps = {}) {
         {sections.map((sec, idx) => (
           <article
             key={sec.id || idx}
+            id={sec.id}
             className="flex flex-col items-start pt-[24px] relative shrink-0 w-full"
             data-name="Container"
           >
             {/* Heading */}
             <div className="flex flex-col items-start relative shrink-0 w-full" data-name="Heading 2">
               <h2
-                className="font-serif font-bold leading-normal text-[#000080] text-[24px] whitespace-nowrap"
+                className="font-serif font-bold leading-normal text-[#000080] text-[22px] sm:text-[24px]"
                 data-node-id={(sec as any).headingNodeId}
               >
                 {sec.heading}

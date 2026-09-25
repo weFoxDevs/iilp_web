@@ -27,7 +27,13 @@ export default function TermsOfUsePage() {
           <TermsHero data={getSection("hero")} />
 
           {/* Terms Body Content (Figma node 155:75208) */}
-          <TermsContent data={getSection("terms_sections")} />
+          <TermsContent
+            data={
+              getSection("policy_sections") ||
+              getSection("terms_sections") ||
+              getSection("content")
+            }
+          />
         </main>
 
         {/* Institutional Footer (Figma Frame 155:75195 renders Footer without CTA) */}

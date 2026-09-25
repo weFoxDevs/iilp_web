@@ -30,7 +30,9 @@ export default function PrivacyPolicyPage() {
           <PrivacyPolicyHero data={getSection("hero")} />
 
           {/* Policy Body Content (Figma node 150:74280) */}
-          <PrivacyPolicyContent data={getSection("policy_sections")} />
+          <PrivacyPolicyContent
+            data={getSection("policy_sections") || getSection("content")}
+          />
         </main>
 
         {/* Institutional Footer (Figma Frame 150:74267 renders Footer without CTA) */}

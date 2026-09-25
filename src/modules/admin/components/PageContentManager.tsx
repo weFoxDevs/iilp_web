@@ -426,6 +426,73 @@ export const defaultContactMapMetadata: ContactMapMetadata = {
   officeHours: "Sunday to Thursday 9am to 5pm",
 };
 
+export interface PolicySectionItem {
+  id: string;
+  heading: string;
+  content: string;
+}
+
+export interface PolicySectionsMetadata {
+  lastUpdated: string;
+  sections: PolicySectionItem[];
+}
+
+export const defaultPolicySectionsList: PolicySectionItem[] = [
+  {
+    id: "information-we-collect",
+    heading: "1. Information We Collect",
+    content:
+      "IILP collects personal information that you voluntarily provide when completing contact forms, fellowship applications, event registrations, donation forms, careers applications, and newsletter subscriptions. This may include your name, email address, phone number, institution, country of residence, and supporting documents you upload.",
+  },
+  {
+    id: "how-we-use-information",
+    heading: "2. How We Use Your Information",
+    content:
+      "We use your information to respond to your inquiries, process applications and registrations, send communications you have requested (such as newsletters and event confirmations), improve our website and services, and fulfill our institutional mission. We do not sell or share your personal information with third parties for commercial purposes.",
+  },
+  {
+    id: "academic-integrity",
+    heading: "3. Academic Integrity",
+    content:
+      "Users who access IILP's research publications and academic content are expected to uphold standards of academic integrity, including proper citation and attribution of IILP's work.",
+  },
+  {
+    id: "user-conduct",
+    heading: "4. User Conduct",
+    content:
+      "You agree not to use the IILP website for any unlawful purpose; to upload malicious content; to misrepresent your identity or affiliation with IILP; or to engage in conduct that could harm IILP's reputation, mission, or institutional integrity.",
+  },
+  {
+    id: "disclaimer",
+    heading: "5. Disclaimer",
+    content:
+      "The information on this website is provided in good faith for informational and educational purposes. IILP makes no warranties, expressed or implied, about the completeness, accuracy, or reliability of the content.",
+  },
+  {
+    id: "third-party-links",
+    heading: "6. Links to Third-Party Websites",
+    content:
+      "The IILP website may contain links to external websites. IILP is not responsible for the content, accuracy, or privacy practices of third-party websites.",
+  },
+  {
+    id: "changes-to-terms",
+    heading: "7. Changes to Terms",
+    content:
+      "IILP reserves the right to update these Terms of Use at any time. Continued use of the website following any changes constitutes acceptance of the updated terms.",
+  },
+  {
+    id: "contact",
+    heading: "8. Contact",
+    content:
+      "For questions about these Terms of Use, please contact IILP at info@iilp.org.",
+  },
+];
+
+export const defaultPolicySectionsMetadata: PolicySectionsMetadata = {
+  lastUpdated: "January 2026",
+  sections: defaultPolicySectionsList,
+};
+
 export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
   home: [
     { key: "hero", label: "Hero Banner", defaultTitle: "International Institute for Law and Politics (IILP)", defaultBadge: "Global Academic Network", defaultBgImage: "/assets/home-hero-v2.png" },
@@ -990,10 +1057,61 @@ export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
     { key: "ways_to_give", label: "Ways to Give", defaultTitle: "Donation Channels" },
   ],
   "privacy-policy": [
-    { key: "content", label: "Privacy Policy Content", defaultTitle: "Privacy Policy" },
+    {
+      key: "hero",
+      label: "Privacy Policy Hero Banner",
+      defaultTitle: "Your Privacy, Our Priority",
+      defaultBadge: "Privacy Policy",
+      defaultSubtitle:
+        "How IILP collects, uses, and protects your personal information.",
+      defaultBgImage: "/images/contact-hero-bg.png",
+    },
+    {
+      key: "policy_sections",
+      label: "Privacy Policy Articles & Sections",
+      defaultTitle: "Privacy Policy",
+      defaultSubtitle: "Last updated: January 2026",
+      defaultMetadata: defaultPolicySectionsMetadata,
+    },
+    {
+      key: "content",
+      label: "Privacy Policy Content (Legacy Key)",
+      defaultTitle: "Privacy Policy",
+      defaultSubtitle: "Last updated: January 2026",
+      defaultMetadata: defaultPolicySectionsMetadata,
+    },
   ],
   "terms-of-use": [
-    { key: "content", label: "Terms of Use Content", defaultTitle: "Terms of Use" },
+    {
+      key: "hero",
+      label: "Terms of Use Hero Banner",
+      defaultTitle: "Agreement to Terms",
+      defaultBadge: "Terms of Use",
+      defaultSubtitle:
+        "Terms and conditions governing your use of the IILP website.",
+      defaultBgImage: "/images/contact-hero-bg.png",
+    },
+    {
+      key: "policy_sections",
+      label: "Terms of Use Articles & Sections",
+      defaultTitle: "Terms of Use",
+      defaultSubtitle: "Last updated: January 2026",
+      defaultMetadata: defaultPolicySectionsMetadata,
+    },
+    {
+      key: "terms_sections",
+      label: "Terms Sections (Legacy Key)",
+      defaultTitle: "Terms of Use",
+      defaultSubtitle: "Last updated: January 2026",
+      defaultMetadata: defaultPolicySectionsMetadata,
+    },
+    {
+      key: "content",
+      label: "Terms of Use Content (Legacy Key)",
+      defaultTitle: "Terms of Use",
+      defaultSubtitle: "Last updated: January 2026",
+      defaultMetadata: defaultPolicySectionsMetadata,
+    },
   ],
 };
 
@@ -1820,6 +1938,51 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
       }));
     } catch {
       const base = getContactMapMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    }
+  };
+
+  const getPolicySectionsMetadata = (): PolicySectionsMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      const lastUpdated = String(
+        parsed?.lastUpdated || parsed?.last_updated || "January 2026"
+      );
+      if (Array.isArray(parsed?.sections) && parsed.sections.length > 0) {
+        return {
+          lastUpdated,
+          sections: parsed.sections.map((s: any, idx: number) => ({
+            id: String(s?.id || `section-${idx + 1}`),
+            heading: String(s?.heading || `Section ${idx + 1}`),
+            content: String(s?.content || ""),
+          })),
+        };
+      }
+      return defaultPolicySectionsMetadata;
+    } catch {
+      return defaultPolicySectionsMetadata;
+    }
+  };
+
+  const updatePolicySectionsMetadata = (
+    updater: (prev: PolicySectionsMetadata) => PolicySectionsMetadata
+  ) => {
+    try {
+      const base = getPolicySectionsMetadata();
+      const cur = JSON.parse(metadataJson || "{}");
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    } catch {
+      const base = getPolicySectionsMetadata();
       const updated = updater(base);
       setMetadataJson(JSON.stringify(updated, null, 2));
       setFormData((prev) => ({
@@ -6517,6 +6680,268 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                       className="text-xs text-[#00698c] hover:underline font-semibold cursor-pointer"
                     >
                       Reset Map to Defaults
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Policy & Terms Sections Visual Manager */}
+              {(editingKey === "policy_sections" ||
+                formData.sectionKey === "policy_sections" ||
+                editingKey === "terms_sections" ||
+                formData.sectionKey === "terms_sections" ||
+                ((selectedPage === "privacy-policy" ||
+                  selectedPage === "terms-of-use") &&
+                  (editingKey === "content" ||
+                    formData.sectionKey === "content"))) && (
+                <div className="bg-[#f8f9fc] border border-[#d8dce8] rounded-2xl p-4 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#e2e6f0] pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#000080]"></span>
+                      <h4 className="text-xs font-bold text-[#000080] uppercase tracking-wider">
+                        Policy &amp; Terms Articles (
+                        {getPolicySectionsMetadata().sections.length} Sections)
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-[11px] font-bold text-gray-500 whitespace-nowrap">
+                        Last Updated:
+                      </label>
+                      <input
+                        type="text"
+                        value={getPolicySectionsMetadata().lastUpdated}
+                        onChange={(e) =>
+                          updatePolicySectionsMetadata((prev) => ({
+                            ...prev,
+                            lastUpdated: e.target.value,
+                          }))
+                        }
+                        placeholder="January 2026"
+                        className="px-2.5 py-1 text-xs font-semibold border border-gray-300 rounded-lg bg-white focus:outline-hidden focus:border-[#000080]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Section List */}
+                  <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                    {getPolicySectionsMetadata().sections.map((sec, idx) => (
+                      <div
+                        key={`policy-sec-${idx}`}
+                        className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-2.5 shadow-2xs hover:border-[#000080]/30 transition-colors"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="w-6 h-6 rounded-md bg-[#000080]/10 text-[#000080] text-xs font-bold flex items-center justify-center shrink-0">
+                              {idx + 1}
+                            </span>
+                            <input
+                              type="text"
+                              value={sec.heading}
+                              onChange={(e) =>
+                                updatePolicySectionsMetadata((prev) => {
+                                  const list = [...prev.sections];
+                                  list[idx] = {
+                                    ...list[idx],
+                                    heading: e.target.value,
+                                  };
+                                  return { ...prev, sections: list };
+                                })
+                              }
+                              placeholder="e.g. 1. Information We Collect"
+                              className="w-full text-xs sm:text-sm font-bold text-gray-900 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080] bg-gray-50/40"
+                            />
+                          </div>
+
+                          {/* Reorder and Delete Controls */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                if (idx <= 0) return;
+                                updatePolicySectionsMetadata((prev) => {
+                                  const list = [...prev.sections];
+                                  const temp = list[idx - 1];
+                                  list[idx - 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, sections: list };
+                                });
+                              }}
+                              className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                              title="Move Up"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 15l7-7 7 7"
+                                />
+                              </svg>
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={
+                                idx ===
+                                getPolicySectionsMetadata().sections.length - 1
+                              }
+                              onClick={() => {
+                                if (
+                                  idx >=
+                                  getPolicySectionsMetadata().sections.length - 1
+                                )
+                                  return;
+                                updatePolicySectionsMetadata((prev) => {
+                                  const list = [...prev.sections];
+                                  const temp = list[idx + 1];
+                                  list[idx + 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, sections: list };
+                                });
+                              }}
+                              className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                              title="Move Down"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 9l-7 7-7-7"
+                                />
+                              </svg>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (
+                                  confirm(
+                                    `Delete article "${sec.heading || `Section ${idx + 1}`}"?`
+                                  )
+                                ) {
+                                  updatePolicySectionsMetadata((prev) => ({
+                                    ...prev,
+                                    sections: prev.sections.filter(
+                                      (_, i) => i !== idx
+                                    ),
+                                  }));
+                                }
+                              }}
+                              className="p-1 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                              title="Delete Section"
+                            >
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* ID slug and content */}
+                        <div className="grid grid-cols-1 gap-2">
+                          <div className="flex items-center gap-2">
+                            <label className="text-[11px] font-bold text-gray-500 whitespace-nowrap">
+                              Anchor ID:
+                            </label>
+                            <input
+                              type="text"
+                              value={sec.id}
+                              onChange={(e) =>
+                                updatePolicySectionsMetadata((prev) => {
+                                  const list = [...prev.sections];
+                                  list[idx] = {
+                                    ...list[idx],
+                                    id: e.target.value,
+                                  };
+                                  return { ...prev, sections: list };
+                                })
+                              }
+                              placeholder="e.g. information-we-collect"
+                              className="flex-1 text-xs font-mono text-gray-600 border border-gray-200 rounded-md px-2 py-1 focus:outline-hidden focus:border-[#000080]"
+                            />
+                          </div>
+
+                          <textarea
+                            rows={3}
+                            value={sec.content}
+                            onChange={(e) =>
+                              updatePolicySectionsMetadata((prev) => {
+                                const list = [...prev.sections];
+                                list[idx] = {
+                                  ...list[idx],
+                                  content: e.target.value,
+                                };
+                                return { ...prev, sections: list };
+                              })
+                            }
+                            placeholder="Detailed policy clause text..."
+                            className="w-full text-xs text-gray-700 leading-relaxed border border-gray-200 rounded-lg p-2.5 focus:outline-hidden focus:border-[#000080] resize-y"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Visual Manager Footer */}
+                  <div className="pt-2 flex items-center justify-between border-t border-[#d8dce8]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updatePolicySectionsMetadata((prev) => ({
+                          ...prev,
+                          sections: [
+                            ...prev.sections,
+                            {
+                              id: `section-${prev.sections.length + 1}`,
+                              heading: `${prev.sections.length + 1}. New Policy Article`,
+                              content: "",
+                            },
+                          ],
+                        }));
+                      }}
+                      className="text-xs text-[#000080] font-bold hover:underline cursor-pointer"
+                    >
+                      + Add New Policy Section
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (
+                          confirm(
+                            "Reset to standard 8 policy articles (Information, Use, Integrity, Conduct, Disclaimer, Links, Changes, Contact)?"
+                          )
+                        ) {
+                          updatePolicySectionsMetadata(
+                            () => defaultPolicySectionsMetadata
+                          );
+                        }
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-800 font-semibold cursor-pointer"
+                    >
+                      Reset to Default 8 Articles
                     </button>
                   </div>
                 </div>
