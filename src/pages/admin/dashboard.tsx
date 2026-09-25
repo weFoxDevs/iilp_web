@@ -15,6 +15,7 @@ import { NewsManager } from "@/modules/admin/components/NewsManager";
 import { FellowshipApplicationsManager } from "@/modules/admin/components/FellowshipApplicationsManager";
 import { LeadershipManager } from "@/modules/admin/components/LeadershipManager";
 import { PublicationsManager } from "@/modules/admin/components/PublicationsManager";
+import { ContactInquiriesManager } from "@/modules/admin/components/ContactInquiriesManager";
 import { ProfileSettings } from "@/modules/admin/components/ProfileSettings";
 
 interface DashboardMetrics {
@@ -79,6 +80,7 @@ const VALID_TABS = [
   "role-manage",
   "events",
   "fellowship-applications",
+  "contact-inquiries",
   "leadership",
   "news",
   "site-layout",
@@ -928,6 +930,28 @@ export default function AdminDashboard() {
                 <span className="font-bold truncate whitespace-nowrap">Fellowships</span>
               </div>
             </button>
+
+            <button
+              onClick={() => handleTabChange("contact-inquiries")}
+              className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "contact-inquiries"
+                  ? "bg-[#000080] text-white shadow-xs font-bold"
+                  : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                  activeTab === "contact-inquiries"
+                    ? "bg-[#00bfff] text-white"
+                    : "bg-[#f0f4f8] text-[#4a5565]"
+                }`}>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <span className="font-bold truncate whitespace-nowrap">Contact Messages</span>
+              </div>
+            </button>
           </div>
 
           {/* Section: Dynamic Content Management (CMS) */}
@@ -1153,6 +1177,7 @@ export default function AdminDashboard() {
               {activeTab === "role-manage" && "Role & RBAC Security"}
               {activeTab === "events" && "Events & Conferences Management"}
               {activeTab === "fellowship-applications" && "Fellowship Applications & Admissions"}
+              {activeTab === "contact-inquiries" && "Contact Form Inquiries & Submissions"}
               {activeTab === "leadership" && "Leadership Directory Management"}
               {activeTab === "site-layout" && "Global Layout, Navbar & Footer Branding"}
               {activeTab === "page-content" && "Page Content (CMS) Engine"}
@@ -1747,6 +1772,14 @@ export default function AdminDashboard() {
           {/* TAB: FELLOWSHIP APPLICATIONS */}
           {activeTab === "fellowship-applications" && token && (
             <FellowshipApplicationsManager
+              token={token}
+              onShowToast={(msg, type) => setToast({ message: msg, type })}
+            />
+          )}
+
+          {/* TAB: CONTACT INQUIRIES */}
+          {activeTab === "contact-inquiries" && token && (
+            <ContactInquiriesManager
               token={token}
               onShowToast={(msg, type) => setToast({ message: msg, type })}
             />

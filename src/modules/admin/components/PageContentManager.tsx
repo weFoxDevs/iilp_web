@@ -356,6 +356,76 @@ export const defaultPartnershipTracksMetadata: PartnershipTracksMetadata = {
   tracks: defaultPartnershipTracksList,
 };
 
+export interface ContactInfoCardItem {
+  title: string;
+  value: string;
+  timing: string;
+  iconAlt?: string;
+  iconSrc?: string;
+  link?: string;
+}
+
+export interface ContactInfoCardsMetadata {
+  [key: string]: unknown;
+  cards: ContactInfoCardItem[];
+}
+
+export const defaultContactInfoCardsList: ContactInfoCardItem[] = [
+  {
+    title: "Email",
+    value: "info@iilp.org",
+    timing: "Online Support",
+    iconAlt: "Email Icon",
+    iconSrc: "/images/contact-icon-email.svg",
+  },
+  {
+    title: "Phone",
+    value: "+880 1819-254425",
+    timing: "Sunday to Thursday 9am to 5pm",
+    iconAlt: "Phone Icon",
+    iconSrc: "/images/contact-icon-phone.svg",
+  },
+  {
+    title: "Office",
+    value: "Dhaka, Bangladesh",
+    timing: "Visit Our Head Office",
+    iconAlt: "Office Icon",
+    iconSrc: "/images/contact-icon-office.svg",
+  },
+  {
+    title: "Media Relations",
+    value: "media@iilp.org",
+    timing: "Press and Communications",
+    iconAlt: "Media Icon",
+    iconSrc: "/images/contact-icon-media.svg",
+  },
+];
+
+export const defaultContactInfoCardsMetadata: ContactInfoCardsMetadata = {
+  cards: defaultContactInfoCardsList,
+};
+
+export interface ContactMapMetadata {
+  mapType: "embed" | "image";
+  embedUrl: string;
+  mapImage: string;
+  address: string;
+  phone: string;
+  email: string;
+  officeHours: string;
+}
+
+export const defaultContactMapMetadata: ContactMapMetadata = {
+  mapType: "embed",
+  embedUrl:
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d116834.00977789308!2d90.3492857469792!3d23.78077772076043!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755b8b087026b81%3A0x8fa563bbdd5904c2!2sDhaka%2C%20Bangladesh!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd",
+  mapImage: "/images/contact-map.png",
+  address: "Dhaka, Bangladesh",
+  phone: "+880 1819-254425",
+  email: "info@iilp.org",
+  officeHours: "Sunday to Thursday 9am to 5pm",
+};
+
 export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
   home: [
     { key: "hero", label: "Hero Banner", defaultTitle: "International Institute for Law and Politics (IILP)", defaultBadge: "Global Academic Network", defaultBgImage: "/assets/home-hero-v2.png" },
@@ -868,8 +938,50 @@ export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
     { key: "work_culture", label: "Work Culture", defaultTitle: "Life at IILP" },
   ],
   contact: [
-    { key: "hero", label: "Contact Hero", defaultTitle: "Contact IILP" },
-    { key: "info_grid", label: "Offices & Information", defaultTitle: "Global Contact Details" },
+    {
+      key: "hero",
+      label: "Contact Hero",
+      defaultTitle: "Contact IILP",
+      defaultBadge: "Contact Us",
+      defaultSubtitle:
+        "We welcome inquiries from students, scholars, partner institutions, policymakers, and media organizations. Reach out to our dedicated team below.",
+      defaultBgImage: "/images/contact-hero-bg.png",
+    },
+    {
+      key: "contact_info_cards",
+      label: "Contact Information Cards",
+      defaultTitle: "Contact Information",
+      defaultBadge: "Reach Us",
+      defaultMetadata: defaultContactInfoCardsMetadata,
+    },
+    {
+      key: "info_grid",
+      label: "Offices & Information (Legacy Key)",
+      defaultTitle: "Contact Information",
+      defaultBadge: "Reach Us",
+      defaultMetadata: defaultContactInfoCardsMetadata,
+    },
+    {
+      key: "contact_map",
+      label: "Campus & Location Map",
+      defaultTitle: "Dhaka Campus & Head Office",
+      defaultBadge: "Location & Directions",
+      defaultSubtitle:
+        "Dhaka, Bangladesh — Sunday to Thursday 9am to 5pm",
+      defaultActionUrl: "https://maps.google.com/?q=Dhaka,+Bangladesh",
+      defaultActionText: "Open in Google Maps",
+      defaultBgImage: "/images/contact-map.png",
+      defaultMetadata: {
+        mapType: "embed",
+        embedUrl:
+          "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d116834.00977789308!2d90.3492857469792!3d23.78077772076043!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755b8b087026b81%3A0x8fa563bbdd5904c2!2sDhaka%2C%20Bangladesh!5e0!3m2!1sen!2sbd!4v1700000000000!5m2!1sen!2sbd",
+        mapImage: "/images/contact-map.png",
+        address: "Dhaka, Bangladesh",
+        phone: "+880 1819-254425",
+        email: "info@iilp.org",
+        officeHours: "Sunday to Thursday 9am to 5pm",
+      },
+    },
     { key: "form", label: "Inquiry Form", defaultTitle: "Send an Inquiry" },
   ],
   donate: [
@@ -1614,6 +1726,66 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
       const base = getPartnershipTracksMetadata();
       const updated = updater(base);
       setMetadataJson(JSON.stringify(updated, null, 2));
+    }
+  };
+
+  const getContactInfoCardsMetadata = (): ContactInfoCardsMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed?.cards) && parsed.cards.length > 0) {
+        return {
+          cards: parsed.cards.map((c: any) => ({
+            title: String(c?.title ?? ""),
+            value: String(c?.value ?? ""),
+            timing: String(c?.timing ?? ""),
+            iconAlt: String(c?.iconAlt ?? ""),
+            iconSrc: String(c?.iconSrc ?? ""),
+            link: c?.link ? String(c.link) : undefined,
+          })),
+        };
+      }
+      return defaultContactInfoCardsMetadata;
+    } catch {
+      return defaultContactInfoCardsMetadata;
+    }
+  };
+
+  const updateContactInfoCardsMetadata = (
+    updater: (prev: ContactInfoCardsMetadata) => ContactInfoCardsMetadata
+  ) => {
+    try {
+      const cur = JSON.parse(metadataJson || "{}");
+      const base = getContactInfoCardsMetadata();
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as Record<string, unknown>,
+      }));
+    } catch {
+      const base = getContactInfoCardsMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as Record<string, unknown>,
+      }));
+    }
+  };
+
+  const handleContactCardIconUpload = async (file: File, cardIdx: number) => {
+    try {
+      const res = await uploadMediaFile(token, file, "icons");
+      if (res?.url) {
+        updateContactInfoCardsMetadata((prev) => {
+          const list = [...prev.cards];
+          list[cardIdx] = { ...list[cardIdx], iconSrc: res.url };
+          return { ...prev, cards: list };
+        });
+        onShowToast("Icon uploaded successfully!", "success");
+      }
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to upload icon", "error");
     }
   };
 
@@ -5801,6 +5973,278 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                       className="text-xs text-[#0284c7] hover:underline font-semibold cursor-pointer"
                     >
                       Reset to Default 5 Tracks
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Contact Information Cards Visual Manager */}
+              {(editingKey === "contact_info_cards" ||
+                editingKey === "info_grid" ||
+                (selectedPage === "contact" &&
+                  (editingKey === "contact_info_cards" ||
+                    editingKey === "info_grid" ||
+                    formData.sectionKey === "contact_info_cards" ||
+                    formData.sectionKey === "info_grid"))) && (
+                <div className="bg-[#f0f9ff] border border-[#bae6fd] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00506b]"></span>
+                      <h4 className="text-xs font-bold text-[#00506b] uppercase tracking-wider">
+                        Contact Information Cards ({getContactInfoCardsMetadata().cards.length} Cards)
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateContactInfoCardsMetadata((prev) => ({
+                            ...prev,
+                            cards: [
+                              ...prev.cards,
+                              {
+                                title: "New Contact",
+                                value: "info@iilp.org",
+                                timing: "Support Hours",
+                                iconAlt: "Contact Icon",
+                                iconSrc: "/images/contact-icon-email.svg",
+                              },
+                            ],
+                          }));
+                        }}
+                        className="px-3 py-1 bg-[#00506b] hover:bg-[#00384a] text-white text-[11px] font-semibold rounded-lg shadow-2xs transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>+ Add Card</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-[#00506b]/80">
+                    Configure the contact information cards (Email, Phone, Office, Media Relations, etc.) displayed on the Contact page.
+                  </p>
+
+                  {/* Cards List */}
+                  <div className="space-y-3 max-h-[540px] overflow-y-auto pr-1">
+                    {getContactInfoCardsMetadata().cards.map((cardItem, idx) => (
+                      <div
+                        key={`contact-card-${idx}`}
+                        className="bg-white p-3.5 rounded-xl border border-[#bae6fd] shadow-xs flex flex-col md:flex-row gap-4 items-start"
+                      >
+                        {/* Index & Order Controls */}
+                        <div className="flex md:flex-col items-center gap-1 shrink-0">
+                          <span className="w-8 h-8 rounded-lg bg-[#f0f9ff] border border-[#7dd3fc] text-[#00506b] flex items-center justify-center text-xs font-bold font-mono">
+                            {String(idx + 1).padStart(2, "0")}
+                          </span>
+                          <div className="flex md:flex-col gap-0.5">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                if (idx === 0) return;
+                                updateContactInfoCardsMetadata((prev) => {
+                                  const list = [...prev.cards];
+                                  const temp = list[idx - 1];
+                                  list[idx - 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, cards: list };
+                                });
+                              }}
+                              className="w-6 h-5 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-[10px] cursor-pointer"
+                              title="Move Up"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === getContactInfoCardsMetadata().cards.length - 1}
+                              onClick={() => {
+                                if (idx >= getContactInfoCardsMetadata().cards.length - 1) return;
+                                updateContactInfoCardsMetadata((prev) => {
+                                  const list = [...prev.cards];
+                                  const temp = list[idx + 1];
+                                  list[idx + 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, cards: list };
+                                });
+                              }}
+                              className="w-6 h-5 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-[10px] cursor-pointer"
+                              title="Move Down"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Card Inputs */}
+                        <div className="flex-1 space-y-3 w-full">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                                Card Title (e.g. Email, Phone, Office)
+                              </label>
+                              <input
+                                type="text"
+                                value={cardItem.title}
+                                placeholder="e.g. Email"
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  updateContactInfoCardsMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    list[idx] = { ...list[idx], title: val };
+                                    return { ...prev, cards: list };
+                                  });
+                                }}
+                                className="w-full text-xs font-semibold border border-gray-300 rounded-lg px-2.5 py-1.5 focus:border-[#00506b] focus:outline-hidden"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                                Value (e.g. info@iilp.org, +880 1819-254425)
+                              </label>
+                              <input
+                                type="text"
+                                value={cardItem.value}
+                                placeholder="e.g. info@iilp.org"
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  updateContactInfoCardsMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    list[idx] = { ...list[idx], value: val };
+                                    return { ...prev, cards: list };
+                                  });
+                                }}
+                                className="w-full text-xs font-semibold border border-gray-300 rounded-lg px-2.5 py-1.5 focus:border-[#00506b] focus:outline-hidden"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                                Timing / Hours / Subtitle
+                              </label>
+                              <input
+                                type="text"
+                                value={cardItem.timing}
+                                placeholder="e.g. Online Support / Sun-Thu 9am-5pm"
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  updateContactInfoCardsMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    list[idx] = { ...list[idx], timing: val };
+                                    return { ...prev, cards: list };
+                                  });
+                                }}
+                                className="w-full text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 focus:border-[#00506b] focus:outline-hidden"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                                Icon Path or Upload SVG
+                              </label>
+                              <div className="flex gap-2 items-center">
+                                <input
+                                  type="text"
+                                  value={cardItem.iconSrc || ""}
+                                  placeholder="/images/contact-icon-email.svg"
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    updateContactInfoCardsMetadata((prev) => {
+                                      const list = [...prev.cards];
+                                      list[idx] = { ...list[idx], iconSrc: val };
+                                      return { ...prev, cards: list };
+                                    });
+                                  }}
+                                  className="w-full text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 focus:border-[#00506b] focus:outline-hidden font-mono"
+                                />
+                                <label className="shrink-0 px-2 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-[10px] font-semibold text-gray-700 cursor-pointer transition">
+                                  Upload
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const f = e.target.files?.[0];
+                                      if (f) handleContactCardIconUpload(f, idx);
+                                    }}
+                                  />
+                                </label>
+                                {cardItem.iconSrc && (
+                                  <div className="size-8 rounded bg-[#00506b] flex items-center justify-center shrink-0 p-1">
+                                    <img
+                                      src={cardItem.iconSrc}
+                                      alt="Preview"
+                                      className="size-5 object-contain"
+                                      onError={(e) => {
+                                        (e.target as HTMLElement).style.display = "none";
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Delete Button */}
+                        <div className="shrink-0 self-center md:self-start">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`Remove "${cardItem.title || "this card"}"?`)) {
+                                updateContactInfoCardsMetadata((prev) => ({
+                                  ...prev,
+                                  cards: prev.cards.filter((_, i) => i !== idx),
+                                }));
+                              }
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
+                            title="Delete Card"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-between border-t border-[#bae6fd]/60">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateContactInfoCardsMetadata((prev) => ({
+                          ...prev,
+                          cards: [
+                            ...prev.cards,
+                            {
+                              title: "New Contact",
+                              value: "contact@iilp.org",
+                              timing: "Support Hours",
+                              iconAlt: "Contact Icon",
+                              iconSrc: "/images/contact-icon-email.svg",
+                            },
+                          ],
+                        }));
+                      }}
+                      className="text-xs text-[#00506b] hover:underline font-semibold cursor-pointer"
+                    >
+                      + Add Another Card
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset to default 4 contact cards (Email, Phone, Office, Media)?")) {
+                          updateContactInfoCardsMetadata(() => defaultContactInfoCardsMetadata);
+                        }
+                      }}
+                      className="text-xs text-[#00506b] hover:underline font-semibold cursor-pointer"
+                    >
+                      Reset to Default 4 Cards
                     </button>
                   </div>
                 </div>

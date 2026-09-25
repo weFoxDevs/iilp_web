@@ -2,5 +2,5 @@ import React from "react";
 import EventDetailPage from "./events/[id]";
 
 export default function EventDetailsStaticPage() {
-  return <EventDetailPage />;
+  return <EventDetailPage defaultSlug="summit-2026-1" />;
 }

@@ -31,10 +31,15 @@ export default function ContactPage() {
           <ContactHero data={getSection("hero")} />
 
           {/* Section 2: Send a Message Form & Campus Map */}
-          <ContactFormSection />
+          <ContactFormSection
+            data={getSection("contact_form") || getSection("form")}
+            mapData={getSection("contact_map")}
+          />
 
           {/* Section 3: Contact Information (4 Cards) */}
-          <ContactInfoGrid data={getSection("contact_info_cards")} />
+          <ContactInfoGrid
+            data={getSection("contact_info_cards") || getSection("info_grid")}
+          />
         </main>
 
         {/* Section 4 & 5: CTA Banner + Institutional Footer */}

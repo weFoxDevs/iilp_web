@@ -77,6 +77,8 @@ export function EventCard({ event, onRegister }: EventCardProps) {
   };
 
   const badge = getBadgeStyles(event.mode);
+  const isRemoteImage =
+    event.image?.startsWith("http://") || event.image?.startsWith("https://");
 
   return (
     <div className="bg-white border border-[#e5e7eb] rounded-[16px] overflow-hidden flex flex-col hover:shadow-xl transition-all duration-300 group h-full">
@@ -86,6 +88,7 @@ export function EventCard({ event, onRegister }: EventCardProps) {
           src={event.image}
           alt={event.title}
           fill
+          unoptimized={isRemoteImage}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
         />
@@ -160,7 +163,7 @@ export function EventCard({ event, onRegister }: EventCardProps) {
           {/* Title */}
           <h3 className="font-serif font-bold text-[22px] sm:text-[24px] text-[#1f2a37] leading-[1.3] line-clamp-2 transition-colors">
             <Link
-              href={`/events/${event.id}`}
+              href={`/events/${event.slug || event.id}`}
               className="hover:text-[#00bfff] transition-colors"
             >
               {event.title}
