@@ -383,7 +383,7 @@ export function ContactInquiriesManager({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
+            <table className="w-full text-left text-xs sm:text-sm min-w-[760px]">
               <thead className="bg-gray-50/75 border-b border-gray-200 text-gray-600 font-semibold uppercase text-[11px] tracking-wider">
                 <tr>
                   <th className="px-4 sm:px-6 py-3.5">Sender</th>
@@ -575,7 +575,7 @@ export function ContactInquiriesManager({
 
         {/* Pagination Bar */}
         {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50/50 flex items-center justify-between">
+          <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="text-xs text-gray-500">
               Showing page <span className="font-bold text-gray-800">{page}</span>{" "}
               of{" "}

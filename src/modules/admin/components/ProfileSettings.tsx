@@ -204,7 +204,7 @@ export function ProfileSettings({ token, onShowToast }: ProfileSettingsProps) {
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
       {/* Hero Profile Banner Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#000080] via-[#002b66] to-[#00698c] shadow-lg border border-[#00698c]/30 text-white p-6 sm:p-8">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#000080] via-[#002b66] to-[#00698c] shadow-lg border border-[#00698c]/30 text-white p-4 sm:p-6 lg:p-8">
         {/* Background Decorative Circles */}
         <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none" />
         <div className="absolute top-0 right-1/4 w-32 h-32 bg-[#00bfff]/20 rounded-full blur-xl pointer-events-none" />
@@ -286,7 +286,7 @@ export function ProfileSettings({ token, onShowToast }: ProfileSettingsProps) {
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex items-center gap-2 p-1.5 bg-white border border-[#b0ebff] rounded-2xl w-fit shadow-xs">
+      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-white border border-[#b0ebff] rounded-2xl w-full sm:w-fit shadow-xs">
         <button
           onClick={() => setActiveTab("info")}
           className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${

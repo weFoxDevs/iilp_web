@@ -277,18 +277,18 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setIsSeedModalOpen(true)}
-            className="px-4 py-2 text-xs font-semibold text-[#00698c] bg-[#e6f9ff] border border-[#b0ebff] rounded-xl hover:bg-[#cbf2ff] transition-all cursor-pointer"
+            className="flex-1 sm:flex-initial px-4 py-2 text-xs font-semibold text-[#00698c] bg-[#e6f9ff] border border-[#b0ebff] rounded-xl hover:bg-[#cbf2ff] transition-all cursor-pointer text-center"
           >
             ↺ Seed Default Articles
           </button>
           <button
             type="button"
             onClick={openCreateModal}
-            className="px-4 py-2 text-xs font-bold text-white bg-[#000080] hover:bg-[#000060] rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            className="flex-1 sm:flex-initial px-4 py-2 text-xs font-bold text-white bg-[#000080] hover:bg-[#000060] rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center"
           >
             <span>+</span>
             <span>Add New Article</span>
@@ -355,7 +355,7 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="border-b border-[#e5e7eb] bg-[#f9fafb] text-[11px] font-bold text-[#475467] uppercase tracking-wider">
                   <th className="py-3 px-4">Article</th>
