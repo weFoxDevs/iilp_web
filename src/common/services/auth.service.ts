@@ -82,3 +82,21 @@ export async function changeCurrentUserPassword(
   }
   return data;
 }
+
+/**
+ * Logout currently authenticated user from backend (no permission/role requirement)
+ */
+export async function logoutUser(token?: string | null): Promise<{ message: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+    return await res.json();
+  } catch {
+    return { message: "Logged out successfully." };
+  }
+}

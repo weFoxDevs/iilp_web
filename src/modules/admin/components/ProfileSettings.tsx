@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   fetchCurrentUserProfile,
   updateCurrentUserProfile,
@@ -41,6 +41,11 @@ export function ProfileSettings({ token, onShowToast }: ProfileSettingsProps) {
   // Permissions filter
   const [permissionSearch, setPermissionSearch] = useState("");
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   // Load Profile
   const loadProfile = useCallback(async () => {
     setIsLoading(true);
@@ -50,13 +55,14 @@ export function ProfileSettings({ token, onShowToast }: ProfileSettingsProps) {
       setNameInput(data.name || "");
       setEmailInput(data.email || "");
     } catch (err: unknown) {
-      onShowToast(err instanceof Error ? err.message : "Failed to load profile details", "error");
+      onShowToastRef.current(err instanceof Error ? err.message : "Failed to load profile details", "error");
     } finally {
       setIsLoading(false);
     }
-  }, [token, onShowToast]);
+  }, [token]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProfile();
   }, [loadProfile]);
 
@@ -164,7 +170,7 @@ export function ProfileSettings({ token, onShowToast }: ProfileSettingsProps) {
     if (!permissionSearch.trim()) return profile.permissions;
     const q = permissionSearch.toLowerCase();
     return profile.permissions.filter((p) => p.toLowerCase().includes(q));
-  }, [profile?.permissions, permissionSearch]);
+  }, [profile, permissionSearch]);
 
   const hasProfileChanges =
     profile && (nameInput !== profile.name || emailInput !== profile.email);

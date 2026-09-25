@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { RichTextEditor } from "./RichTextEditor";
 import Image from "next/image";
 import {
@@ -63,6 +63,11 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
   const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   const loadArticles = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -73,16 +78,17 @@ export function NewsManager({ token, onShowToast }: NewsManagerProps) {
       });
       setArticles(res.items || []);
     } catch (err: unknown) {
-      onShowToast(
+      onShowToastRef.current(
         err instanceof Error ? err.message : "Failed to load news articles",
         "error"
       );
     } finally {
       setIsLoading(false);
     }
-  }, [token, selectedCategory, searchQuery, onShowToast]);
+  }, [token, selectedCategory, searchQuery]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadArticles();
   }, [loadArticles]);
 

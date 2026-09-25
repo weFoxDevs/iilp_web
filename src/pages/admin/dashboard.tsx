@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -390,7 +390,7 @@ function PermissionMatrixSelector({
 
       {filteredCategories.length === 0 && (
         <div className="text-center py-10 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-xs text-[#6a7282]">
-          No permissions found matching "{search}".
+          No permissions found matching &quot;{search}&quot;.
         </div>
       )}
     </div>
@@ -600,6 +600,12 @@ export default function AdminDashboard() {
     }
   }, [token, apiUrl, logout]);
 
+  const hasFetchedDashboard = useRef<string | null>(null);
+
+  const handleShowToast = useCallback((message: string, type: ToastType) => {
+    setToast({ message, type });
+  }, []);
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await fetchDashboardData();
@@ -614,8 +620,8 @@ export default function AdminDashboard() {
   }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
-    if (isAuthenticated && token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (isAuthenticated && token && hasFetchedDashboard.current !== token) {
+      hasFetchedDashboard.current = token;
       void fetchDashboardData();
     }
   }, [isAuthenticated, token, fetchDashboardData]);
@@ -623,7 +629,7 @@ export default function AdminDashboard() {
   // Handle tab change with shallow URL update and localStorage persistence
   const handleTabChange = useCallback(
     (newTab: TabType) => {
-      setActiveTab(newTab);
+      setActiveTab((prev) => (prev === newTab ? prev : newTab));
       try {
         localStorage.setItem("admin_active_tab", newTab);
       } catch {
@@ -645,7 +651,7 @@ export default function AdminDashboard() {
       }
 
       // Shallow route update to preserve tab across page reloads without re-triggering remount
-      if (router.isReady) {
+      if (router.isReady && router.query.tab !== newTab) {
         void router.replace(
           {
             pathname: router.pathname,
@@ -666,7 +672,7 @@ export default function AdminDashboard() {
         const urlObj = new URL(url, window.location.origin);
         const queryTab = urlObj.searchParams.get("tab");
         if (isTabType(queryTab)) {
-          setActiveTab(queryTab);
+          setActiveTab((prev) => (prev === queryTab ? prev : queryTab));
           localStorage.setItem("admin_active_tab", queryTab);
           if (queryTab === "admin-manage" || queryTab === "role-manage") {
             setAdminMenuOpen(true);
@@ -2657,7 +2663,7 @@ export default function AdminDashboard() {
           {activeTab === "events" && token && (
             <EventsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2665,7 +2671,7 @@ export default function AdminDashboard() {
           {activeTab === "site-layout" && token && (
             <SiteLayoutManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2673,7 +2679,7 @@ export default function AdminDashboard() {
           {activeTab === "fellowship-applications" && token && (
             <FellowshipApplicationsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2681,7 +2687,7 @@ export default function AdminDashboard() {
           {activeTab === "contact-inquiries" && token && (
             <ContactInquiriesManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2689,7 +2695,7 @@ export default function AdminDashboard() {
           {activeTab === "page-content" && token && (
             <PageContentManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2697,7 +2703,7 @@ export default function AdminDashboard() {
           {activeTab === "leadership" && token && (
             <LeadershipManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2705,7 +2711,7 @@ export default function AdminDashboard() {
           {activeTab === "news" && token && (
             <NewsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2713,7 +2719,7 @@ export default function AdminDashboard() {
           {activeTab === "publications" && token && (
             <PublicationsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2721,7 +2727,7 @@ export default function AdminDashboard() {
           {activeTab === "site-metrics" && token && (
             <SiteMetricsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2729,7 +2735,7 @@ export default function AdminDashboard() {
           {activeTab === "testimonials" && token && (
             <TestimonialsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2737,7 +2743,7 @@ export default function AdminDashboard() {
           {activeTab === "departments" && token && (
             <DepartmentsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2745,7 +2751,7 @@ export default function AdminDashboard() {
           {activeTab === "profile" && token && (
             <ProfileSettings
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
         </>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
   fetchAdminPublications,
@@ -71,6 +71,11 @@ export function PublicationsManager({ token, onShowToast }: PublicationsManagerP
   const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   const loadPublications = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -80,16 +85,17 @@ export function PublicationsManager({ token, onShowToast }: PublicationsManagerP
       });
       setPublications(data);
     } catch (err: unknown) {
-      onShowToast(
+      onShowToastRef.current(
         err instanceof Error ? err.message : "Failed to load publications",
         "error"
       );
     } finally {
       setIsLoading(false);
     }
-  }, [token, categoryFilter, searchQuery, onShowToast]);
+  }, [token, categoryFilter, searchQuery]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadPublications();
   }, [loadPublications]);
 

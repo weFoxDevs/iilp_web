@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
   fetchAdminTestimonials,
@@ -80,37 +80,27 @@ export function TestimonialsManager({ token, onShowToast }: TestimonialsManagerP
     }));
   };
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   const loadTestimonials = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await fetchAdminTestimonials(token);
       setTestimonials(data);
     } catch (err: unknown) {
-      onShowToast(err instanceof Error ? err.message : "Failed to load testimonials", "error");
+      onShowToastRef.current(err instanceof Error ? err.message : "Failed to load testimonials", "error");
     } finally {
       setIsLoading(false);
     }
-  }, [token, onShowToast]);
+  }, [token]);
 
   useEffect(() => {
-    let active = true;
-    fetchAdminTestimonials(token)
-      .then((data) => {
-        if (active) setTestimonials(data);
-      })
-      .catch((err: unknown) => {
-        if (active) {
-          onShowToast(err instanceof Error ? err.message : "Failed to load testimonials", "error");
-        }
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [token, onShowToast]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadTestimonials();
+  }, [loadTestimonials]);
 
   const handleOpenCreate = () => {
     if (localAvatarPreview) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   fetchAdminSections,
   upsertAdminSection,
@@ -130,41 +130,28 @@ export function SiteLayoutManager({ token, onShowToast }: SiteLayoutManagerProps
     }
   }, []);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   const loadData = useCallback(async () => {
+    setLoading(true);
     try {
       const sections: PageSectionData[] = await fetchAdminSections(token, "layout");
       applySectionsData(sections);
     } catch (err: unknown) {
       console.warn("Could not load backend layout data (will use defaults):", err);
-      onShowToast("Loaded default layout structure (Save to sync to database)", "info");
+      onShowToastRef.current("Loaded default layout structure (Save to sync to database)", "info");
     } finally {
       setLoading(false);
     }
-  }, [token, applySectionsData, onShowToast]);
+  }, [token, applySectionsData]);
 
   useEffect(() => {
-    let active = true;
-    fetchAdminSections(token, "layout")
-      .then((sections) => {
-        if (!active) return;
-        applySectionsData(sections);
-      })
-      .catch((err: unknown) => {
-        console.warn("Could not load backend layout data (will use defaults):", err);
-        if (active) {
-          onShowToast("Loaded default layout structure (Save to sync to database)", "info");
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [token, applySectionsData, onShowToast]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadData();
+  }, [loadData]);
 
   // Clean up object URLs on unmount
   useEffect(() => {

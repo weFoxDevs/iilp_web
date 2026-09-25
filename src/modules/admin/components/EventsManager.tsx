@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
   fetchAdminEvents,
@@ -166,6 +166,11 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
   const draftCount = events.filter((e) => e.status === "DRAFT").length;
   const totalAttendeesSum = events.reduce((acc, e) => acc + (e.totalRegistrations ?? e.seatsReserved ?? 0), 0);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   // Load events
   const loadEvents = useCallback(async () => {
     setIsLoading(true);
@@ -182,13 +187,14 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
       setTotalCount(data.total || 0);
       setTotalPages(data.totalPages || 1);
     } catch (err: unknown) {
-      onShowToast(err instanceof Error ? err.message : "Failed to load events", "error");
+      onShowToastRef.current(err instanceof Error ? err.message : "Failed to load events", "error");
     } finally {
       setIsLoading(false);
     }
-  }, [token, selectedCategory, selectedMode, selectedStatus, searchQuery, page, limit, onShowToast]);
+  }, [token, selectedCategory, selectedMode, selectedStatus, searchQuery, page, limit]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadEvents();
   }, [loadEvents]);
 

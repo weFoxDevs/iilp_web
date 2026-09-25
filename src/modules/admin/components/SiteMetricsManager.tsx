@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   fetchAdminMetrics,
   createAdminMetric,
@@ -34,37 +34,27 @@ export function SiteMetricsManager({ token, onShowToast }: SiteMetricsManagerPro
   const [metricToDelete, setMetricToDelete] = useState<{ id: string; label: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   const loadMetrics = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await fetchAdminMetrics(token);
       setMetrics(data);
     } catch (err: unknown) {
-      onShowToast(err instanceof Error ? err.message : "Failed to load metrics", "error");
+      onShowToastRef.current(err instanceof Error ? err.message : "Failed to load metrics", "error");
     } finally {
       setIsLoading(false);
     }
-  }, [token, onShowToast]);
+  }, [token]);
 
   useEffect(() => {
-    let active = true;
-    fetchAdminMetrics(token)
-      .then((data) => {
-        if (active) setMetrics(data);
-      })
-      .catch((err: unknown) => {
-        if (active) {
-          onShowToast(err instanceof Error ? err.message : "Failed to load metrics", "error");
-        }
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [token, onShowToast]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadMetrics();
+  }, [loadMetrics]);
 
   const handleOpenCreate = () => {
     setEditingId(null);

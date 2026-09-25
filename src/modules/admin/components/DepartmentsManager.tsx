@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
   DepartmentItem,
@@ -50,22 +50,28 @@ export function DepartmentsManager({ token, onShowToast }: DepartmentsManagerPro
   const [departmentToDelete, setDepartmentToDelete] = useState<DepartmentItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   const loadDepartments = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await fetchAdminDepartments(token);
       setDepartments(Array.isArray(data) ? data : []);
     } catch (err: unknown) {
-      onShowToast(
+      onShowToastRef.current(
         err instanceof Error ? err.message : "Failed to load academic departments",
         "error"
       );
     } finally {
       setIsLoading(false);
     }
-  }, [token, onShowToast]);
+  }, [token]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadDepartments();
   }, [loadDepartments]);
 

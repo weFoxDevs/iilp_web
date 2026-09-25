@@ -2319,6 +2319,11 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
     }
   }, [token]);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   // Load sections for current page
   const loadSections = useCallback(async () => {
     setIsLoading(true);
@@ -2326,11 +2331,11 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
       const data = await fetchAdminSections(token, selectedPage);
       setSections(data as AdminSectionItem[]);
     } catch (err: unknown) {
-      onShowToast(err instanceof Error ? err.message : "Failed to load sections", "error");
+      onShowToastRef.current(err instanceof Error ? err.message : "Failed to load sections", "error");
     } finally {
       setIsLoading(false);
     }
-  }, [token, selectedPage, onShowToast]);
+  }, [token, selectedPage]);
 
   useEffect(() => {
     let active = true;
@@ -2346,24 +2351,9 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
   }, [token]);
 
   useEffect(() => {
-    let active = true;
-    fetchAdminSections(token, selectedPage)
-      .then((data) => {
-        if (active) setSections(data as AdminSectionItem[]);
-      })
-      .catch((err: unknown) => {
-        if (active) {
-          onShowToast(err instanceof Error ? err.message : "Failed to load sections", "error");
-        }
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [token, selectedPage, onShowToast]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadSections();
+  }, [loadSections]);
 
   const handleOpenEdit = (section: AdminSectionItem) => {
     if (localImagePreview) {
