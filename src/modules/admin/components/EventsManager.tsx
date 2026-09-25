@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
   fetchAdminEvents,
@@ -166,6 +166,11 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
   const draftCount = events.filter((e) => e.status === "DRAFT").length;
   const totalAttendeesSum = events.reduce((acc, e) => acc + (e.totalRegistrations ?? e.seatsReserved ?? 0), 0);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   // Load events
   const loadEvents = useCallback(async () => {
     setIsLoading(true);
@@ -182,13 +187,14 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
       setTotalCount(data.total || 0);
       setTotalPages(data.totalPages || 1);
     } catch (err: unknown) {
-      onShowToast(err instanceof Error ? err.message : "Failed to load events", "error");
+      onShowToastRef.current(err instanceof Error ? err.message : "Failed to load events", "error");
     } finally {
       setIsLoading(false);
     }
-  }, [token, selectedCategory, selectedMode, selectedStatus, searchQuery, page, limit, onShowToast]);
+  }, [token, selectedCategory, selectedMode, selectedStatus, searchQuery, page, limit]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadEvents();
   }, [loadEvents]);
 
@@ -476,7 +482,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
         {hasPermission("event:create") && (
           <button
             onClick={handleOpenCreateModal}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#000080] hover:bg-[#00698c] text-white text-xs font-bold shadow-md shadow-sky-900/15 transition-all cursor-pointer shrink-0"
+            className="w-full sm:w-auto justify-center flex items-center gap-2 px-6 py-3 rounded-xl bg-[#000080] hover:bg-[#00698c] text-white text-xs font-bold shadow-md shadow-sky-900/15 transition-all cursor-pointer shrink-0"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -660,7 +666,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-xs border-collapse min-w-[820px]">
               <thead>
                 <tr className="bg-[#e6f9ff]/50 border-b border-[#b0ebff] text-[#00698c] font-bold uppercase tracking-wider">
                   <th className="p-4">Event Details</th>

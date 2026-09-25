@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
   fetchAdminPublications,
@@ -71,6 +71,11 @@ export function PublicationsManager({ token, onShowToast }: PublicationsManagerP
   const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   const loadPublications = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -80,16 +85,17 @@ export function PublicationsManager({ token, onShowToast }: PublicationsManagerP
       });
       setPublications(data);
     } catch (err: unknown) {
-      onShowToast(
+      onShowToastRef.current(
         err instanceof Error ? err.message : "Failed to load publications",
         "error"
       );
     } finally {
       setIsLoading(false);
     }
-  }, [token, categoryFilter, searchQuery, onShowToast]);
+  }, [token, categoryFilter, searchQuery]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadPublications();
   }, [loadPublications]);
 
@@ -316,7 +322,7 @@ export function PublicationsManager({ token, onShowToast }: PublicationsManagerP
         <button
           type="button"
           onClick={handleOpenCreate}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-sm rounded-xl shadow-xs transition-colors shrink-0"
+          className="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-5 py-2.5 bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-sm rounded-xl shadow-xs transition-colors shrink-0"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <line x1="12" y1="5" x2="12" y2="19" />

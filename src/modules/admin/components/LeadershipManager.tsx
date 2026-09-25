@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
   fetchAdminLeadershipMembers,
@@ -44,19 +44,25 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
   const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
   const [localPhotoPreview, setLocalPhotoPreview] = useState<string | null>(null);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   const loadMembers = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await fetchAdminLeadershipMembers(token);
       setMembers(data);
     } catch (err: unknown) {
-      onShowToast(err instanceof Error ? err.message : "Failed to load leadership members", "error");
+      onShowToastRef.current(err instanceof Error ? err.message : "Failed to load leadership members", "error");
     } finally {
       setIsLoading(false);
     }
-  }, [token, onShowToast]);
+  }, [token]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadMembers();
   }, [loadMembers]);
 

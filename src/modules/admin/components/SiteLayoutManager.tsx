@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   fetchAdminSections,
   upsertAdminSection,
@@ -130,41 +130,28 @@ export function SiteLayoutManager({ token, onShowToast }: SiteLayoutManagerProps
     }
   }, []);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   const loadData = useCallback(async () => {
+    setLoading(true);
     try {
       const sections: PageSectionData[] = await fetchAdminSections(token, "layout");
       applySectionsData(sections);
     } catch (err: unknown) {
       console.warn("Could not load backend layout data (will use defaults):", err);
-      onShowToast("Loaded default layout structure (Save to sync to database)", "info");
+      onShowToastRef.current("Loaded default layout structure (Save to sync to database)", "info");
     } finally {
       setLoading(false);
     }
-  }, [token, applySectionsData, onShowToast]);
+  }, [token, applySectionsData]);
 
   useEffect(() => {
-    let active = true;
-    fetchAdminSections(token, "layout")
-      .then((sections) => {
-        if (!active) return;
-        applySectionsData(sections);
-      })
-      .catch((err: unknown) => {
-        console.warn("Could not load backend layout data (will use defaults):", err);
-        if (active) {
-          onShowToast("Loaded default layout structure (Save to sync to database)", "info");
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [token, applySectionsData, onShowToast]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadData();
+  }, [loadData]);
 
   // Clean up object URLs on unmount
   useEffect(() => {
@@ -628,12 +615,12 @@ export function SiteLayoutManager({ token, onShowToast }: SiteLayoutManagerProps
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setIsResetModalOpen(true)}
             disabled={seeding || saving}
-            className="px-4 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+            className="flex-1 sm:flex-initial justify-center px-4 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer text-center"
             title="Restore default initial design and links"
           >
             {seeding ? "Resetting..." : "🔄 Reset to Defaults"}
@@ -643,7 +630,7 @@ export function SiteLayoutManager({ token, onShowToast }: SiteLayoutManagerProps
             type="button"
             onClick={handleSaveActiveTab}
             disabled={saving || seeding}
-            className="px-5 py-2.5 text-sm font-semibold text-white bg-[#00bfff] hover:bg-[#009ecc] rounded-xl shadow-xs transition-all flex items-center gap-2 disabled:opacity-50"
+            className="flex-1 sm:flex-initial justify-center px-5 py-2.5 text-sm font-semibold text-white bg-[#00bfff] hover:bg-[#009ecc] rounded-xl shadow-xs transition-all flex items-center gap-2 disabled:opacity-50 text-center"
           >
             {saving ? (
               <>
@@ -665,7 +652,7 @@ export function SiteLayoutManager({ token, onShowToast }: SiteLayoutManagerProps
       </div>
 
       {/* Sub-Tabs Navigation */}
-      <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-2">
+      <div className="flex items-center gap-2 border-b border-gray-200 pb-2 overflow-x-auto scrollbar-none">
         <button
           type="button"
           onClick={() => setActiveSubTab("branding")}

@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (storedToken && storedUser) {
       try {
         const parsedUser: User = JSON.parse(storedUser);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setToken(storedToken);
         setUser(parsedUser);
 
@@ -70,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .catch(() => {
             // keep existing stored profile on transient network error
           });
-      } catch (e) {
+      } catch {
         // Clear corrupt storage
         localStorage.removeItem("iilp_token");
         localStorage.removeItem("iilp_user");
@@ -79,29 +80,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, [apiUrl]);
 
-  const login = (newToken: string, newUser: User) => {
+  const login = useCallback((newToken: string, newUser: User) => {
     localStorage.setItem("iilp_token", newToken);
     localStorage.setItem("iilp_user", JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
-  };
+  }, []);
 
-  const updateUser = (updatedFields: Partial<User>) => {
+  const updateUser = useCallback((updatedFields: Partial<User>) => {
     setUser((prev) => {
       if (!prev) return null;
       const updated = { ...prev, ...updatedFields };
       localStorage.setItem("iilp_user", JSON.stringify(updated));
       return updated;
     });
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    const currentToken = localStorage.getItem("iilp_token");
+    if (currentToken) {
+      void fetch(`${apiUrl}/auth/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${currentToken}`,
+        },
+      }).catch(() => {
+        // Safe to ignore network errors during logout
+      });
+    }
     localStorage.removeItem("iilp_token");
     localStorage.removeItem("iilp_user");
     setToken(null);
     setUser(null);
     router.push("/login");
-  };
+  }, [router, apiUrl]);
 
   const hasPermission = useCallback(
     (permission: string): boolean => {

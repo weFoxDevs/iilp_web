@@ -318,7 +318,7 @@ export function FellowshipApplicationsManager({
       {/* Applications Table */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[780px]">
             <thead>
               <tr className="bg-[#f8fafc] border-b border-gray-200 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                 <th className="py-3 px-4">Applicant</th>
@@ -483,7 +483,7 @@ export function FellowshipApplicationsManager({
         </div>
 
         {/* Pagination Footer */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-[#f8fafc] text-xs text-gray-500">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-100 bg-[#f8fafc] text-xs text-gray-500">
           <span>
             Showing {applications.length} of {totalCount} applications
           </span>

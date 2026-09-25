@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -390,7 +390,7 @@ function PermissionMatrixSelector({
 
       {filteredCategories.length === 0 && (
         <div className="text-center py-10 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-xs text-[#6a7282]">
-          No permissions found matching "{search}".
+          No permissions found matching &quot;{search}&quot;.
         </div>
       )}
     </div>
@@ -429,7 +429,7 @@ function AdminRoleSubNav({
   canManageRoles?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-1.5 p-1.5 bg-white border border-[#b0ebff] rounded-2xl w-fit shadow-xs">
+    <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-white border border-[#b0ebff] rounded-2xl w-full sm:w-fit shadow-xs">
       {canManageAdmins && (
         <button
           onClick={() => onSelect("admin-manage")}
@@ -491,6 +491,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>(getInitialTab);
   const [adminMenuOpen, setAdminMenuOpen] = useState(true);
   const [cmsMenuOpen, setCmsMenuOpen] = useState(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Data states
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
@@ -600,6 +601,12 @@ export default function AdminDashboard() {
     }
   }, [token, apiUrl, logout]);
 
+  const hasFetchedDashboard = useRef<string | null>(null);
+
+  const handleShowToast = useCallback((message: string, type: ToastType) => {
+    setToast({ message, type });
+  }, []);
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await fetchDashboardData();
@@ -614,8 +621,8 @@ export default function AdminDashboard() {
   }, [isAuthenticated, isLoading, router]);
 
   useEffect(() => {
-    if (isAuthenticated && token) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (isAuthenticated && token && hasFetchedDashboard.current !== token) {
+      hasFetchedDashboard.current = token;
       void fetchDashboardData();
     }
   }, [isAuthenticated, token, fetchDashboardData]);
@@ -623,7 +630,8 @@ export default function AdminDashboard() {
   // Handle tab change with shallow URL update and localStorage persistence
   const handleTabChange = useCallback(
     (newTab: TabType) => {
-      setActiveTab(newTab);
+      setActiveTab((prev) => (prev === newTab ? prev : newTab));
+      setMobileSidebarOpen(false);
       try {
         localStorage.setItem("admin_active_tab", newTab);
       } catch {
@@ -645,7 +653,7 @@ export default function AdminDashboard() {
       }
 
       // Shallow route update to preserve tab across page reloads without re-triggering remount
-      if (router.isReady) {
+      if (router.isReady && router.query.tab !== newTab) {
         void router.replace(
           {
             pathname: router.pathname,
@@ -666,7 +674,7 @@ export default function AdminDashboard() {
         const urlObj = new URL(url, window.location.origin);
         const queryTab = urlObj.searchParams.get("tab");
         if (isTabType(queryTab)) {
-          setActiveTab(queryTab);
+          setActiveTab((prev) => (prev === queryTab ? prev : queryTab));
           localStorage.setItem("admin_active_tab", queryTab);
           if (queryTab === "admin-manage" || queryTab === "role-manage") {
             setAdminMenuOpen(true);
@@ -1067,34 +1075,67 @@ export default function AdminDashboard() {
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
-      <div className="h-screen w-screen overflow-hidden bg-[#f4faff] flex flex-col md:flex-row">
-      {/* Sidebar Navigation - Fixed Height on Screen */}
-      <aside className="w-full md:w-72 bg-white border-r border-[#e5e7eb] flex flex-col shrink-0 h-auto md:h-full z-20 select-none shadow-xs">
-        {/* Sidebar Header with Official Logo */}
-        <div className="h-18 flex items-center justify-between px-6 border-b border-[#e5e7eb] shrink-0 bg-white">
-          <Link href="/" className="flex items-center gap-3 group" aria-label="IILP Home">
-            <div className="relative w-11 h-11 shrink-0 drop-shadow-xs">
-              <Image
-                src="/assets/logo.png"
-                alt="Institute for International Law & Public Policy Logo"
-                fill
-                className="object-contain select-none transition-transform group-hover:scale-105"
-                priority
-              />
+      <div className="h-screen w-screen overflow-hidden bg-[#f4faff] flex flex-col md:flex-row relative">
+        {/* Mobile Backdrop Overlay */}
+        {mobileSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-xs transition-opacity duration-300"
+            onClick={() => setMobileSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* Sidebar Navigation - Responsive Drawer on Mobile, Fixed Height on Screen for Desktop */}
+        <aside
+          className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-[#e5e7eb] flex flex-col shrink-0 h-full select-none shadow-2xl md:shadow-xs transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:z-20 ${
+            mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          {/* Sidebar Header with Official Logo & Mobile Close Button */}
+          <div className="h-18 flex items-center justify-between px-6 border-b border-[#e5e7eb] shrink-0 bg-white">
+            <Link
+              href="/"
+              onClick={() => setMobileSidebarOpen(false)}
+              className="flex items-center gap-3 group"
+              aria-label="IILP Home"
+            >
+              <div className="relative w-11 h-11 shrink-0 drop-shadow-xs">
+                <Image
+                  src="/assets/logo.png"
+                  alt="Institute for International Law & Public Policy Logo"
+                  fill
+                  className="object-contain select-none transition-transform group-hover:scale-105"
+                  priority
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-playfair font-bold text-base text-[#0a0d12] leading-tight group-hover:text-[#000080] transition-colors">
+                  IILP Executive
+                </span>
+                <span className="text-[10px] text-[#00698c] font-semibold uppercase tracking-wider font-sans">
+                  CMS Console
+                </span>
+              </div>
+            </Link>
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5" title="System Online">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+              </div>
+
+              {/* Mobile Close Button */}
+              <button
+                type="button"
+                onClick={() => setMobileSidebarOpen(false)}
+                className="md:hidden p-1.5 rounded-lg text-[#6a7282] hover:text-[#0a0d12] hover:bg-gray-100 transition-colors cursor-pointer"
+                aria-label="Close Sidebar"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <div className="flex flex-col">
-              <span className="font-playfair font-bold text-base text-[#0a0d12] leading-tight group-hover:text-[#000080] transition-colors">
-                IILP Executive
-              </span>
-              <span className="text-[10px] text-[#00698c] font-semibold uppercase tracking-wider font-sans">
-                CMS Console
-              </span>
-            </div>
-          </Link>
-          <div className="flex items-center gap-1.5" title="System Online">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
           </div>
-        </div>
 
         {/* Sidebar Nav Items with Independent Scrolling */}
         <nav
@@ -1585,47 +1626,60 @@ export default function AdminDashboard() {
       {/* Main Content Area - Independently Scrollable */}
       <div className="flex-1 flex flex-col h-full min-h-0 min-w-0 overflow-hidden">
         {/* Top Header Bar */}
-        <header className="h-18 bg-white border-b border-[#e5e7eb] flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl font-playfair font-bold text-[#0a0d12] capitalize">
+        <header className="h-16 sm:h-18 bg-white border-b border-[#e5e7eb] flex items-center justify-between px-3 sm:px-6 shrink-0 gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            {/* Hamburger Button for Mobile */}
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(true)}
+              className="md:hidden p-2 -ml-1 rounded-xl text-[#000080] hover:bg-[#e6f9ff] transition-colors cursor-pointer shrink-0"
+              aria-label="Open navigation menu"
+              title="Open Navigation Menu"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            <h1 className="text-base sm:text-xl lg:text-2xl font-playfair font-bold text-[#0a0d12] capitalize truncate">
               {activeTab === "overview" && "Dashboard Overview"}
               {activeTab === "admin-manage" && "Administrator Management"}
               {activeTab === "role-manage" && "Role & RBAC Security"}
-              {activeTab === "events" && "Events & Conferences Management"}
-              {activeTab === "fellowship-applications" && "Fellowship Applications & Admissions"}
-              {activeTab === "contact-inquiries" && "Contact Form Inquiries & Submissions"}
-              {activeTab === "leadership" && "Leadership Directory Management"}
-              {activeTab === "site-layout" && "Global Layout, Navbar & Footer Branding"}
-              {activeTab === "page-content" && "Page Content (CMS) Engine"}
-              {activeTab === "news" && "News & Media Articles"}
-              {activeTab === "publications" && "Research Publications Repository"}
+              {activeTab === "events" && "Events & Conferences"}
+              {activeTab === "fellowship-applications" && "Fellowships"}
+              {activeTab === "contact-inquiries" && "Contact Inquiries"}
+              {activeTab === "leadership" && "Leadership Directory"}
+              {activeTab === "site-layout" && "Global Layout & Branding"}
+              {activeTab === "page-content" && "Page Content (CMS)"}
+              {activeTab === "news" && "News & Media"}
+              {activeTab === "publications" && "Research Publications"}
               {activeTab === "site-metrics" && "Site Impact Metrics"}
-              {activeTab === "testimonials" && "Student & Scholar Testimonials"}
-              {activeTab === "departments" && "Academic Departments & Disciplines"}
-              {activeTab === "profile" && "Account & Profile Settings"}
+              {activeTab === "testimonials" && "Student Testimonials"}
+              {activeTab === "departments" && "Academic Departments"}
+              {activeTab === "profile" && "Profile Settings"}
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 font-sans">
+          <div className="flex items-center gap-1.5 sm:gap-3 font-sans shrink-0">
             <button
               onClick={() => handleTabChange("profile")}
-              className={`px-3 py-1.5 rounded-full border text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-full border text-xs font-semibold flex items-center gap-1.5 sm:gap-2 cursor-pointer transition-all ${
                 activeTab === "profile"
                   ? "bg-[#000080] text-white border-[#000080] shadow-xs"
                   : "border-[#d5d5ed] hover:border-[#00bfff] text-[#4a5565] hover:text-[#000080] hover:bg-[#f4faff]"
               }`}
               title="View Profile Settings"
             >
-              <div className="w-5 h-5 rounded-full bg-[#00bfff] text-white flex items-center justify-center text-[10px] font-bold">
+              <div className="w-5 h-5 rounded-full bg-[#00bfff] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
                 {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
               </div>
-              <span className="hidden sm:inline">My Profile</span>
+              <span className="hidden md:inline">My Profile</span>
             </button>
 
             <button
               onClick={fetchDashboardData}
               disabled={isDataLoading}
-              className="px-3.5 py-2 rounded-full border border-[#d5d5ed] text-[#4a5565] hover:text-[#0a0d12] hover:bg-[#f9fafb] transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1.5"
+              className="p-2 sm:px-3.5 sm:py-2 rounded-full border border-[#d5d5ed] text-[#4a5565] hover:text-[#0a0d12] hover:bg-[#f9fafb] transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1.5"
               title="Refresh Data"
             >
               <svg
@@ -1636,15 +1690,16 @@ export default function AdminDashboard() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              <span>Refresh</span>
+              <span className="hidden sm:inline">Refresh</span>
             </button>
 
             <Link
               href="/"
               target="_blank"
-              className="px-4 py-2 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white transition-colors text-xs font-semibold flex items-center gap-1.5 shadow-[0px_2px_8px_rgba(0,191,255,0.35)]"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#00bfff] hover:bg-[#009ecc] text-white transition-colors text-xs font-semibold flex items-center gap-1.5 shadow-[0px_2px_8px_rgba(0,191,255,0.35)]"
+              title="View Public Portal"
             >
-              <span>View Portal</span>
+              <span className="hidden sm:inline">Portal</span>
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
@@ -1655,7 +1710,7 @@ export default function AdminDashboard() {
 
         {/* Error Notification */}
         {fetchError && (
-          <div className="m-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-center justify-between text-xs text-red-700 font-sans">
+          <div className="m-4 sm:m-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-center justify-between text-xs text-red-700 font-sans">
             <div className="flex items-center gap-2">
               <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1673,7 +1728,7 @@ export default function AdminDashboard() {
 
         {/* Scrollable Dashboard Body */}
         <main
-          className="flex-1 overflow-y-auto min-h-0 p-6 sm:p-8 space-y-8"
+          className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8"
           data-lenis-prevent="true"
         >
           {/* Access Guard for current activeTab */}
@@ -1754,6 +1809,11 @@ export default function AdminDashboard() {
                           <span className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/15 text-white/90 font-mono text-[11px] flex items-center gap-1.5">
                             <span>🌐</span> Env: {summary?.systemInfo?.nodeEnv || "production"}
                           </span>
+                          {typeof summary?.systemInfo?.uptimeSeconds === "number" && (
+                            <span className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/15 text-white/90 font-mono text-[11px] flex items-center gap-1.5">
+                              <span>⏱️</span> Uptime: {formatUptime(summary.systemInfo.uptimeSeconds)}
+                            </span>
+                          )}
                           <button
                             type="button"
                             onClick={handleRefresh}
@@ -1772,7 +1832,7 @@ export default function AdminDashboard() {
                       </div>
 
                       {/* Quick Action Navigation on Hero */}
-                      <div className="flex flex-row lg:flex-col gap-2.5 shrink-0 z-10">
+                      <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0 z-10 w-full sm:w-auto">
                         {canAccessTab("events") && (
                           <button
                             type="button"
@@ -2432,7 +2492,7 @@ export default function AdminDashboard() {
               {/* Administrators Table */}
               <div className="bg-white border border-[#b0ebff] rounded-2xl shadow-xs overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
+                  <table className="w-full text-left text-xs min-w-[680px]">
                     <thead className="bg-[#f9fafb] border-b border-[#e5e7eb] text-[#4a5565]">
                       <tr>
                         <th className="py-3.5 px-6 font-semibold uppercase tracking-wider text-[11px]">Administrator</th>
@@ -2657,7 +2717,7 @@ export default function AdminDashboard() {
           {activeTab === "events" && token && (
             <EventsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2665,7 +2725,7 @@ export default function AdminDashboard() {
           {activeTab === "site-layout" && token && (
             <SiteLayoutManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2673,7 +2733,7 @@ export default function AdminDashboard() {
           {activeTab === "fellowship-applications" && token && (
             <FellowshipApplicationsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2681,7 +2741,7 @@ export default function AdminDashboard() {
           {activeTab === "contact-inquiries" && token && (
             <ContactInquiriesManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2689,7 +2749,7 @@ export default function AdminDashboard() {
           {activeTab === "page-content" && token && (
             <PageContentManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2697,7 +2757,7 @@ export default function AdminDashboard() {
           {activeTab === "leadership" && token && (
             <LeadershipManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2705,7 +2765,7 @@ export default function AdminDashboard() {
           {activeTab === "news" && token && (
             <NewsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2713,7 +2773,7 @@ export default function AdminDashboard() {
           {activeTab === "publications" && token && (
             <PublicationsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2721,7 +2781,7 @@ export default function AdminDashboard() {
           {activeTab === "site-metrics" && token && (
             <SiteMetricsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2729,7 +2789,7 @@ export default function AdminDashboard() {
           {activeTab === "testimonials" && token && (
             <TestimonialsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2737,7 +2797,7 @@ export default function AdminDashboard() {
           {activeTab === "departments" && token && (
             <DepartmentsManager
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
 
@@ -2745,7 +2805,7 @@ export default function AdminDashboard() {
           {activeTab === "profile" && token && (
             <ProfileSettings
               token={token}
-              onShowToast={(msg, type) => setToast({ message: msg, type })}
+              onShowToast={handleShowToast}
             />
           )}
         </>

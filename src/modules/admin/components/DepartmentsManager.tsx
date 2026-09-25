@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
   DepartmentItem,
@@ -50,22 +50,28 @@ export function DepartmentsManager({ token, onShowToast }: DepartmentsManagerPro
   const [departmentToDelete, setDepartmentToDelete] = useState<DepartmentItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   const loadDepartments = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await fetchAdminDepartments(token);
       setDepartments(Array.isArray(data) ? data : []);
     } catch (err: unknown) {
-      onShowToast(
+      onShowToastRef.current(
         err instanceof Error ? err.message : "Failed to load academic departments",
         "error"
       );
     } finally {
       setIsLoading(false);
     }
-  }, [token, onShowToast]);
+  }, [token]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadDepartments();
   }, [loadDepartments]);
 
@@ -250,18 +256,18 @@ export function DepartmentsManager({ token, onShowToast }: DepartmentsManagerPro
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
           <input
             type="text"
             placeholder="Search departments..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff] w-48 sm:w-60"
+            className="bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff] w-full sm:w-60"
           />
 
           <button
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 bg-[#00bfff] hover:bg-[#00a6e0] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0"
+            className="inline-flex items-center justify-center gap-2 bg-[#00bfff] hover:bg-[#00a6e0] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

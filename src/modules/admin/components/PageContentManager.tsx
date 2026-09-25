@@ -2319,6 +2319,11 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
     }
   }, [token]);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   // Load sections for current page
   const loadSections = useCallback(async () => {
     setIsLoading(true);
@@ -2326,11 +2331,11 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
       const data = await fetchAdminSections(token, selectedPage);
       setSections(data as AdminSectionItem[]);
     } catch (err: unknown) {
-      onShowToast(err instanceof Error ? err.message : "Failed to load sections", "error");
+      onShowToastRef.current(err instanceof Error ? err.message : "Failed to load sections", "error");
     } finally {
       setIsLoading(false);
     }
-  }, [token, selectedPage, onShowToast]);
+  }, [token, selectedPage]);
 
   useEffect(() => {
     let active = true;
@@ -2346,24 +2351,9 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
   }, [token]);
 
   useEffect(() => {
-    let active = true;
-    fetchAdminSections(token, selectedPage)
-      .then((data) => {
-        if (active) setSections(data as AdminSectionItem[]);
-      })
-      .catch((err: unknown) => {
-        if (active) {
-          onShowToast(err instanceof Error ? err.message : "Failed to load sections", "error");
-        }
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [token, selectedPage, onShowToast]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadSections();
+  }, [loadSections]);
 
   const handleOpenEdit = (section: AdminSectionItem) => {
     if (localImagePreview) {
@@ -2536,12 +2526,12 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
         </div>
 
         {/* Page Selector */}
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           <select
             value={selectedPage}
             onChange={(e) => setSelectedPage(e.target.value)}
             aria-label="Select Page to Manage"
-            className="bg-[#f8fafc] border border-[#d0d5dd] text-[#101828] text-xs font-semibold rounded-xl px-3.5 py-2 focus:ring-2 focus:ring-[#00bfff] focus:border-transparent transition-all outline-hidden cursor-pointer"
+            className="w-full sm:w-auto bg-[#f8fafc] border border-[#d0d5dd] text-[#101828] text-xs font-semibold rounded-xl px-3.5 py-2 focus:ring-2 focus:ring-[#00bfff] focus:border-transparent transition-all outline-hidden cursor-pointer"
           >
             {COMMON_PAGES.map((p) => (
               <option key={p.slug} value={p.slug}>
@@ -2559,7 +2549,7 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
 
           <button
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 bg-[#00bfff] hover:bg-[#00a6e0] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 bg-[#00bfff] hover:bg-[#00a6e0] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer w-full sm:w-auto"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

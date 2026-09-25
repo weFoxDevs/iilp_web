@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   fetchAdminMetrics,
   createAdminMetric,
@@ -34,37 +34,27 @@ export function SiteMetricsManager({ token, onShowToast }: SiteMetricsManagerPro
   const [metricToDelete, setMetricToDelete] = useState<{ id: string; label: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const onShowToastRef = useRef(onShowToast);
+  useEffect(() => {
+    onShowToastRef.current = onShowToast;
+  }, [onShowToast]);
+
   const loadMetrics = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await fetchAdminMetrics(token);
       setMetrics(data);
     } catch (err: unknown) {
-      onShowToast(err instanceof Error ? err.message : "Failed to load metrics", "error");
+      onShowToastRef.current(err instanceof Error ? err.message : "Failed to load metrics", "error");
     } finally {
       setIsLoading(false);
     }
-  }, [token, onShowToast]);
+  }, [token]);
 
   useEffect(() => {
-    let active = true;
-    fetchAdminMetrics(token)
-      .then((data) => {
-        if (active) setMetrics(data);
-      })
-      .catch((err: unknown) => {
-        if (active) {
-          onShowToast(err instanceof Error ? err.message : "Failed to load metrics", "error");
-        }
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [token, onShowToast]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadMetrics();
+  }, [loadMetrics]);
 
   const handleOpenCreate = () => {
     setEditingId(null);
@@ -144,7 +134,7 @@ export function SiteMetricsManager({ token, onShowToast }: SiteMetricsManagerPro
 
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center gap-2 bg-[#00bfff] hover:bg-[#00a6e0] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+          className="w-full sm:w-auto justify-center inline-flex items-center gap-2 bg-[#00bfff] hover:bg-[#00a6e0] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -166,7 +156,7 @@ export function SiteMetricsManager({ token, onShowToast }: SiteMetricsManagerPro
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[620px]">
               <thead>
                 <tr className="border-b border-[#e5e7eb] bg-[#f9fafb] text-[11px] font-bold text-[#4a5565] uppercase tracking-wider">
                   <th className="px-6 py-3.5">Metric Label</th>
