@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import Image from "next/image";
+import { PageSectionData } from "@/common/services/cms.service";
+import { submitContactInquiry } from "@/common/services/contact.service";
 
-interface ValueCardItem {
-  nodeId: string;
+export interface ValueCardItem {
+  nodeId?: string;
   emoji: string;
   title: string;
   description: string;
 }
 
-const valueCards: ValueCardItem[] = [
+export const defaultDonateValueCards: ValueCardItem[] = [
   {
     nodeId: "155:76744",
     emoji: "🎓",
@@ -46,10 +48,6 @@ const valueCards: ValueCardItem[] = [
   },
 ];
 
-import { PageSectionData } from "@/common/services/cms.service";
-
-const presetAmounts = [25, 50, 100, 150];
-
 interface DonateMainSectionProps {
   data?: Partial<PageSectionData>;
 }
@@ -62,9 +60,46 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
     data?.bodyContent ||
     "Your donation directly supports IILP's mission of advancing knowledge, justice, and leadership for global change. Every contribution — large or small — makes a meaningful difference.";
 
+  const metadata = (data?.metadata || {}) as Record<string, unknown>;
+
+  // Dynamic ValueCards from CMS metadata
+  const cards: ValueCardItem[] =
+    Array.isArray(metadata.cards) && metadata.cards.length > 0
+      ? (metadata.cards as ValueCardItem[])
+      : defaultDonateValueCards;
+
+  // Dynamic Form Configurations from CMS metadata
+  const formBadge =
+    (metadata.formBadge as string) ||
+    (metadata.form_badge as string) ||
+    "Make a Gift";
+  const formTitle =
+    (metadata.formTitle as string) ||
+    (metadata.form_title as string) ||
+    "Donate to IILP";
+  const presetAmounts: number[] =
+    Array.isArray(metadata.presetAmounts) && metadata.presetAmounts.length > 0
+      ? (metadata.presetAmounts as number[])
+      : [25, 50, 100, 150];
+  const defaultAmountVal = String(
+    metadata.defaultAmount || metadata.default_amount || "30"
+  );
+  const securityNotice =
+    (metadata.securityNotice as string) ||
+    (metadata.security_notice as string) ||
+    "Secure donation. IILP is an independent non-profit institute.";
+  const thankYouHeading =
+    (metadata.thankYouHeading as string) ||
+    (metadata.thank_you_heading as string) ||
+    "Thank You for Your Support!";
+  const thankYouMessage =
+    (metadata.thankYouMessage as string) ||
+    (metadata.thank_you_message as string) ||
+    "Your generous gift empowers scholars and defenders of justice around the world.";
+
   const [frequency, setFrequency] = useState<"Monthly" | "One-Time">("Monthly");
   const [selectedPreset, setSelectedPreset] = useState<number | "custom">("custom");
-  const [customAmount, setCustomAmount] = useState("30");
+  const [customAmount, setCustomAmount] = useState(defaultAmountVal);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -96,7 +131,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
     if (errorMessage) setErrorMessage("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.fullName.trim() || !formData.email.trim()) {
       setErrorMessage("Please fill out all required fields marked with *");
@@ -108,15 +143,40 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrorMessage("");
+
+    try {
+      const parts = formData.fullName.trim().split(" ");
+      const firstName = parts[0] || "Supporter";
+      const lastName = parts.slice(1).join(" ") || "Donor";
+
+      await submitContactInquiry({
+        firstName,
+        lastName,
+        email: formData.email.trim(),
+        organization: "Individual Donor",
+        subject: `Donation Pledge: $${currentAmount} (${frequency})`,
+        message: `${
+          formData.message ? `${formData.message.trim()}\n\n` : ""
+        }Donation Details:\nFrequency: ${frequency}\nAmount: $${currentAmount}\nType: Online Donation Pledge`,
+      });
+
       setSubmitted(true);
-    }, 600);
+    } catch (err: unknown) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Failed to process donation pledge. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
     setFormData({ fullName: "", email: "", message: "" });
     setSubmitted(false);
+    setErrorMessage("");
   };
 
   return (
@@ -175,14 +235,14 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
             </p>
           </div>
 
-          {/* 5 ValueCards List (Figma node 155:76768) */}
+          {/* Dynamic ValueCards List (Figma node 155:76768) */}
           <div
             className="flex flex-col gap-[16px] items-start relative shrink-0 w-full"
             data-node-id="155:76768"
           >
-            {valueCards.map((card) => (
+            {cards.map((card, idx) => (
               <div
-                key={card.nodeId}
+                key={card.nodeId || `val-card-${idx}`}
                 className="bg-white border border-[#b0ebff] flex gap-[24px] items-start p-[24px] relative shrink-0 w-full rounded-xl sm:rounded-none shadow-xs hover:border-[#00698c] transition-colors"
                 data-node-id={card.nodeId}
                 data-name="ValueCard"
@@ -230,7 +290,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
                 className="font-sans font-semibold leading-[17.6px] text-[#0a0d12] text-[16px] uppercase whitespace-nowrap"
                 data-node-id="155:76795"
               >
-                Make a Gift
+                {formBadge}
               </span>
             </div>
 
@@ -239,7 +299,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
               className="font-serif font-medium leading-tight sm:leading-[44px] text-[#0a0d12] text-3xl sm:text-4xl lg:text-[36px] tracking-[-0.72px] w-full"
               data-node-id="155:76796"
             >
-              Donate to IILP
+              {formTitle}
             </h2>
           </div>
 
@@ -261,19 +321,19 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
                 </svg>
               </div>
               <h3 className="font-serif text-2xl font-bold text-[#0a0d12]">
-                Thank You for Your Support!
+                {thankYouHeading}
               </h3>
-              <p className="font-sans text-gray-600 max-w-[360px] leading-relaxed">
-                Your generous gift of{" "}
-                <span className="font-semibold text-[#000080]">
+              <p className="font-sans text-gray-600 max-w-[360px] leading-relaxed text-sm sm:text-base">
+                Your generous pledge of{" "}
+                <span className="font-bold text-[#000080]">
                   ${currentAmount} {frequency === "Monthly" ? "/ month" : ""}
                 </span>{" "}
-                empowers scholars and defenders of justice around the world.
+                has been received. {thankYouMessage}
               </p>
               <button
                 type="button"
                 onClick={handleReset}
-                className="mt-4 inline-flex items-center justify-center px-8 py-3 rounded-full bg-[#00bfff] text-white font-semibold hover:bg-[#009cd9] transition-colors shadow-xs"
+                className="mt-4 inline-flex items-center justify-center px-8 py-3 rounded-full bg-[#00bfff] text-white font-semibold hover:bg-[#009cd9] transition-colors shadow-xs cursor-pointer"
               >
                 Make Another Gift
               </button>
@@ -281,7 +341,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-full">
               {errorMessage && (
-                <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-sm rounded-md">
+                <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">
                   {errorMessage}
                 </div>
               )}
@@ -418,7 +478,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
                         name="fullName"
                         value={formData.fullName}
                         onChange={handleInputChange}
-                        placeholder="Placeholder text"
+                        placeholder="e.g. John Doe"
                         required
                         className="w-full bg-transparent font-sans text-base text-[#101828] placeholder-[#6a7282] outline-hidden leading-[24px]"
                       />
@@ -440,7 +500,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        placeholder="name@company.com"
+                        placeholder="name@example.org"
                         required
                         className="w-full bg-transparent font-sans text-base text-[#101828] placeholder-[#6a7282] outline-hidden leading-[24px]"
                       />
@@ -454,14 +514,14 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
                   data-node-id="155:76814"
                 >
                   <label className="font-sans font-medium text-sm leading-[20px] text-[#101828]">
-                    Message
+                    Dedication or Note (Optional)
                   </label>
                   <div className="bg-[#f9fafb] border border-[#e5e7eb] focus-within:border-[#000080] flex flex-1 items-start px-[16px] py-[14px] relative w-full transition-colors">
                     <textarea
                       name="message"
                       value={formData.message}
                       onChange={handleInputChange}
-                      placeholder="Write your message here..."
+                      placeholder="Share a message, program preference, or dedication note..."
                       className="w-full h-full bg-transparent font-sans text-base text-[#101828] placeholder-[#6a7282] outline-hidden resize-none leading-[24px]"
                     />
                   </div>
@@ -475,10 +535,17 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
                 className="bg-[#00bfff] hover:bg-[#009cd9] active:bg-[#0086bc] drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] flex gap-[6px] items-center justify-center px-[24px] py-[14px] relative rounded-full shrink-0 w-full cursor-pointer transition-colors disabled:opacity-70 mt-1"
                 data-node-id="155:76815"
               >
-                <span className="font-sans font-semibold text-white text-[16px] leading-[24px] whitespace-nowrap">
-                  {isSubmitting
-                    ? "Processing..."
-                    : `Donate $${currentAmount || 0}`}
+                <span className="font-sans font-semibold text-white text-[16px] leading-[24px] whitespace-nowrap flex items-center gap-2">
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Processing Pledge...</span>
+                    </>
+                  ) : (
+                    `Donate $${currentAmount || 0} ${
+                      frequency === "Monthly" ? "/ Month" : ""
+                    }`
+                  )}
                 </span>
               </button>
 
@@ -497,7 +564,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
                   />
                 </div>
                 <p className="font-sans font-semibold text-[12px] leading-[20px] text-[#717680] text-center">
-                  Secure donation. IILP is an independent non-profit institute.
+                  {securityNotice}
                 </p>
               </div>
             </form>

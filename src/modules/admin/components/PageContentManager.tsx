@@ -493,6 +493,108 @@ export const defaultPolicySectionsMetadata: PolicySectionsMetadata = {
   sections: defaultPolicySectionsList,
 };
 
+export interface DonateValueCard {
+  emoji: string;
+  title: string;
+  description: string;
+}
+
+export interface DonateImpactMetadata {
+  cards: DonateValueCard[];
+  formBadge: string;
+  formTitle: string;
+  presetAmounts: number[];
+  defaultAmount: number;
+  securityNotice: string;
+  thankYouHeading: string;
+  thankYouMessage: string;
+}
+
+export const defaultDonateImpactMetadata: DonateImpactMetadata = {
+  cards: [
+    {
+      emoji: "🎓",
+      title: "Fund Research & Scholarships",
+      description:
+        "Support emerging scholars and researchers advancing human rights, governance, and development.",
+    },
+    {
+      emoji: "📚",
+      title: "Publications & Policy Briefs",
+      description:
+        "Enable the production of open-access research, policy briefs, and scholarly publications.",
+    },
+    {
+      emoji: "🌐",
+      title: "Global Fellowship Network",
+      description:
+        "Support the Global Fellowship Network connecting researchers and emerging leaders worldwide.",
+    },
+    {
+      emoji: "🎤",
+      title: "Conferences & Events",
+      description:
+        "Fund conferences, seminars, and workshops that advance policy dialogue and knowledge exchange.",
+    },
+    {
+      emoji: "🏛️",
+      title: "Institutional Development",
+      description:
+        "Contribute to IILP's long-term institutional capacity building and growth.",
+    },
+  ],
+  formBadge: "Make a Gift",
+  formTitle: "Donate to IILP",
+  presetAmounts: [25, 50, 100, 150],
+  defaultAmount: 30,
+  securityNotice:
+    "Secure donation. IILP is an independent non-profit institute.",
+  thankYouHeading: "Thank You for Your Support!",
+  thankYouMessage:
+    "Your generous gift empowers scholars and defenders of justice around the world.",
+};
+
+export interface GivingChannel {
+  title: string;
+  description: string;
+  actionText: string;
+  actionUrl: string;
+  badge?: string;
+}
+
+export interface WaysToGiveMetadata {
+  channels: GivingChannel[];
+}
+
+export const defaultWaysToGiveMetadata: WaysToGiveMetadata = {
+  channels: [
+    {
+      title: "Online Card & Wire Transfer",
+      description:
+        "Support directly through recurring monthly or one-off international bank wire transfers.",
+      actionText: "View Bank Details",
+      actionUrl: "mailto:donate@iilp.org?subject=Wire%20Transfer%20Details",
+      badge: "Fast & Direct",
+    },
+    {
+      title: "Endowments & Fellowships",
+      description:
+        "Establish a named research chair, academic scholarship fund, or junior fellowship program.",
+      actionText: "Partner with Us",
+      actionUrl: "/contact",
+      badge: "Institutional",
+    },
+    {
+      title: "Institutional & DAF Giving",
+      description:
+        "Direct philanthropic contributions via Donor-Advised Funds, foundation grants, or institutional partnerships.",
+      actionText: "Contact Advancement",
+      actionUrl: "mailto:giving@iilp.org",
+      badge: "Tax-Exempt",
+    },
+  ],
+};
+
 export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
   home: [
     { key: "hero", label: "Hero Banner", defaultTitle: "International Institute for Law and Politics (IILP)", defaultBadge: "Global Academic Network", defaultBgImage: "/assets/home-hero-v2.png" },
@@ -1052,9 +1154,33 @@ export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
     { key: "form", label: "Inquiry Form", defaultTitle: "Send an Inquiry" },
   ],
   donate: [
-    { key: "hero", label: "Donation Hero", defaultTitle: "Support IILP" },
-    { key: "impact_funds", label: "Impact Funds", defaultTitle: "Endowment & Scholarship Funds" },
-    { key: "ways_to_give", label: "Ways to Give", defaultTitle: "Donation Channels" },
+    {
+      key: "hero",
+      label: "Donation Hero Banner",
+      defaultTitle: "Support Our Mission",
+      defaultBadge: "Invest in Global Change",
+      defaultSubtitle:
+        "Your contribution powers world-class legal research, student fellowships, and policy dialogues that strengthen democracy worldwide.",
+      defaultBgImage: "/images/contact-hero-bg.png",
+    },
+    {
+      key: "impact_intro",
+      label: "Why Give & Make a Gift Form",
+      defaultBadge: "Why Give",
+      defaultTitle: "Invest in Education and Advocacy for a Brighter Future",
+      defaultSubtitle:
+        "Every contribution fuels our mission to advance human rights, good governance, and rule of law across the globe.",
+      defaultMetadata: defaultDonateImpactMetadata,
+    },
+    {
+      key: "ways_to_give",
+      label: "Ways to Give / Donation Channels",
+      defaultBadge: "Giving Channels",
+      defaultTitle: "Other Ways to Give",
+      defaultSubtitle:
+        "Explore additional opportunities to partner with IILP through wire transfers, endowments, and institutional philanthropy.",
+      defaultMetadata: defaultWaysToGiveMetadata,
+    },
   ],
   "privacy-policy": [
     {
@@ -1983,6 +2109,116 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
       }));
     } catch {
       const base = getPolicySectionsMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    }
+  };
+
+  const getDonateImpactMetadata = (): DonateImpactMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      const formBadge = String(parsed?.formBadge || defaultDonateImpactMetadata.formBadge);
+      const formTitle = String(parsed?.formTitle || defaultDonateImpactMetadata.formTitle);
+      const presetAmounts = Array.isArray(parsed?.presetAmounts)
+        ? parsed.presetAmounts.map((n: any) => Number(n) || 0).filter((n: number) => n > 0)
+        : defaultDonateImpactMetadata.presetAmounts;
+      const defaultAmount = Number(parsed?.defaultAmount) || defaultDonateImpactMetadata.defaultAmount;
+      const securityNotice = String(parsed?.securityNotice || defaultDonateImpactMetadata.securityNotice);
+      const thankYouHeading = String(parsed?.thankYouHeading || defaultDonateImpactMetadata.thankYouHeading);
+      const thankYouMessage = String(parsed?.thankYouMessage || defaultDonateImpactMetadata.thankYouMessage);
+
+      if (Array.isArray(parsed?.cards) && parsed.cards.length > 0) {
+        return {
+          cards: parsed.cards.map((c: any, idx: number) => ({
+            emoji: String(c?.emoji || "✨"),
+            title: String(c?.title || `Impact Goal ${idx + 1}`),
+            description: String(c?.description || ""),
+          })),
+          formBadge,
+          formTitle,
+          presetAmounts,
+          defaultAmount,
+          securityNotice,
+          thankYouHeading,
+          thankYouMessage,
+        };
+      }
+      return {
+        ...defaultDonateImpactMetadata,
+        formBadge,
+        formTitle,
+        presetAmounts,
+        defaultAmount,
+        securityNotice,
+        thankYouHeading,
+        thankYouMessage,
+      };
+    } catch {
+      return defaultDonateImpactMetadata;
+    }
+  };
+
+  const updateDonateImpactMetadata = (
+    updater: (prev: DonateImpactMetadata) => DonateImpactMetadata
+  ) => {
+    try {
+      const base = getDonateImpactMetadata();
+      const cur = JSON.parse(metadataJson || "{}");
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    } catch {
+      const base = getDonateImpactMetadata();
+      const updated = updater(base);
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    }
+  };
+
+  const getWaysToGiveMetadata = (): WaysToGiveMetadata => {
+    try {
+      const parsed = JSON.parse(metadataJson || "{}");
+      if (Array.isArray(parsed?.channels) && parsed.channels.length > 0) {
+        return {
+          channels: parsed.channels.map((ch: any, idx: number) => ({
+            title: String(ch?.title || `Giving Channel ${idx + 1}`),
+            description: String(ch?.description || ""),
+            actionText: String(ch?.actionText || "Learn More"),
+            actionUrl: String(ch?.actionUrl || "#"),
+            badge: ch?.badge ? String(ch.badge) : undefined,
+          })),
+        };
+      }
+      return defaultWaysToGiveMetadata;
+    } catch {
+      return defaultWaysToGiveMetadata;
+    }
+  };
+
+  const updateWaysToGiveMetadata = (
+    updater: (prev: WaysToGiveMetadata) => WaysToGiveMetadata
+  ) => {
+    try {
+      const base = getWaysToGiveMetadata();
+      const cur = JSON.parse(metadataJson || "{}");
+      const updated = updater({ ...base, ...cur });
+      setMetadataJson(JSON.stringify(updated, null, 2));
+      setFormData((prev) => ({
+        ...prev,
+        metadata: updated as unknown as Record<string, unknown>,
+      }));
+    } catch {
+      const base = getWaysToGiveMetadata();
       const updated = updater(base);
       setMetadataJson(JSON.stringify(updated, null, 2));
       setFormData((prev) => ({
@@ -6942,6 +7178,536 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                       className="text-xs text-gray-500 hover:text-gray-800 font-semibold cursor-pointer"
                     >
                       Reset to Default 8 Articles
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Donate Impact Intro & Form Visual Manager */}
+              {(editingKey === "impact_intro" ||
+                formData.sectionKey === "impact_intro" ||
+                (selectedPage === "donate" &&
+                  (editingKey === "impact_intro" ||
+                    formData.sectionKey === "impact_intro"))) && (
+                <div className="bg-[#f8f9fc] border border-[#d8dce8] rounded-2xl p-4 space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#e2e6f0] pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#000080]"></span>
+                      <h4 className="text-xs font-bold text-[#000080] uppercase tracking-wider">
+                        Donate Impact Goals &amp; Gift Form Settings
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-semibold text-gray-500">
+                      {getDonateImpactMetadata().cards.length} Impact Cards Configured
+                    </span>
+                  </div>
+
+                  {/* Form Configuration Box */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-3">
+                    <h5 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>🎁</span> Make a Gift Form Configuration
+                    </h5>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Form Badge
+                        </label>
+                        <input
+                          type="text"
+                          value={getDonateImpactMetadata().formBadge}
+                          onChange={(e) =>
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              formBadge: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Make a Gift"
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Form Title
+                        </label>
+                        <input
+                          type="text"
+                          value={getDonateImpactMetadata().formTitle}
+                          onChange={(e) =>
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              formTitle: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Donate to IILP"
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Preset Amounts ($ USD, comma-separated)
+                        </label>
+                        <input
+                          type="text"
+                          value={getDonateImpactMetadata().presetAmounts.join(", ")}
+                          onChange={(e) => {
+                            const nums = e.target.value
+                              .split(",")
+                              .map((s) => Number(s.trim()))
+                              .filter((n) => !isNaN(n) && n > 0);
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              presetAmounts: nums.length > 0 ? nums : [25, 50, 100, 150],
+                            }));
+                          }}
+                          placeholder="25, 50, 100, 150"
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Default Amount ($ USD)
+                        </label>
+                        <input
+                          type="number"
+                          value={getDonateImpactMetadata().defaultAmount}
+                          onChange={(e) =>
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              defaultAmount: Number(e.target.value) || 30,
+                            }))
+                          }
+                          placeholder="30"
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Security Notice / Subtext
+                        </label>
+                        <input
+                          type="text"
+                          value={getDonateImpactMetadata().securityNotice}
+                          onChange={(e) =>
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              securityNotice: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Secure donation. IILP is an independent non-profit institute."
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Thank You Heading
+                        </label>
+                        <input
+                          type="text"
+                          value={getDonateImpactMetadata().thankYouHeading}
+                          onChange={(e) =>
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              thankYouHeading: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Thank You for Your Support!"
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Thank You Message
+                        </label>
+                        <input
+                          type="text"
+                          value={getDonateImpactMetadata().thankYouMessage}
+                          onChange={(e) =>
+                            updateDonateImpactMetadata((prev) => ({
+                              ...prev,
+                              thankYouMessage: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Your generous gift empowers scholars..."
+                          className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Impact Cards List */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-gray-700 block">
+                      Why Give: Impact Value Cards
+                    </label>
+                    <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                      {getDonateImpactMetadata().cards.map((card, idx) => (
+                        <div
+                          key={`donate-card-${idx}`}
+                          className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-2.5 shadow-2xs hover:border-[#000080]/30 transition-colors"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-1">
+                              <input
+                                type="text"
+                                value={card.emoji}
+                                onChange={(e) =>
+                                  updateDonateImpactMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    list[idx] = { ...list[idx], emoji: e.target.value };
+                                    return { ...prev, cards: list };
+                                  })
+                                }
+                                placeholder="🎓"
+                                className="w-10 text-center text-base border border-gray-200 rounded-lg py-1 focus:outline-hidden focus:border-[#000080] bg-gray-50/50"
+                              />
+                              <input
+                                type="text"
+                                value={card.title}
+                                onChange={(e) =>
+                                  updateDonateImpactMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    list[idx] = { ...list[idx], title: e.target.value };
+                                    return { ...prev, cards: list };
+                                  })
+                                }
+                                placeholder="e.g. Fund Research & Scholarships"
+                                className="w-full text-xs sm:text-sm font-bold text-gray-900 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#000080] bg-gray-50/40"
+                              />
+                            </div>
+
+                            {/* Reorder and Delete Controls */}
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => {
+                                  if (idx <= 0) return;
+                                  updateDonateImpactMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    const temp = list[idx - 1];
+                                    list[idx - 1] = list[idx];
+                                    list[idx] = temp;
+                                    return { ...prev, cards: list };
+                                  });
+                                }}
+                                className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                title="Move Up"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                </svg>
+                              </button>
+
+                              <button
+                                type="button"
+                                disabled={idx === getDonateImpactMetadata().cards.length - 1}
+                                onClick={() => {
+                                  if (idx >= getDonateImpactMetadata().cards.length - 1) return;
+                                  updateDonateImpactMetadata((prev) => {
+                                    const list = [...prev.cards];
+                                    const temp = list[idx + 1];
+                                    list[idx + 1] = list[idx];
+                                    list[idx] = temp;
+                                    return { ...prev, cards: list };
+                                  });
+                                }}
+                                className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                title="Move Down"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm(`Delete card "${card.title || `Card ${idx + 1}`}"?`)) {
+                                    updateDonateImpactMetadata((prev) => ({
+                                      ...prev,
+                                      cards: prev.cards.filter((_, i) => i !== idx),
+                                    }));
+                                  }
+                                }}
+                                className="p-1 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                                title="Delete Card"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+
+                          <textarea
+                            rows={2}
+                            value={card.description}
+                            onChange={(e) =>
+                              updateDonateImpactMetadata((prev) => {
+                                const list = [...prev.cards];
+                                list[idx] = { ...list[idx], description: e.target.value };
+                                return { ...prev, cards: list };
+                              })
+                            }
+                            placeholder="Description of how this donation impact is delivered..."
+                            className="w-full text-xs text-gray-700 leading-relaxed border border-gray-200 rounded-lg p-2.5 focus:outline-hidden focus:border-[#000080] resize-y"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Impact Cards Footer */}
+                  <div className="pt-2 flex items-center justify-between border-t border-[#d8dce8]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateDonateImpactMetadata((prev) => ({
+                          ...prev,
+                          cards: [
+                            ...prev.cards,
+                            {
+                              emoji: "✨",
+                              title: `New Impact Goal`,
+                              description: "Describe the positive impact this contribution achieves.",
+                            },
+                          ],
+                        }));
+                      }}
+                      className="text-xs text-[#000080] font-bold hover:underline cursor-pointer"
+                    >
+                      + Add New Impact Card
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset to default 5 impact value cards?")) {
+                          updateDonateImpactMetadata((prev) => ({
+                            ...prev,
+                            cards: defaultDonateImpactMetadata.cards,
+                          }));
+                        }
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-800 font-semibold cursor-pointer"
+                    >
+                      Reset Cards to Defaults
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Donate Ways to Give Visual Manager */}
+              {(editingKey === "ways_to_give" ||
+                formData.sectionKey === "ways_to_give" ||
+                (selectedPage === "donate" &&
+                  (editingKey === "ways_to_give" ||
+                    formData.sectionKey === "ways_to_give"))) && (
+                <div className="bg-[#f8f9fc] border border-[#d8dce8] rounded-2xl p-4 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#e2e6f0] pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00698c]"></span>
+                      <h4 className="text-xs font-bold text-[#00698c] uppercase tracking-wider">
+                        Ways to Give Channels ({getWaysToGiveMetadata().channels.length} Channels)
+                      </h4>
+                    </div>
+                  </div>
+
+                  {/* Channels List */}
+                  <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                    {getWaysToGiveMetadata().channels.map((ch, idx) => (
+                      <div
+                        key={`channel-${idx}`}
+                        className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-2.5 shadow-2xs hover:border-[#00698c]/30 transition-colors"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="w-6 h-6 rounded-md bg-[#00698c]/10 text-[#00698c] text-xs font-bold flex items-center justify-center shrink-0">
+                              {idx + 1}
+                            </span>
+                            <input
+                              type="text"
+                              value={ch.title}
+                              onChange={(e) =>
+                                updateWaysToGiveMetadata((prev) => {
+                                  const list = [...prev.channels];
+                                  list[idx] = { ...list[idx], title: e.target.value };
+                                  return { ...prev, channels: list };
+                                })
+                              }
+                              placeholder="e.g. Online Card & Wire Transfer"
+                              className="w-full text-xs sm:text-sm font-bold text-gray-900 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#00698c] bg-gray-50/40"
+                            />
+                            <input
+                              type="text"
+                              value={ch.badge || ""}
+                              onChange={(e) =>
+                                updateWaysToGiveMetadata((prev) => {
+                                  const list = [...prev.channels];
+                                  list[idx] = { ...list[idx], badge: e.target.value };
+                                  return { ...prev, channels: list };
+                                })
+                              }
+                              placeholder="Badge (e.g. Fast & Direct)"
+                              className="w-32 text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-hidden focus:border-[#00698c] bg-gray-50/40"
+                            />
+                          </div>
+
+                          {/* Reorder and Delete Controls */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                if (idx <= 0) return;
+                                updateWaysToGiveMetadata((prev) => {
+                                  const list = [...prev.channels];
+                                  const temp = list[idx - 1];
+                                  list[idx - 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, channels: list };
+                                });
+                              }}
+                              className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                              title="Move Up"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                              </svg>
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={idx === getWaysToGiveMetadata().channels.length - 1}
+                              onClick={() => {
+                                if (idx >= getWaysToGiveMetadata().channels.length - 1) return;
+                                updateWaysToGiveMetadata((prev) => {
+                                  const list = [...prev.channels];
+                                  const temp = list[idx + 1];
+                                  list[idx + 1] = list[idx];
+                                  list[idx] = temp;
+                                  return { ...prev, channels: list };
+                                });
+                              }}
+                              className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                              title="Move Down"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm(`Delete channel "${ch.title || `Channel ${idx + 1}`}"?`)) {
+                                  updateWaysToGiveMetadata((prev) => ({
+                                    ...prev,
+                                    channels: prev.channels.filter((_, i) => i !== idx),
+                                  }));
+                                }
+                              }}
+                              className="p-1 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                              title="Delete Channel"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        <textarea
+                          rows={2}
+                          value={ch.description}
+                          onChange={(e) =>
+                            updateWaysToGiveMetadata((prev) => {
+                              const list = [...prev.channels];
+                              list[idx] = { ...list[idx], description: e.target.value };
+                              return { ...prev, channels: list };
+                            })
+                          }
+                          placeholder="Channel description..."
+                          className="w-full text-xs text-gray-700 leading-relaxed border border-gray-200 rounded-lg p-2.5 focus:outline-hidden focus:border-[#00698c] resize-y"
+                        />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div className="flex items-center gap-2">
+                            <label className="text-[11px] font-bold text-gray-500 whitespace-nowrap">
+                              Button Text:
+                            </label>
+                            <input
+                              type="text"
+                              value={ch.actionText}
+                              onChange={(e) =>
+                                updateWaysToGiveMetadata((prev) => {
+                                  const list = [...prev.channels];
+                                  list[idx] = { ...list[idx], actionText: e.target.value };
+                                  return { ...prev, channels: list };
+                                })
+                              }
+                              placeholder="e.g. View Bank Details"
+                              className="flex-1 text-xs font-semibold text-gray-700 border border-gray-200 rounded-md px-2 py-1 focus:outline-hidden focus:border-[#00698c]"
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <label className="text-[11px] font-bold text-gray-500 whitespace-nowrap">
+                              Button URL:
+                            </label>
+                            <input
+                              type="text"
+                              value={ch.actionUrl}
+                              onChange={(e) =>
+                                updateWaysToGiveMetadata((prev) => {
+                                  const list = [...prev.channels];
+                                  list[idx] = { ...list[idx], actionUrl: e.target.value };
+                                  return { ...prev, channels: list };
+                                })
+                              }
+                              placeholder="e.g. mailto:donate@iilp.org or /contact"
+                              className="flex-1 text-xs font-mono text-gray-700 border border-gray-200 rounded-md px-2 py-1 focus:outline-hidden focus:border-[#00698c]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Visual Manager Footer */}
+                  <div className="pt-2 flex items-center justify-between border-t border-[#d8dce8]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateWaysToGiveMetadata((prev) => ({
+                          ...prev,
+                          channels: [
+                            ...prev.channels,
+                            {
+                              title: `New Giving Option`,
+                              description: "Details on how donors can contribute through this channel.",
+                              actionText: "Get in Touch",
+                              actionUrl: "/contact",
+                              badge: "Support",
+                            },
+                          ],
+                        }));
+                      }}
+                      className="text-xs text-[#00698c] font-bold hover:underline cursor-pointer"
+                    >
+                      + Add New Giving Channel
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Reset to default 3 giving channels?")) {
+                          updateWaysToGiveMetadata(() => defaultWaysToGiveMetadata);
+                        }
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-800 font-semibold cursor-pointer"
+                    >
+                      Reset to Default 3 Channels
                     </button>
                   </div>
                 </div>

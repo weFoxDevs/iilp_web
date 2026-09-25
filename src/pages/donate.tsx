@@ -2,7 +2,11 @@ import Head from "next/head";
 import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
 import { usePageContent } from "@/common/hooks/usePageContent";
-import { DonateHero, DonateMainSection } from "@/modules/donate";
+import {
+  DonateHero,
+  DonateMainSection,
+  WaysToGiveSection,
+} from "@/modules/donate";
 
 export default function DonatePage() {
   const { getSection } = usePageContent("donate");
@@ -27,7 +31,14 @@ export default function DonatePage() {
           <DonateHero data={getSection("hero")} />
 
           {/* Section 2: Why Give & Make a Gift Form (Figma node 155:76605) */}
-          <DonateMainSection data={getSection("impact_intro")} />
+          <DonateMainSection
+            data={getSection("impact_intro") || getSection("why_give")}
+          />
+
+          {/* Section 3: Ways to Give Channels (Configurable via CMS) */}
+          <WaysToGiveSection
+            data={getSection("ways_to_give") || getSection("impact_funds")}
+          />
         </main>
 
         {/* Institutional Footer (Figma Frame 155:76235 renders Footer without CTA) */}
