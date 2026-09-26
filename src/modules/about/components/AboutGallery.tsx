@@ -28,7 +28,7 @@ export default function AboutGallery({ data }: AboutGalleryProps) {
   const marqueeImages = [...images, ...images, ...images];
 
   return (
-    <section className="w-full bg-white pb-16 lg:pb-[140px] pt-4 lg:pt-8 relative overflow-hidden">
+    <section className="w-full bg-white pb-12 sm:pb-16 lg:pb-[140px] pt-4 lg:pt-8 relative overflow-hidden">
       <div className="relative w-full h-[280px] sm:h-[380px] lg:h-[650px] flex items-center">
         
         {/* Infinite Marquee Track */}

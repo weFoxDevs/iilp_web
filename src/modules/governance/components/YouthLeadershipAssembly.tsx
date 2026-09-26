@@ -32,11 +32,11 @@ export default function YouthLeadershipAssembly({ data }: YouthLeadershipAssembl
   const ratingLabel = (data?.metadata?.ratingLabel as string) || 'Student ratings';
 
   return (
-    <section className="w-full bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-[80px]">
+    <section className="w-full bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start justify-between gap-10 sm:gap-12 lg:gap-[80px]">
         
         {/* Left Column: Image with Floating Student Rating Badge */}
-        <div className="w-full lg:flex-1 h-[520px] sm:h-[620px] lg:h-[700px] relative overflow-hidden self-stretch">
+        <div className="w-full lg:flex-1 h-[340px] sm:h-[480px] lg:h-[700px] relative overflow-hidden self-stretch rounded-lg sm:rounded-none">
           <Image
             src={bgImage}
             alt={title}
@@ -46,7 +46,7 @@ export default function YouthLeadershipAssembly({ data }: YouthLeadershipAssembl
           />
 
           {/* Floating Rating Badge */}
-          <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 bg-black/40 backdrop-blur-md border border-white/20 rounded-xl p-3 sm:p-4 flex items-center gap-3.5 shadow-lg">
+          <div className="absolute bottom-4 left-4 sm:bottom-8 sm:left-8 max-w-[calc(100%-2rem)] bg-black/40 backdrop-blur-md border border-white/20 rounded-xl p-3 sm:p-4 flex items-center gap-3.5 shadow-lg">
             {/* Overlapping Avatars */}
             <div className="flex items-center -space-x-2.5">
               <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-white">
@@ -99,7 +99,7 @@ export default function YouthLeadershipAssembly({ data }: YouthLeadershipAssembl
                 </div>
               )}
 
-              <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-[-0.72px] font-serif leading-[44px] max-w-[580px]">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-tight font-serif leading-tight sm:leading-[44px] max-w-[580px]">
                 {title}
               </h2>
             </div>

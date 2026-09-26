@@ -68,7 +68,7 @@ export default function StrategicObjectives({ data }: StrategicObjectivesProps) 
   const objectives = meta.objectives || defaultObjectives;
 
   return (
-    <section className="w-full bg-[#00506b] py-16 lg:py-[140px] px-4 md:px-8 lg:px-16 xl:px-[240px] text-white">
+    <section className="w-full bg-[#00506b] py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] text-white">
       <div className="max-w-[1440px] mx-auto flex flex-col gap-16 lg:gap-[80px]">
         
         {/* Top Feature: Vision Text + Graduation Image */}
@@ -84,7 +84,7 @@ export default function StrategicObjectives({ data }: StrategicObjectivesProps) 
               </div>
             )}
 
-            <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-white tracking-[-0.72px] font-serif leading-[1.25]">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[36px] font-medium text-white tracking-tight font-serif leading-[1.25]">
               {title}
             </h2>
 
@@ -96,7 +96,7 @@ export default function StrategicObjectives({ data }: StrategicObjectivesProps) 
           </div>
 
           {/* Right Image */}
-          <div className="w-full lg:w-[500px] h-[360px] sm:h-[450px] lg:h-[520px] relative shrink-0 overflow-hidden shadow-2xl">
+          <div className="w-full lg:w-[500px] h-[250px] sm:h-[400px] lg:h-[520px] relative shrink-0 overflow-hidden shadow-2xl rounded-lg sm:rounded-none">
             <Image
               src={bgImage}
               alt="Graduating student embracing loved one"
@@ -115,12 +115,12 @@ export default function StrategicObjectives({ data }: StrategicObjectivesProps) 
               className="bg-white/10 border border-[#00698c] p-6 sm:p-7 lg:p-[30px] flex items-center gap-5 sm:gap-6 hover:bg-white/15 transition-all"
             >
               {/* Cyan Number */}
-              <span className="text-[#00bfff] text-5xl sm:text-6xl lg:text-[72px] font-bold tracking-tight font-inter leading-none shrink-0 w-[70px] sm:w-[85px] lg:w-[100px] text-right">
+              <span className="text-[#00bfff] text-3xl sm:text-5xl lg:text-[72px] font-bold tracking-tight font-inter leading-none shrink-0 w-[45px] sm:w-[85px] lg:w-[100px] text-right">
                 {item.num}
               </span>
 
               {/* Description */}
-              <p className="flex-1 text-white text-base sm:text-lg lg:text-[18px] leading-relaxed lg:leading-[28px] font-sans">
+              <p className="flex-1 text-white text-sm sm:text-base lg:text-[18px] leading-relaxed lg:leading-[28px] font-sans">
                 {item.text}
               </p>
             </div>

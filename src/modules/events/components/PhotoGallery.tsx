@@ -68,9 +68,9 @@ export function PhotoGallery({ data }: PhotoGalleryProps = {}) {
   };
 
   return (
-    <section className="bg-[#e6f9ff] py-16 lg:py-[140px] overflow-hidden">
+    <section className="bg-[#e6f9ff] py-12 sm:py-20 lg:py-[140px] overflow-hidden">
       {/* Header Container */}
-      <div className="max-w-[1440px] mx-auto px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] flex flex-col items-center gap-4 text-center">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] flex flex-col items-center gap-4 text-center">
         {/* Pill Badge */}
         <div className="inline-flex items-center border border-[#00698c] rounded-full px-3.5 py-2 bg-transparent">
           <span className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]">
@@ -79,7 +79,7 @@ export function PhotoGallery({ data }: PhotoGalleryProps = {}) {
         </div>
 
         {/* Section Heading */}
-        <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]">
+        <h2 className="font-serif font-medium text-2xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-tight leading-tight lg:leading-[44px]">
           {title}
         </h2>
       </div>
@@ -91,7 +91,7 @@ export function PhotoGallery({ data }: PhotoGalleryProps = {}) {
           type="button"
           onClick={() => handleScroll("left")}
           aria-label="Previous photos"
-          className="absolute left-6 top-1/2 -translate-y-1/2 z-20 size-12 rounded-full bg-white/95 hover:bg-white text-[#000080] shadow-xl flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 cursor-pointer hover:scale-105"
+          className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-20 size-10 sm:size-12 rounded-full bg-white/95 hover:bg-white text-[#000080] shadow-xl flex items-center justify-center transition-all opacity-80 sm:opacity-0 group-hover:opacity-100 cursor-pointer hover:scale-105"
         >
           <svg
             width="20"

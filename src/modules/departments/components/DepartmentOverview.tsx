@@ -33,7 +33,7 @@ export default function DepartmentOverview({ department }: DepartmentOverviewPro
       : defaultResearchAreas;
 
   return (
-    <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
+    <section className="bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start gap-12 lg:gap-[80px]">
         {/* Left Column: Content Blocks */}
         <div className="flex-1 w-full flex flex-col gap-12 lg:gap-[80px]">
@@ -119,7 +119,7 @@ export default function DepartmentOverview({ department }: DepartmentOverviewPro
                 professional journey with IILP.
               </p>
             </div>
-            <div className="flex flex-wrap sm:flex-nowrap gap-3 items-center w-full">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full">
               <Link
                 href="/fellowships"
                 className="flex-1 inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#00a3db] text-white font-sans font-semibold text-sm sm:text-base px-5 py-3.5 rounded-full transition-colors whitespace-nowrap drop-shadow-xs text-center"
@@ -146,10 +146,10 @@ export default function DepartmentOverview({ department }: DepartmentOverviewPro
                 available in the Research &amp; Publications section.
               </p>
             </div>
-            <div>
+            <div className="w-full sm:w-auto">
               <Link
                 href="/fellowships"
-                className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#00a3db] text-white font-sans font-semibold text-sm sm:text-base px-6 py-3.5 rounded-full transition-colors whitespace-nowrap drop-shadow-xs"
+                className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#00a3db] text-white font-sans font-semibold text-sm sm:text-base px-6 py-3.5 rounded-full transition-colors whitespace-nowrap drop-shadow-xs w-full sm:w-auto text-center"
               >
                 View Research
               </Link>

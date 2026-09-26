@@ -54,7 +54,7 @@ export function Footer({ withCta = true }: FooterProps = {}) {
   return (
     <>
       {withCta && <CallToAction />}
-      <footer className="relative bg-[#000036] text-white pt-[95px] pb-[70px] overflow-hidden">
+      <footer className="relative bg-[#000036] text-white pt-16 sm:pt-[95px] pb-12 sm:pb-[70px] overflow-hidden">
         {/* Background Watermark Image */}
         {footer.watermarkUrl && (
           <div className="absolute inset-0 z-0 opacity-[0.02] pointer-events-none flex items-center justify-center overflow-hidden">
@@ -69,7 +69,7 @@ export function Footer({ withCta = true }: FooterProps = {}) {
           </div>
         )}
 
-        <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1440px] relative z-10 flex flex-col gap-[80px] lg:gap-[100px]">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-[1440px] relative z-10 flex flex-col gap-12 sm:gap-[60px] lg:gap-[100px]">
           
           {/* Top Section: Logo & Links */}
           <div className="flex flex-col lg:flex-row items-start gap-[48px] lg:gap-[80px] w-full">
@@ -152,19 +152,19 @@ export function Footer({ withCta = true }: FooterProps = {}) {
             {/* Newsletter Input Capsule */}
             <form 
               onSubmit={(e) => e.preventDefault()}
-              className="flex items-center w-full max-w-[430px] h-[50px] rounded-full border border-[#00bfff] overflow-hidden pl-[20px] pr-[1px] bg-transparent"
+              className="flex flex-col sm:flex-row items-stretch sm:items-center w-full max-w-[430px] sm:h-[50px] rounded-2xl sm:rounded-full border border-[#00bfff] overflow-hidden p-1.5 sm:p-0 sm:pl-[20px] sm:pr-[1px] bg-transparent gap-2 sm:gap-0"
             >
               <input 
                 type="email" 
                 placeholder={footer.newsletter?.placeholder || "YOUR EMAIL..."} 
-                className="bg-transparent border-none text-[#fdfdfd] placeholder-[#fdfdfd]/60 font-inter text-[16px] focus:outline-none focus:ring-0 flex-1 min-w-0 pr-2" 
+                className="bg-transparent border-none text-[#fdfdfd] placeholder-[#fdfdfd]/60 font-inter text-sm sm:text-[16px] focus:outline-none focus:ring-0 flex-1 min-w-0 px-3 py-2 sm:px-0 sm:py-0 pr-2" 
                 required
               />
               <button 
                 type="submit" 
-                className="bg-[#00bfff] hover:bg-[#00a8e0] text-white font-inter font-semibold text-[16px] leading-[17.6px] uppercase h-[48px] px-[20px] rounded-full transition-colors shrink-0 flex items-center gap-[10px]"
+                className="bg-[#00bfff] hover:bg-[#00a8e0] text-white font-inter font-semibold text-sm sm:text-[16px] leading-[17.6px] uppercase h-[44px] sm:h-[48px] px-[16px] sm:px-[20px] rounded-xl sm:rounded-full transition-colors shrink-0 flex items-center justify-center gap-[10px] cursor-pointer"
               >
-                <div className="w-[28px] h-[28px] rounded-full bg-white flex items-center justify-center shrink-0">
+                <div className="w-[24px] h-[24px] sm:w-[28px] sm:h-[28px] rounded-full bg-white flex items-center justify-center shrink-0">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00bfff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="5" y1="12" x2="19" y2="12" />
                     <polyline points="12 5 19 12 12 19" />

@@ -57,7 +57,7 @@ export function WaysToGiveSection({ data }: WaysToGiveSectionProps) {
       : defaultGivingChannels;
 
   return (
-    <section className="bg-[#f8fcff] border-t border-[#d8f0fa] py-16 sm:py-24 px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
+    <section className="bg-[#f8fcff] border-t border-[#d8f0fa] py-12 sm:py-20 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto w-full flex flex-col gap-12">
         {/* Section Heading */}
         <div className="flex flex-col items-center text-center gap-4 max-w-2xl mx-auto">

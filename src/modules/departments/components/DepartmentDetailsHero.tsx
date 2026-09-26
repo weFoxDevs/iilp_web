@@ -15,7 +15,7 @@ export default function DepartmentDetailsHero({ department }: DepartmentDetailsH
   const image = department?.image || "/assets/department-details-hero.png";
 
   return (
-    <section className="relative w-full min-h-[620px] lg:h-[750px] overflow-hidden flex flex-col items-center justify-end pb-[160px] sm:pb-[200px] lg:pb-[240px] pt-[160px] sm:pt-[180px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] text-center isolate">
+    <section className="relative w-full min-h-[480px] sm:min-h-[620px] lg:h-[750px] overflow-hidden flex flex-col items-center justify-end pb-[100px] sm:pb-[160px] lg:pb-[240px] pt-[130px] sm:pt-[180px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] text-center isolate">
       {/* Background Image with Dark and Soft Gradients */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
@@ -42,7 +42,7 @@ export default function DepartmentDetailsHero({ department }: DepartmentDetailsH
         </div>
 
         {/* Heading */}
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-serif font-semibold text-white tracking-[-0.96px] leading-tight sm:leading-[1.2] lg:leading-[60px] max-w-[856px]">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[48px] font-serif font-semibold text-white tracking-tight leading-tight sm:leading-[1.2] lg:leading-[60px] max-w-[856px]">
           {title}
         </h1>
 

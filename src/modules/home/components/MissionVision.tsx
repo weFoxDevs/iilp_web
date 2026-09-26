@@ -78,16 +78,16 @@ export function MissionVision({ data, missionData, visionData }: MissionVisionPr
   const stats = vision.stats;
 
   return (
-    <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-16 lg:gap-[120px]">
+    <section className="w-full bg-white py-12 sm:py-16 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto flex flex-col gap-12 sm:gap-16 lg:gap-[120px]">
         
         {/* Top Two-Column Grid for Vision & Mission */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-[80px] items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-12 lg:gap-[80px] items-start">
           
           {/* Column 1 (Left): Image on top, Mission Content on bottom */}
-          <div className="flex flex-col gap-12 lg:gap-[120px]">
+          <div className="flex flex-col gap-8 sm:gap-12 lg:gap-[120px]">
             {/* Top: Image with Overlapping Badges */}
-            <div className="relative w-full aspect-[540/600] overflow-hidden">
+            <div className="relative w-full aspect-[540/600] overflow-hidden rounded-xs">
               <Image
                 src={mission.image}
                 alt="IILP Students on campus"
@@ -98,10 +98,10 @@ export function MissionVision({ data, missionData, visionData }: MissionVisionPr
               />
 
               {/* Overlapping Award Badges at top-left */}
-              <div className="absolute top-5 left-5 flex items-center">
+              <div className="absolute top-4 left-4 sm:top-5 sm:left-5 flex items-center">
                 {/* Badge 1: Ultra Award */}
-                <div className="w-[75px] h-[75px] sm:w-[100px] sm:h-[100px] rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-md">
-                  <div className="relative w-[45px] sm:w-[60px] h-[24px] sm:h-[30px]">
+                <div className="w-[60px] h-[60px] sm:w-[100px] sm:h-[100px] rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-md">
+                  <div className="relative w-[36px] sm:w-[60px] h-[20px] sm:h-[30px]">
                     <Image
                       src="/assets/about-vision-badge-1.svg"
                       alt="Ultra Award"
@@ -112,8 +112,8 @@ export function MissionVision({ data, missionData, visionData }: MissionVisionPr
                 </div>
 
                 {/* Badge 2: Hyper Best Award (overlaps badge 1) */}
-                <div className="w-[75px] h-[75px] sm:w-[100px] sm:h-[100px] -ml-4 rounded-full bg-[#c3f499] flex items-center justify-center shadow-md">
-                  <div className="relative w-[48px] sm:w-[63px] h-[24px] sm:h-[30px]">
+                <div className="w-[60px] h-[60px] sm:w-[100px] sm:h-[100px] -ml-3 sm:-ml-4 rounded-full bg-[#c3f499] flex items-center justify-center shadow-md">
+                  <div className="relative w-[38px] sm:w-[63px] h-[20px] sm:h-[30px]">
                     <Image
                       src="/assets/about-vision-badge-2.svg"
                       alt="Hyper Best Award"
@@ -126,48 +126,48 @@ export function MissionVision({ data, missionData, visionData }: MissionVisionPr
             </div>
 
             {/* Bottom: Our Mission Content */}
-            <div className="flex flex-col gap-[30px] items-start">
+            <div className="flex flex-col gap-4 sm:gap-[30px] items-start">
               {mission.badge && (
-                <div className="inline-flex items-center border border-[#00698c] rounded-[1000px] px-[12px] py-[8px]">
-                  <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
+                <div className="inline-flex items-center border border-[#00698c] rounded-[1000px] px-[12px] py-[6px] sm:py-[8px]">
+                  <span className="font-inter font-semibold text-xs sm:text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
                     {mission.badge}
                   </span>
                 </div>
               )}
 
-              <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] tracking-[-0.72px] text-[#0a0d12]">
+              <h2 className="font-playfair font-medium text-2xl sm:text-3xl md:text-4xl lg:text-[36px] leading-snug sm:leading-[1.25] lg:leading-[44px] tracking-[-0.72px] text-[#0a0d12]">
                 {mission.title}
               </h2>
 
-              <p className="font-source font-normal text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12]/70">
+              <p className="font-source font-normal text-sm sm:text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12]/70">
                 {mission.subtitle}
               </p>
             </div>
           </div>
 
           {/* Column 2 (Right): Vision Content on top, Image with Ratings on bottom */}
-          <div className="flex flex-col gap-12 lg:gap-[120px] self-stretch justify-between">
+          <div className="flex flex-col gap-8 sm:gap-12 lg:gap-[120px] self-stretch justify-between">
             {/* Top: Our Vision Content */}
-            <div className="flex flex-col gap-[30px] items-start">
+            <div className="flex flex-col gap-4 sm:gap-[30px] items-start">
               {vision.badge && (
-                <div className="inline-flex items-center border border-[#00698c] rounded-[1000px] px-[12px] py-[8px]">
-                  <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
+                <div className="inline-flex items-center border border-[#00698c] rounded-[1000px] px-[12px] py-[6px] sm:py-[8px]">
+                  <span className="font-inter font-semibold text-xs sm:text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
                     {vision.badge}
                   </span>
                 </div>
               )}
 
-              <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] tracking-[-0.72px] text-[#0a0d12]">
+              <h2 className="font-playfair font-medium text-2xl sm:text-3xl md:text-4xl lg:text-[36px] leading-snug sm:leading-[1.25] lg:leading-[44px] tracking-[-0.72px] text-[#0a0d12]">
                 {vision.title}
               </h2>
 
-              <p className="font-source font-normal text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12]/70">
+              <p className="font-source font-normal text-sm sm:text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12]/70">
                 {vision.subtitle}
               </p>
             </div>
 
             {/* Bottom: Image with Student Ratings Card */}
-            <div className="relative w-full aspect-[540/600] lg:aspect-[580/690] overflow-hidden">
+            <div className="relative w-full aspect-[540/600] lg:aspect-[580/690] overflow-hidden rounded-xs">
               <Image
                 src={vision.image}
                 alt="Student with laptop and phone"
@@ -177,11 +177,11 @@ export function MissionVision({ data, missionData, visionData }: MissionVisionPr
                 priority
               />
 
-              {/* Floating Ratings Card */}
-              <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 bg-black/45 backdrop-blur-md border border-white/20 rounded-[10px] p-[15px] flex items-center gap-[15px] shadow-xl w-[290px] h-[80px]">
+              {/* Floating Ratings Card - Fluid on mobile */}
+              <div className="absolute bottom-4 left-4 sm:bottom-8 sm:left-8 bg-black/55 backdrop-blur-md border border-white/20 rounded-[10px] p-2.5 sm:p-[15px] flex items-center gap-3 sm:gap-[15px] shadow-xl w-auto max-w-[calc(100%-2rem)] h-auto sm:h-[80px]">
                 {/* Overlapping Avatars */}
-                <div className="relative flex items-center -space-x-2.5">
-                  <div className="relative w-[50px] h-[50px] rounded-full overflow-hidden border border-white/40">
+                <div className="relative flex items-center -space-x-2 shrink-0">
+                  <div className="relative w-8 h-8 sm:w-[50px] sm:h-[50px] rounded-full overflow-hidden border border-white/40">
                     <Image
                       src="/assets/about-rating-avatar-1.png"
                       alt="Student reviewer 1"
@@ -189,7 +189,7 @@ export function MissionVision({ data, missionData, visionData }: MissionVisionPr
                       className="object-cover"
                     />
                   </div>
-                  <div className="relative w-[50px] h-[50px] rounded-full overflow-hidden border border-white/40">
+                  <div className="relative w-8 h-8 sm:w-[50px] sm:h-[50px] rounded-full overflow-hidden border border-white/40">
                     <Image
                       src="/assets/about-rating-avatar-2.png"
                       alt="Student reviewer 2"
@@ -197,7 +197,7 @@ export function MissionVision({ data, missionData, visionData }: MissionVisionPr
                       className="object-cover"
                     />
                   </div>
-                  <div className="relative w-[50px] h-[50px] rounded-full overflow-hidden border border-white/40">
+                  <div className="relative w-8 h-8 sm:w-[50px] sm:h-[50px] rounded-full overflow-hidden border border-white/40">
                     <Image
                       src="/assets/about-rating-avatar-3.png"
                       alt="Student reviewer 3"
@@ -208,11 +208,11 @@ export function MissionVision({ data, missionData, visionData }: MissionVisionPr
                 </div>
 
                 {/* Rating details */}
-                <div className="flex flex-col font-inter text-white">
-                  <span className="font-normal text-[16px] leading-[16px]">
+                <div className="flex flex-col font-inter text-white min-w-0">
+                  <span className="font-medium text-xs sm:text-[16px] leading-tight">
                     {vision.studentRatingsCount}
                   </span>
-                  <span className="font-normal text-[16px] leading-[16px] text-white/90 mt-[5px]">
+                  <span className="font-normal text-[11px] sm:text-[16px] leading-tight text-white/90 mt-0.5 sm:mt-[5px] truncate">
                     {vision.studentRatingsLabel}
                   </span>
                 </div>
@@ -223,15 +223,15 @@ export function MissionVision({ data, missionData, visionData }: MissionVisionPr
         </div>
 
         {/* Bottom Stats Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 xl:gap-12 w-full pt-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 xl:gap-12 w-full pt-4">
           {stats.map((stat, idx) => (
-            <div key={idx} className="flex flex-col gap-[40px] items-start max-w-[243px] w-full">
+            <div key={idx} className="flex flex-col gap-4 sm:gap-[40px] items-start w-full">
               {/* Number and Label container */}
-              <div className="flex flex-col gap-[5px] items-start w-full">
-                <div className="font-inter font-semibold text-4xl sm:text-5xl lg:text-[64px] leading-none text-[#00506b]">
+              <div className="flex flex-col gap-1 sm:gap-[5px] items-start w-full">
+                <div className="font-inter font-semibold text-3xl sm:text-5xl lg:text-[64px] leading-none text-[#00506b]">
                   {stat.number}
                 </div>
-                <p className="font-inter font-normal text-base md:text-lg lg:text-[20px] leading-snug lg:leading-[30px] text-[#0a0d12]/70">
+                <p className="font-inter font-normal text-xs sm:text-base md:text-lg lg:text-[20px] leading-snug sm:leading-[30px] text-[#0a0d12]/70">
                   {stat.label}
                 </p>
               </div>

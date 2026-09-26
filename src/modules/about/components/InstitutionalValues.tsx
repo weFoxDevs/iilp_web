@@ -77,8 +77,8 @@ export default function InstitutionalValues({ data }: InstitutionalValuesProps) 
   const row3 = allValues.slice(7);
 
   return (
-    <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-16 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col items-center gap-12 lg:gap-[80px]">
+    <section className="w-full bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto flex flex-col items-center gap-10 sm:gap-12 lg:gap-[80px]">
         
         {/* Header Block */}
         <div className="flex flex-col gap-4 items-center text-center">
@@ -90,7 +90,7 @@ export default function InstitutionalValues({ data }: InstitutionalValuesProps) 
             </div>
           )}
 
-          <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-[-0.72px] font-serif leading-[1.25]">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-tight font-serif leading-[1.25]">
             {title}
           </h2>
         </div>

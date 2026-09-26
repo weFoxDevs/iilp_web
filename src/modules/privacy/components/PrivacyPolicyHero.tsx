@@ -17,7 +17,7 @@ export function PrivacyPolicyHero({ data }: PrivacyPolicyHeroProps) {
 
   return (
     <section
-      className="relative w-full overflow-hidden min-h-[520px] lg:min-h-[580px] flex items-end justify-center pb-24 lg:pb-[140px] pt-32 lg:pt-[160px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]"
+      className="relative w-full overflow-hidden min-h-[460px] sm:min-h-[520px] lg:min-h-[580px] flex items-end justify-center pb-16 sm:pb-24 lg:pb-[140px] pt-[120px] sm:pt-32 lg:pt-[160px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]"
       data-node-id="150:74268"
     >
       {/* Background Image with Dark & Fade Gradients */}
@@ -35,14 +35,14 @@ export function PrivacyPolicyHero({ data }: PrivacyPolicyHeroProps) {
       </div>
 
       {/* Hero Content */}
-      <div className="relative z-10 max-w-[1440px] mx-auto w-full flex flex-col items-center gap-5 sm:gap-6 text-center">
+      <div className="relative z-10 max-w-[1440px] mx-auto w-full flex flex-col items-center gap-4 sm:gap-6 text-center">
         {/* Pill Badge (Figma node 150:74274) */}
         <div
-          className="inline-flex items-center border border-[#e6f9ff] rounded-full px-4 py-2 bg-white/10 backdrop-blur-xs shadow-xs"
+          className="inline-flex items-center border border-[#e6f9ff] rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 bg-white/10 backdrop-blur-xs shadow-xs"
           data-node-id="150:74274"
         >
           <span
-            className="font-sans font-semibold text-sm sm:text-base text-[#fdfdfd] uppercase tracking-wider leading-[17.6px]"
+            className="font-sans font-semibold text-xs sm:text-sm md:text-base text-[#fdfdfd] uppercase tracking-wider leading-[17.6px]"
             data-node-id="150:74276"
           >
             {badge}
@@ -51,7 +51,7 @@ export function PrivacyPolicyHero({ data }: PrivacyPolicyHeroProps) {
 
         {/* Title (Figma node 150:74277) */}
         <h1
-          className="font-serif font-semibold text-3xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-[-0.96px] leading-tight lg:leading-[60px] max-w-[856px]"
+          className="font-serif font-semibold text-2xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-tight sm:tracking-[-0.96px] leading-tight lg:leading-[60px] max-w-[856px]"
           data-node-id="150:74277"
         >
           {title}

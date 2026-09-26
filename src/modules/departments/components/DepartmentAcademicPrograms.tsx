@@ -47,7 +47,7 @@ const programDepartments: ProgramDepartment[] = [
 
 export default function DepartmentAcademicPrograms() {
   return (
-    <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
+    <section className="bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col items-center gap-12 lg:gap-[80px]">
         {/* Centered Header */}
         <div className="flex flex-col items-center gap-4 text-center max-w-[680px]">
@@ -59,7 +59,7 @@ export default function DepartmentAcademicPrograms() {
           </div>
 
           {/* Title */}
-          <h2 className="font-sans font-semibold text-3xl sm:text-4xl lg:text-[40px] text-[#0a0d12] leading-tight sm:leading-[50px]">
+          <h2 className="font-sans font-semibold text-2xl sm:text-4xl lg:text-[40px] text-[#0a0d12] leading-tight sm:leading-[50px]">
             Six Academic Departments
           </h2>
 
@@ -89,7 +89,7 @@ export default function DepartmentAcademicPrograms() {
 
                 {/* Number Badge */}
                 <div
-                  className={`absolute top-5 left-5 w-[70px] h-[70px] sm:w-[91px] sm:h-[92px] flex items-center justify-center font-sans font-semibold text-2xl sm:text-[32px] leading-none transition-colors ${
+                  className={`absolute top-4 left-4 sm:top-5 sm:left-5 w-14 h-14 sm:w-[91px] sm:h-[92px] flex items-center justify-center font-sans font-semibold text-xl sm:text-[32px] leading-none transition-colors ${
                     dept.highlighted
                       ? "bg-[#00bfff] text-white"
                       : "bg-[#e6f9ff] text-[#00bfff] group-hover:bg-[#00bfff] group-hover:text-white"
@@ -134,10 +134,10 @@ export default function DepartmentAcademicPrograms() {
         </div>
 
         {/* Bottom CTA Button */}
-        <div>
+        <div className="w-full sm:w-auto">
           <Link
             href="/academics"
-            className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base px-6 py-3.5 rounded-full drop-shadow-xs transition-colors duration-200"
+            className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base px-6 py-3.5 rounded-full drop-shadow-xs transition-colors duration-200 w-full sm:w-auto text-center"
           >
             Explore All Departments
           </Link>

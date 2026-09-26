@@ -15,7 +15,7 @@ export default function NewsArticleDetail({ article }: NewsArticleDetailProps) {
     article.featuredImage?.startsWith("https://");
 
   return (
-    <section className="bg-white py-16 lg:py-[120px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
+    <section className="bg-white py-12 sm:py-16 lg:py-[120px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row gap-12 lg:gap-[70px] items-start">
         {/* Left Column: Article Content (900px) */}
         <div className="w-full lg:w-[900px] lg:max-w-[900px] flex flex-col gap-10 shrink-0">
@@ -128,7 +128,7 @@ export default function NewsArticleDetail({ article }: NewsArticleDetailProps) {
                 Take the next step toward advancing your legal education, research, and professional journey with IILP.
               </p>
             </div>
-            <div className="flex flex-wrap sm:flex-nowrap gap-3 items-center w-full">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full">
               <Link
                 href="/fellowships#apply"
                 className="flex-1 bg-[#00bfff] hover:bg-[#00a3db] text-white font-sans font-semibold text-sm py-3 px-5 rounded-full text-center transition-colors whitespace-nowrap shadow-xs"

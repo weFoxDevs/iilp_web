@@ -73,8 +73,8 @@ export default function PhotoGallerySection({ data }: PhotoGallerySectionProps =
   };
 
   return (
-    <section className="bg-[#e6f9ff] py-16 lg:py-[140px] overflow-hidden">
-      <div className="max-w-[1440px] mx-auto px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] flex flex-col gap-10 lg:gap-[60px] items-center">
+    <section className="bg-[#e6f9ff] py-12 sm:py-20 lg:py-[140px] overflow-hidden">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] flex flex-col gap-8 sm:gap-10 lg:gap-[60px] items-center">
         {/* Header Section */}
         <div className="flex flex-col items-center gap-4 text-center max-w-[850px]">
           {/* Pill Badge */}
@@ -85,7 +85,7 @@ export default function PhotoGallerySection({ data }: PhotoGallerySectionProps =
           </div>
 
           {/* Title */}
-          <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]">
+          <h2 className="font-serif font-medium text-2xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-tight leading-tight lg:leading-[44px]">
             {title}
           </h2>
         </div>

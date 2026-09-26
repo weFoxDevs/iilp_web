@@ -87,12 +87,12 @@ export default function ConfirmationModal({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 w-full">
           <button
             type="button"
             onClick={onCancel}
             disabled={isConfirming}
-            className="px-6 py-2.5 rounded-full border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-full border border-gray-300 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50 text-center"
           >
             {cancelLabel}
           </button>
@@ -100,7 +100,7 @@ export default function ConfirmationModal({
             type="button"
             disabled={isConfirming}
             onClick={onConfirm}
-            className={`px-6 py-2.5 rounded-full text-white text-sm font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2 ${
+            className={`w-full sm:w-auto px-6 py-2.5 rounded-full text-white text-sm font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 ${
               isDanger
                 ? "bg-[#e60000] hover:bg-[#cc0000]"
                 : isWarning

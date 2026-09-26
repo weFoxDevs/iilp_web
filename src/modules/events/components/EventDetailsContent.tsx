@@ -40,7 +40,7 @@ export function EventDetailsContent({ event }: EventDetailsContentProps) {
   ];
 
   return (
-    <section className="bg-white py-16 lg:py-[120px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
+    <section className="bg-white py-12 sm:py-16 lg:py-[120px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto w-full flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-16">
         {/* Left Column: Event Description & Dynamic Highlights */}
         <div className="w-full lg:max-w-[845px] flex flex-col gap-8">
@@ -134,7 +134,7 @@ export function EventDetailsContent({ event }: EventDetailsContentProps) {
 
         {/* Right Column: Sticky Event Registration Action Card */}
         <div className="w-full lg:w-[480px] lg:max-w-[490px] shrink-0 lg:sticky lg:top-28">
-          <div className="bg-[#00485c] text-white rounded-[24px] p-8 sm:p-10 shadow-2xl flex flex-col gap-6 border border-white/10">
+          <div className="bg-[#00485c] text-white rounded-2xl sm:rounded-[24px] p-6 sm:p-10 shadow-2xl flex flex-col gap-6 border border-white/10">
             {/* Venue Tag */}
             <div className="flex items-center gap-2 text-white/90 text-sm font-medium">
               <span className="p-1.5 rounded-full bg-white/15 flex items-center justify-center size-6 text-[#cafff6]">

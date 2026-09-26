@@ -192,23 +192,23 @@ export function ContactInfoGrid({ data }: ContactInfoGridProps = {}) {
 
   return (
     <section
-      className="bg-[#e6f9ff] flex flex-col gap-[60px] lg:gap-[80px] items-center px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] py-16 sm:py-24 lg:py-[140px] relative w-full"
+      className="bg-[#e6f9ff] flex flex-col gap-10 sm:gap-[60px] lg:gap-[80px] items-center px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] py-12 sm:py-20 lg:py-[140px] relative w-full"
       data-node-id="150:72328"
       data-name="Contact Information Grid"
     >
-      <div className="max-w-[1440px] mx-auto w-full flex flex-col gap-[60px] lg:gap-[80px] items-center">
+      <div className="max-w-[1440px] mx-auto w-full flex flex-col gap-8 sm:gap-[60px] lg:gap-[80px] items-center">
         {/* Header Container */}
         <div
-          className="flex flex-col gap-4 items-center relative shrink-0 w-full text-center"
+          className="flex flex-col gap-3 sm:gap-4 items-center relative shrink-0 w-full text-center"
           data-node-id="150:72329"
         >
           {/* Pill Badge */}
           <div
-            className="border border-[#00698c] border-solid flex flex-col items-start px-[14px] py-[6px] relative rounded-[1000px] shrink-0 bg-white/40"
+            className="border border-[#00698c] border-solid flex flex-col items-start px-3.5 py-1.5 sm:px-[14px] sm:py-[6px] relative rounded-full shrink-0 bg-white/40"
             data-node-id="150:72330"
           >
             <span
-              className="font-sans font-semibold leading-[17.6px] text-[#0a0d12] text-[14px] sm:text-[15px] uppercase whitespace-nowrap tracking-wider"
+              className="font-sans font-semibold leading-tight sm:leading-[17.6px] text-[#0a0d12] text-xs sm:text-[15px] uppercase tracking-wider text-center"
               data-node-id="150:72332"
             >
               {badge}
@@ -217,7 +217,7 @@ export function ContactInfoGrid({ data }: ContactInfoGridProps = {}) {
 
           {/* Title */}
           <h2
-            className="font-serif font-medium leading-tight sm:leading-[44px] text-[#0a0d12] text-3xl sm:text-4xl lg:text-[36px] text-center tracking-[-0.72px] max-w-[680px]"
+            className="font-serif font-medium leading-snug sm:leading-[44px] text-[#0a0d12] text-2xl sm:text-4xl lg:text-[36px] text-center tracking-[-0.72px] max-w-[680px]"
             data-node-id="150:72333"
           >
             {title}
@@ -226,7 +226,7 @@ export function ContactInfoGrid({ data }: ContactInfoGridProps = {}) {
 
         {/* Cards Grid Container */}
         <div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-[24px] items-stretch relative shrink-0 w-full"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-[24px] items-stretch relative shrink-0 w-full"
           data-node-id="150:73332"
         >
           {cards.map((card, idx) => (

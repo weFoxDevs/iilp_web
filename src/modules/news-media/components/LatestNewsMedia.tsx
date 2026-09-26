@@ -63,21 +63,21 @@ export default function LatestNewsMedia({
   const remainingArticles = hasLiveArticles && liveArticles.length > 5 ? liveArticles.slice(5) : [];
 
   return (
-    <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px] items-center">
+    <section className="bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto flex flex-col gap-10 sm:gap-12 lg:gap-[80px] items-center">
         {/* Header Section */}
         {headerLayout === "split" ? (
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-[80px] items-start lg:items-end justify-between w-full">
             <div className="flex flex-col gap-4 max-w-[611px] items-start text-left">
               {/* Pill Badge */}
-              <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-2">
-                <span className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]">
+              <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-1.5 sm:py-2">
+                <span className="font-sans font-semibold text-xs sm:text-sm md:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]">
                   {badge}
                 </span>
               </div>
 
               {/* Title */}
-              <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]">
+              <h2 className="font-serif font-medium text-2xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-tight sm:tracking-[-0.72px] leading-tight lg:leading-[44px]">
                 {title}
               </h2>
 
@@ -88,7 +88,7 @@ export default function LatestNewsMedia({
             </div>
 
             {/* Filter Pills */}
-            <div className="bg-[#e6f9ff] border border-[#e6f9ff] rounded-full p-1 flex flex-wrap gap-1 items-center shrink-0">
+            <div className="bg-[#e6f9ff] border border-[#e6f9ff] rounded-2xl sm:rounded-full p-1.5 flex flex-wrap gap-1.5 items-center shrink-0 w-full sm:w-auto">
               {tabs.map((tab) => {
                 const isActive = activeFilter === tab.id;
                 return (
@@ -96,7 +96,7 @@ export default function LatestNewsMedia({
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveFilter(tab.id)}
-                    className={`px-4 py-2.5 rounded-full font-sans font-semibold text-sm transition-all drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] cursor-pointer ${
+                    className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full font-sans font-semibold text-xs sm:text-sm transition-all drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] cursor-pointer ${
                       isActive
                         ? "bg-[#1e2939] text-white"
                         : "bg-white text-[#4a5565] border border-[#e5e7eb] hover:text-[#101828] hover:bg-gray-50"
@@ -112,14 +112,14 @@ export default function LatestNewsMedia({
           <>
             <div className="flex flex-col items-center gap-4 text-center max-w-[850px]">
               {/* Pill Badge */}
-              <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-2">
-                <span className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]">
+              <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-1.5 sm:py-2">
+                <span className="font-sans font-semibold text-xs sm:text-sm md:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]">
                   {badge}
                 </span>
               </div>
 
               {/* Title */}
-              <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]">
+              <h2 className="font-serif font-medium text-2xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-tight sm:tracking-[-0.72px] leading-tight lg:leading-[44px]">
                 {title}
               </h2>
 
@@ -130,7 +130,7 @@ export default function LatestNewsMedia({
             </div>
 
             {/* Filter Pills */}
-            <div className="bg-[#e6f9ff] border border-[#e6f9ff] rounded-full p-1 flex flex-wrap gap-1 items-center justify-center">
+            <div className="bg-[#e6f9ff] border border-[#e6f9ff] rounded-2xl sm:rounded-full p-1.5 flex flex-wrap gap-1.5 items-center justify-center w-full sm:w-auto">
               {tabs.map((tab) => {
                 const isActive = activeFilter === tab.id;
                 return (
@@ -138,7 +138,7 @@ export default function LatestNewsMedia({
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveFilter(tab.id)}
-                    className={`px-4 py-2.5 rounded-full font-sans font-semibold text-sm transition-all drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] cursor-pointer ${
+                    className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full font-sans font-semibold text-xs sm:text-sm transition-all drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] cursor-pointer ${
                       isActive
                         ? "bg-[#1e2939] text-white"
                         : "bg-white text-[#4a5565] border border-[#e5e7eb] hover:text-[#101828] hover:bg-gray-50"

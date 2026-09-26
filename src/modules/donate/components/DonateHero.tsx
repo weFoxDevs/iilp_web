@@ -17,7 +17,7 @@ export function DonateHero({ data }: DonateHeroProps) {
 
   return (
     <section
-      className="relative w-full overflow-hidden min-h-[520px] lg:min-h-[580px] flex items-end justify-center pb-24 lg:pb-[140px] pt-32 lg:pt-[160px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]"
+      className="relative w-full overflow-hidden min-h-[460px] sm:min-h-[520px] lg:min-h-[580px] flex items-end justify-center pb-16 sm:pb-24 lg:pb-[140px] pt-28 sm:pt-32 lg:pt-[160px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]"
       data-node-id="155:76236"
     >
       {/* Background Image with Dark & Fade Gradients */}
@@ -51,7 +51,7 @@ export function DonateHero({ data }: DonateHeroProps) {
 
         {/* Title (Figma node 155:76244) */}
         <h1
-          className="font-serif font-semibold text-3xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-[-0.96px] leading-tight lg:leading-[60px] max-w-[856px]"
+          className="font-serif font-semibold text-2xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-tight leading-tight lg:leading-[60px] max-w-[856px]"
           data-node-id="155:76244"
         >
           {title}

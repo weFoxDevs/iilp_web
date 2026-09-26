@@ -181,7 +181,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
 
   return (
     <section
-      className="bg-white flex flex-col gap-16 lg:gap-[120px] items-start px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] py-16 sm:py-24 lg:py-[140px] relative w-full"
+      className="bg-white flex flex-col gap-12 sm:gap-16 lg:gap-[120px] items-start px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] py-12 sm:py-20 lg:py-[140px] relative w-full"
       data-node-id="155:76605"
       data-name="misson and vision"
     >
@@ -210,7 +210,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
                 data-node-id="155:76663"
               >
                 <span
-                  className="font-sans font-semibold leading-[17.6px] text-[#0a0d12] text-[16px] uppercase whitespace-nowrap"
+                  className="font-sans font-semibold leading-[17.6px] text-[#0a0d12] text-sm sm:text-[16px] uppercase"
                   data-node-id="155:76665"
                 >
                   {badge}
@@ -219,7 +219,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
 
               {/* Title */}
               <h2
-                className="font-serif font-medium leading-tight sm:leading-[44px] text-[#0a0d12] text-3xl sm:text-4xl lg:text-[36px] tracking-[-0.72px] w-full max-w-[580px]"
+                className="font-serif font-medium leading-tight sm:leading-[44px] text-[#0a0d12] text-2xl sm:text-3xl lg:text-[36px] tracking-tight w-full max-w-[580px]"
                 data-node-id="155:76666"
               >
                 {title}
@@ -243,26 +243,26 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
             {cards.map((card, idx) => (
               <div
                 key={card.nodeId || `val-card-${idx}`}
-                className="bg-white border border-[#b0ebff] flex gap-[24px] items-start p-[24px] relative shrink-0 w-full rounded-xl sm:rounded-none shadow-xs hover:border-[#00698c] transition-colors"
+                className="bg-white border border-[#b0ebff] flex gap-4 sm:gap-[24px] items-start p-4 sm:p-[24px] relative shrink-0 w-full rounded-xl sm:rounded-none shadow-xs hover:border-[#00698c] transition-colors"
                 data-node-id={card.nodeId}
                 data-name="ValueCard"
               >
                 {/* Emoji Icon Container (64x64) */}
                 <div
-                  className="bg-[#e6f9ff] border border-[#b0ebff] flex flex-col items-center justify-center p-[16px] relative shrink-0 w-[64px] h-[64px] rounded-lg sm:rounded-none"
+                  className="bg-[#e6f9ff] border border-[#b0ebff] flex flex-col items-center justify-center p-3 sm:p-[16px] relative shrink-0 w-12 h-12 sm:w-[64px] sm:h-[64px] rounded-lg sm:rounded-none"
                   data-name="Container"
                 >
-                  <span className="font-sans text-[24px] leading-[32px] select-none">
+                  <span className="font-sans text-xl sm:text-[24px] leading-none sm:leading-[32px] select-none">
                     {card.emoji}
                   </span>
                 </div>
 
                 {/* Content */}
-                <div className="flex flex-1 flex-col gap-[12px] items-start min-w-0">
-                  <h3 className="font-serif font-bold text-[#000080] text-[24px] leading-normal w-full">
+                <div className="flex flex-1 flex-col gap-2 sm:gap-[12px] items-start min-w-0">
+                  <h3 className="font-serif font-bold text-[#000080] text-lg sm:text-[24px] leading-snug sm:leading-normal w-full">
                     {card.title}
                   </h3>
-                  <p className="font-sans font-normal text-[#414651] text-[16px] leading-[24px] w-full">
+                  <p className="font-sans font-normal text-[#414651] text-sm sm:text-[16px] leading-relaxed sm:leading-[24px] w-full">
                     {card.description}
                   </p>
                 </div>
@@ -287,7 +287,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
               data-node-id="155:76793"
             >
               <span
-                className="font-sans font-semibold leading-[17.6px] text-[#0a0d12] text-[16px] uppercase whitespace-nowrap"
+                className="font-sans font-semibold leading-[17.6px] text-[#0a0d12] text-sm sm:text-[16px] uppercase"
                 data-node-id="155:76795"
               >
                 {formBadge}
@@ -296,7 +296,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
 
             {/* Title */}
             <h2
-              className="font-serif font-medium leading-tight sm:leading-[44px] text-[#0a0d12] text-3xl sm:text-4xl lg:text-[36px] tracking-[-0.72px] w-full"
+              className="font-serif font-medium leading-tight sm:leading-[44px] text-[#0a0d12] text-2xl sm:text-3xl lg:text-[36px] tracking-tight w-full"
               data-node-id="155:76796"
             >
               {formTitle}
@@ -384,7 +384,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
               >
                 {/* Presets Row */}
                 <div
-                  className="flex gap-[8px] items-start relative shrink-0 w-full flex-wrap sm:flex-nowrap"
+                  className="grid grid-cols-3 sm:flex sm:flex-nowrap gap-2 items-stretch relative shrink-0 w-full"
                   data-node-id="155:76976"
                 >
                   {presetAmounts.map((amt) => {
@@ -394,7 +394,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
                         key={amt}
                         type="button"
                         onClick={() => handlePresetClick(amt)}
-                        className={`flex items-center justify-center px-[20px] py-[12px] border border-[#e5e7eb] font-sans font-semibold text-base transition-colors cursor-pointer flex-1 ${
+                        className={`flex items-center justify-center px-3 sm:px-[20px] py-[12px] border border-[#e5e7eb] font-sans font-semibold text-sm sm:text-base transition-colors cursor-pointer flex-1 rounded-sm sm:rounded-none ${
                           isSelected
                             ? "bg-[#000080] text-white border-[#000080]"
                             : "bg-[#f9fafb] text-[#4a5565] hover:border-[#000080]"
@@ -409,7 +409,7 @@ export function DonateMainSection({ data }: DonateMainSectionProps = {}) {
                   <button
                     type="button"
                     onClick={handleCustomClick}
-                    className={`flex flex-1 items-center justify-center px-[20px] py-[12px] border font-sans font-semibold text-base transition-colors cursor-pointer ${
+                    className={`flex flex-1 items-center justify-center px-3 sm:px-[20px] py-[12px] border font-sans font-semibold text-sm sm:text-base transition-colors cursor-pointer rounded-sm sm:rounded-none ${
                       selectedPreset === "custom"
                         ? "bg-[#000080] text-white border-[#000080]"
                         : "bg-[#f9fafb] text-[#4a5565] border-[#e5e7eb] hover:border-[#000080]"

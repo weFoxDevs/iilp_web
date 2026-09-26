@@ -1,4 +1,5 @@
 import type { AppProps } from 'next/app';
+import Head from 'next/head';
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/common/components/AuthContext";
 import { SiteLayoutProvider } from "@/common/components/SiteLayoutContext";
@@ -61,12 +62,17 @@ export default function App({ Component, pageProps }: AppProps) {
   }, [router.pathname, router.events]);
 
   return (
-    <div className={`${geistSans.variable} ${geistMono.variable} min-h-screen flex flex-col antialiased`}>
-      <AuthProvider>
-        <SiteLayoutProvider>
-          <Component {...pageProps} />
-        </SiteLayoutProvider>
-      </AuthProvider>
-    </div>
+    <>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+      </Head>
+      <div className={`${geistSans.variable} ${geistMono.variable} min-h-screen flex flex-col antialiased overflow-x-hidden`}>
+        <AuthProvider>
+          <SiteLayoutProvider>
+            <Component {...pageProps} />
+          </SiteLayoutProvider>
+        </AuthProvider>
+      </div>
+    </>
   );
 }

@@ -151,27 +151,27 @@ export function ContactFormSection({ data, mapData }: ContactFormSectionProps) {
 
   return (
     <section
-      className="bg-white flex gap-10 lg:gap-14 xl:gap-[80px] items-stretch justify-center px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] py-16 sm:py-24 lg:py-[140px] relative w-full"
+      className="bg-white flex gap-10 lg:gap-14 xl:gap-[80px] items-stretch justify-center px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] py-12 sm:py-20 lg:py-[140px] relative w-full"
       data-node-id="150:72789"
     >
       <div className="max-w-[1440px] mx-auto w-full flex flex-col lg:flex-row gap-10 lg:gap-14 xl:gap-[80px] items-stretch justify-center">
         {/* Left Side: Contact Form Container (Figma node 150:72796) */}
         <div
-          className="bg-[#e6f9ff] flex flex-col gap-[28px] items-start p-6 sm:p-8 lg:p-[32px] relative shrink-0 w-full lg:w-[852px]"
+          className="bg-[#e6f9ff] flex flex-col gap-6 sm:gap-[28px] items-start p-4 sm:p-8 lg:p-[32px] relative shrink-0 w-full lg:w-[852px] rounded-xl sm:rounded-none"
           data-node-id="150:72796"
         >
           {/* Section Heading & Pill */}
           <div
-            className="flex flex-col gap-4 items-start relative shrink-0 w-full"
+            className="flex flex-col gap-3 sm:gap-4 items-start relative shrink-0 w-full"
             data-node-id="150:73090"
           >
             {/* Pill Badge */}
             <div
-              className="border border-[#00698c] border-solid flex flex-col items-start px-[12px] py-[8px] relative rounded-[1000px] shrink-0"
+              className="border border-[#00698c] border-solid flex flex-col items-start px-3.5 py-1.5 sm:px-[12px] sm:py-[8px] relative rounded-full shrink-0"
               data-node-id="150:73091"
             >
               <span
-                className="font-sans font-semibold leading-[17.6px] text-[#0a0d12] text-[16px] uppercase whitespace-nowrap"
+                className="font-sans font-semibold leading-tight sm:leading-[17.6px] text-[#0a0d12] text-xs sm:text-[16px] uppercase"
                 data-node-id="150:73093"
               >
                 {formBadge}

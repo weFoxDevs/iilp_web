@@ -162,38 +162,38 @@ export function NewsMedia({ data }: NewsMediaProps) {
   const displayArticles = filteredArticles.length > 0 ? filteredArticles : articles || [];
 
   return (
-    <section className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-[60px] lg:gap-[80px] items-center">
+    <section className="w-full bg-white py-12 sm:py-16 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto flex flex-col gap-10 sm:gap-[60px] lg:gap-[80px] items-center">
         
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 lg:gap-[80px] w-full">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 sm:gap-8 lg:gap-[80px] w-full">
           {/* Text Content */}
-          <div className="flex flex-col items-start gap-[16px] max-w-[680px]">
+          <div className="flex flex-col items-start gap-3 sm:gap-[16px] max-w-[680px]">
             {section.badge && (
-              <div className="border border-[#00698c] rounded-full px-[12px] py-[8px]">
-                <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
+              <div className="border border-[#00698c] rounded-full px-3.5 py-1.5 sm:px-[12px] sm:py-[8px]">
+                <span className="font-inter font-semibold text-xs sm:text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
                   {section.badge}
                 </span>
               </div>
             )}
 
-            <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] text-[#0a0d12] tracking-[-0.72px] max-w-[580px]">
+            <h2 className="font-playfair font-medium text-2xl sm:text-3xl md:text-4xl lg:text-[36px] leading-snug sm:leading-[1.25] lg:leading-[44px] text-[#0a0d12] tracking-[-0.72px] max-w-[580px]">
               {section.title || defaultNewsData.title}
             </h2>
 
-            <p className="font-inter font-normal text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12] max-w-[611px]">
+            <p className="font-inter font-normal text-sm sm:text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] text-[#0a0d12] max-w-[611px]">
               {section.subtitle || defaultNewsData.subtitle}
             </p>
           </div>
 
           {/* Filter Tabs */}
           {tabs && tabs.length > 0 && (
-            <div className="bg-[#e6f9ff] border border-[#e6f9ff] p-[4px] rounded-full flex gap-[4px] items-center self-start lg:self-end flex-wrap">
+            <div className="bg-[#e6f9ff] border border-[#b0ebff] p-1 rounded-2xl sm:rounded-full flex gap-1.5 items-center self-start lg:self-end flex-wrap max-w-full">
               {tabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-[16px] py-[10px] rounded-full font-source font-semibold text-[14px] leading-[20px] transition-all cursor-pointer ${
+                  className={`px-3.5 py-2 sm:px-[16px] sm:py-[10px] rounded-xl sm:rounded-full font-source font-semibold text-xs sm:text-[14px] leading-tight sm:leading-[20px] transition-all cursor-pointer min-h-[36px] ${
                     activeTab === tab
                       ? 'bg-[#1e2939] text-white shadow-sm'
                       : 'bg-white text-[#4a5565] border border-[#e5e7eb] hover:bg-gray-50'
@@ -207,12 +207,12 @@ export function NewsMedia({ data }: NewsMediaProps) {
         </div>
 
         {/* Content Grid */}
-        <div className="flex flex-col lg:flex-row gap-[32px] items-start w-full">
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-[32px] items-start w-full">
           
           {/* Featured Article (Left) */}
           {featured && (
-            <Link href={featured.link || section.actionUrl || '/news'} className="w-full lg:w-[606px] shrink-0 flex flex-col gap-[16px] group cursor-pointer">
-              <div className="relative w-full aspect-[606/610] overflow-hidden">
+            <Link href={featured.link || section.actionUrl || '/news'} className="w-full lg:w-[606px] shrink-0 flex flex-col gap-3 sm:gap-[16px] group cursor-pointer">
+              <div className="relative w-full aspect-[606/610] overflow-hidden rounded-xs">
                 <Image 
                   src={featured.image} 
                   alt={featured.title} 
@@ -224,17 +224,17 @@ export function NewsMedia({ data }: NewsMediaProps) {
                 />
               </div>
 
-              <div className="flex flex-col gap-[8px] items-start w-full">
-                <div className="flex items-center gap-[10px]">
-                  <span className="bg-[#e6f9ff] text-[#000036] font-source font-normal text-[14px] leading-[20px] px-[14px] py-[2px] rounded-[24px]">
+              <div className="flex flex-col gap-2 sm:gap-[8px] items-start w-full">
+                <div className="flex items-center gap-2 sm:gap-[10px] flex-wrap">
+                  <span className="bg-[#e6f9ff] text-[#000036] font-source font-normal text-xs sm:text-[14px] leading-tight sm:leading-[20px] px-3 py-1 sm:px-[14px] sm:py-[2px] rounded-full">
                     {featured.category}
                   </span>
-                  <span className="font-satoshi font-medium text-[14px] leading-[23.8px] text-[#160d03]">
+                  <span className="font-satoshi font-medium text-xs sm:text-[14px] leading-relaxed text-[#160d03]">
                     {featured.date}
                   </span>
                 </div>
 
-                <h3 className="font-['Soria',var(--font-playfair),serif] font-bold text-[24px] leading-[32px] text-[#0a0d12] group-hover:text-[#00bfff] transition-colors">
+                <h3 className="font-['Soria',var(--font-playfair),serif] font-bold text-xl sm:text-[24px] leading-snug sm:leading-[32px] text-[#0a0d12] group-hover:text-[#00bfff] transition-colors">
                   {featured.title}
                 </h3>
               </div>
@@ -242,10 +242,10 @@ export function NewsMedia({ data }: NewsMediaProps) {
           )}
 
           {/* Smaller Articles Grid (Right) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[32px] flex-1 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-[32px] flex-1 w-full">
             {displayArticles.map((item) => (
-              <Link href={item.link || section.actionUrl || '/news'} key={item.id} className="flex flex-col gap-[16px] items-start w-full group cursor-pointer">
-                <div className="relative w-full aspect-[339/245] overflow-hidden">
+              <Link href={item.link || section.actionUrl || '/news'} key={item.id} className="flex flex-col gap-3 sm:gap-[16px] items-start w-full group cursor-pointer">
+                <div className="relative w-full aspect-[339/245] overflow-hidden rounded-xs">
                   <Image 
                     src={item.image} 
                     alt={item.title} 
@@ -256,17 +256,17 @@ export function NewsMedia({ data }: NewsMediaProps) {
                   />
                 </div>
 
-                <div className="flex flex-col gap-[8px] items-start w-full">
-                  <div className="flex items-center gap-[10px]">
-                    <span className="bg-[#e6f9ff] text-[#000036] font-source font-normal text-[14px] leading-[20px] px-[14px] py-[2px] rounded-[24px]">
+                <div className="flex flex-col gap-2 sm:gap-[8px] items-start w-full">
+                  <div className="flex items-center gap-2 sm:gap-[10px] flex-wrap">
+                    <span className="bg-[#e6f9ff] text-[#000036] font-source font-normal text-xs sm:text-[14px] leading-tight sm:leading-[20px] px-3 py-1 sm:px-[14px] sm:py-[2px] rounded-full">
                       {item.category}
                     </span>
-                    <span className="font-satoshi font-medium text-[14px] leading-[23.8px] text-[#160d03]">
+                    <span className="font-satoshi font-medium text-xs sm:text-[14px] leading-relaxed text-[#160d03]">
                       {item.date}
                     </span>
                   </div>
 
-                  <h3 className="font-['Soria',var(--font-playfair),serif] font-bold text-[24px] leading-[32px] text-[#0a0d12] group-hover:text-[#00bfff] transition-colors">
+                  <h3 className="font-['Soria',var(--font-playfair),serif] font-bold text-lg sm:text-[24px] leading-snug sm:leading-[32px] text-[#0a0d12] group-hover:text-[#00bfff] transition-colors">
                     {item.title}
                   </h3>
                 </div>
@@ -281,7 +281,7 @@ export function NewsMedia({ data }: NewsMediaProps) {
           <div className="flex justify-center w-full pt-2">
             <Link
               href={section.actionUrl || '/news'}
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#1e2939] hover:bg-[#0a0d12] text-white font-inter font-semibold text-sm transition-all shadow-sm hover:shadow-md cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-[#1e2939] hover:bg-[#0a0d12] text-white font-inter font-semibold text-sm transition-all shadow-sm hover:shadow-md cursor-pointer w-full sm:w-auto text-center min-h-[44px]"
             >
               <span>{section.actionText}</span>
               <span>→</span>

@@ -17,8 +17,8 @@ export default function FoundingAuthority({ data }: FoundingAuthorityProps) {
   const bgImage = data?.bgImage || '/assets/governance-founding-authority.png';
 
   return (
-    <section className="w-full bg-[#e6f9ff] py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-[120px]">
+    <section className="w-full bg-[#e6f9ff] py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-10 sm:gap-12 lg:gap-[120px]">
         
         {/* Left: Content Block */}
         <div className="flex-1 flex flex-col gap-10 lg:gap-[80px] items-start">
@@ -32,7 +32,7 @@ export default function FoundingAuthority({ data }: FoundingAuthorityProps) {
                 </div>
               )}
 
-              <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-[-0.72px] font-serif leading-[44px] max-w-[580px]">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-tight font-serif leading-tight sm:leading-[44px] max-w-[580px]">
                 {title}
               </h2>
             </div>
@@ -48,7 +48,7 @@ export default function FoundingAuthority({ data }: FoundingAuthorityProps) {
           {actionText && (
             <Link
               href={actionUrl}
-              className="inline-flex items-center justify-center rounded-full bg-[#00bfff] hover:bg-[#00a8e0] text-white px-6 py-3.5 text-base font-semibold shadow-[0px_1px_2px_rgba(29,41,61,0.05)] transition-all font-sans"
+              className="inline-flex items-center justify-center rounded-full bg-[#00bfff] hover:bg-[#00a8e0] text-white px-6 py-3.5 text-base font-semibold shadow-[0px_1px_2px_rgba(29,41,61,0.05)] transition-all font-sans w-full sm:w-auto text-center"
             >
               {actionText}
             </Link>
@@ -56,7 +56,7 @@ export default function FoundingAuthority({ data }: FoundingAuthorityProps) {
         </div>
 
         {/* Right: Feature Image */}
-        <div className="w-full lg:w-[500px] h-[360px] sm:h-[450px] lg:h-[520px] relative shrink-0 overflow-hidden">
+        <div className="w-full lg:w-[500px] h-[250px] sm:h-[400px] lg:h-[520px] relative shrink-0 overflow-hidden rounded-lg sm:rounded-none">
           <Image
             src={bgImage}
             alt={title}

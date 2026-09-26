@@ -23,19 +23,19 @@ export function NewsletterArchive({ data }: NewsletterArchiveProps = {}) {
   };
 
   return (
-    <section className="bg-white pb-16 lg:pb-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
+    <section className="bg-white pb-12 sm:pb-16 lg:pb-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto w-full">
-        <div className="bg-[#160d03] rounded-[8px] min-h-[460px] lg:h-[550px] p-8 sm:p-12 lg:pl-[64px] lg:pr-[76px] lg:pt-[61px] lg:pb-[69px] flex flex-col lg:flex-row items-start justify-between gap-10 lg:gap-16">
+        <div className="bg-[#160d03] rounded-2xl min-h-[400px] lg:h-[550px] p-6 sm:p-12 lg:pl-[64px] lg:pr-[76px] lg:pt-[61px] lg:pb-[69px] flex flex-col lg:flex-row items-start justify-between gap-8 sm:gap-10 lg:gap-16">
           {/* Left Column: Heading 2 */}
           <div className="w-full lg:max-w-[451px] shrink-0 pt-2 lg:pt-4">
-            <h2 className="font-serif font-medium text-3xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-[-1.5px] leading-tight lg:leading-[62.4px]">
+            <h2 className="font-serif font-medium text-2xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-tight leading-tight lg:leading-[62.4px]">
               {title}
             </h2>
           </div>
 
           {/* Right Column: Description & Subscribe Form */}
           <div className="flex flex-col items-start gap-8 w-full lg:max-w-[500px] my-auto">
-            <p className="font-serif font-bold text-xl sm:text-2xl lg:text-[24px] text-white leading-snug">
+            <p className="font-serif font-bold text-base sm:text-2xl lg:text-[24px] text-white leading-relaxed sm:leading-snug">
               {subtitle}
             </p>
 
@@ -58,7 +58,7 @@ export function NewsletterArchive({ data }: NewsletterArchiveProps = {}) {
             ) : (
               <form
                 onSubmit={handleSubscribe}
-                className="w-full border border-[#00bfff] rounded-[40px] flex items-center h-[50px] bg-black/20 overflow-hidden"
+                className="w-full flex flex-col sm:flex-row items-stretch sm:items-center sm:h-[50px] border border-[#00bfff] rounded-2xl sm:rounded-[40px] bg-black/20 overflow-hidden p-1 sm:p-0 gap-2 sm:gap-0"
               >
                 <input
                   type="email"
@@ -66,14 +66,14 @@ export function NewsletterArchive({ data }: NewsletterArchiveProps = {}) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="YOUR EMAIL..."
-                  className="flex-1 bg-transparent px-5 py-3 text-[16px] font-sans text-white placeholder-[#fdfdfd]/80 outline-none uppercase tracking-wider"
+                  className="flex-1 bg-transparent px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-[16px] font-sans text-white placeholder-[#fdfdfd]/80 outline-none uppercase tracking-wider"
                 />
 
                 <button
                   type="submit"
-                  className="bg-[#00bfff] hover:bg-sky-400 h-[50px] rounded-[30px] flex items-center gap-3.5 pl-2.5 pr-6 shrink-0 text-white font-sans font-semibold text-[16px] uppercase tracking-wider leading-[17.6px] transition-colors cursor-pointer"
+                  className="bg-[#00bfff] hover:bg-sky-400 h-11 sm:h-[50px] rounded-xl sm:rounded-[30px] flex items-center justify-center sm:justify-start gap-2.5 sm:gap-3.5 px-4 sm:pl-2.5 sm:pr-6 shrink-0 text-white font-sans font-semibold text-sm sm:text-[16px] uppercase tracking-wider leading-[17.6px] transition-colors cursor-pointer"
                 >
-                  <span className="size-7 rounded-full bg-white flex items-center justify-center shrink-0">
+                  <span className="size-6 sm:size-7 rounded-full bg-white flex items-center justify-center shrink-0">
                     <svg
                       width="14"
                       height="14"

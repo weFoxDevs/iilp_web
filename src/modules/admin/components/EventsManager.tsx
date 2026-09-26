@@ -1629,7 +1629,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
             style={{ colorScheme: "light" }}
           >
             {/* Roster Header */}
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-[#fcfdff]">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#fcfdff]">
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-serif font-bold text-lg text-[#000080]">
@@ -1766,7 +1766,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
             )}
 
             {/* Roster Filter Bar */}
-            <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between text-xs">
+            <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
               <span className="text-gray-600 font-medium">
                 Capacity: <strong>{selectedEventForRoster.totalRegistrations ?? selectedEventForRoster.seatsReserved ?? 0}</strong> of{" "}
                 <strong>{selectedEventForRoster.seatsCapacity || "Unlimited"}</strong> seats reserved
@@ -1804,7 +1804,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
             {(() => {
               const attendeeList = Array.isArray(registrations) ? registrations : [];
               return (
-                <div className="overflow-y-auto flex-1 modal-scroll">
+                <div className="overflow-y-auto overflow-x-auto flex-1 modal-scroll">
                   {isLoadingRoster ? (
                     <div className="p-16 flex flex-col items-center justify-center gap-2">
                       <div className="size-6 border-2 border-[#00bfff] border-t-transparent rounded-full animate-spin"></div>
@@ -1815,7 +1815,7 @@ export function EventsManager({ token, onShowToast }: EventsManagerProps) {
                       No registrations found for this event under the selected filter.
                     </div>
                   ) : (
-                    <table className="w-full text-left text-xs border-collapse">
+                    <table className="w-full text-left text-xs border-collapse min-w-[700px]">
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-bold uppercase tracking-wider">
                           <th className="p-3.5">Attendee Name</th>

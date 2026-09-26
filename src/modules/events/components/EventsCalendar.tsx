@@ -70,8 +70,8 @@ export function EventsCalendar({ data }: EventsCalendarProps = {}) {
   }, [activeCategory]);
 
   return (
-    <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto w-full flex flex-col items-center gap-12 lg:gap-16">
+    <section className="bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto w-full flex flex-col items-center gap-10 sm:gap-12 lg:gap-16">
         {/* Section Header */}
         <div className="flex flex-col items-center gap-4 text-center max-w-[850px]">
           {/* Pill Badge */}
@@ -82,7 +82,7 @@ export function EventsCalendar({ data }: EventsCalendarProps = {}) {
           </div>
 
           {/* Title */}
-          <h2 className="font-serif font-medium text-3xl sm:text-4xl md:text-5xl lg:text-[44px] text-[#0a0d12] tracking-[-0.72px] leading-tight">
+          <h2 className="font-serif font-medium text-2xl sm:text-4xl md:text-5xl lg:text-[44px] text-[#0a0d12] tracking-tight leading-tight">
             {title}
           </h2>
 
@@ -93,7 +93,7 @@ export function EventsCalendar({ data }: EventsCalendarProps = {}) {
         </div>
 
         {/* Filter Category Pills */}
-        <div className="bg-[#e6f9ff] border border-[#e6f9ff] p-1.5 rounded-full flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 shadow-xs max-w-full">
+        <div className="bg-[#e6f9ff] border border-[#e6f9ff] p-1.5 rounded-2xl sm:rounded-full flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 shadow-xs max-w-full">
           {categories.map((cat) => {
             const isActive = activeCategory === cat;
             return (
