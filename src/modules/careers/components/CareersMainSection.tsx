@@ -142,12 +142,12 @@ export function CareersMainSection({ data }: CareersMainSectionProps) {
 
   return (
     <section
-      className="bg-white px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] py-16 sm:py-24 lg:py-[140px] w-full"
+      className="bg-white px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] py-12 sm:py-20 lg:py-[140px] w-full"
       data-node-id="155:77158"
       data-name="misson and vision"
     >
       <div
-        className="max-w-[1440px] mx-auto flex flex-col lg:flex-row gap-12 lg:gap-[80px] items-start w-full"
+        className="max-w-[1440px] mx-auto flex flex-col lg:flex-row gap-10 sm:gap-12 lg:gap-[80px] items-start w-full"
         data-node-id="155:77159"
       >
         {/* Left Column: Opportunities */}
@@ -158,20 +158,20 @@ export function CareersMainSection({ data }: CareersMainSectionProps) {
         >
           {/* Header Section */}
           <div
-            className="flex flex-col gap-5 lg:gap-[30px] items-start w-full"
+            className="flex flex-col gap-4 sm:gap-5 lg:gap-[30px] items-start w-full"
             data-node-id="155:77161"
           >
             <div
-              className="flex flex-col gap-4 items-start w-full"
+              className="flex flex-col gap-3 sm:gap-4 items-start w-full"
               data-node-id="155:77162"
             >
               {/* Badge */}
               <div
-                className="border border-[#00698c] rounded-full px-3 py-2 flex items-center justify-center"
+                className="border border-[#00698c] rounded-full px-3 py-1.5 sm:py-2 flex items-center justify-center"
                 data-node-id="155:77163"
               >
                 <span
-                  className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]"
+                  className="font-sans font-semibold text-xs sm:text-sm md:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]"
                   data-node-id="155:77165"
                 >
                   {badge}
@@ -180,7 +180,7 @@ export function CareersMainSection({ data }: CareersMainSectionProps) {
 
               {/* Section Heading */}
               <h2
-                className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]"
+                className="font-serif font-medium text-2xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-tight sm:tracking-[-0.72px] leading-tight lg:leading-[44px]"
                 data-node-id="155:77166"
               >
                 {title}
@@ -209,21 +209,21 @@ export function CareersMainSection({ data }: CareersMainSectionProps) {
                   onClick={() => handleCardClick(card)}
                   data-node-id={card.nodeId}
                   data-name="ValueCard"
-                  className={`w-full bg-white border p-6 transition-all cursor-pointer group ${
+                  className={`w-full bg-white border p-4 sm:p-6 transition-all cursor-pointer group ${
                     isSelected
                       ? "border-[#000080] shadow-sm ring-1 ring-[#000080]"
                       : "border-[#b0ebff] hover:border-[#000080] hover:shadow-xs"
                   }`}
                 >
-                  <div className="flex flex-col gap-3 items-start w-full">
+                  <div className="flex flex-col gap-2 sm:gap-3 items-start w-full">
                     <h3
-                      className="font-serif font-bold text-2xl text-[#000080] leading-snug group-hover:text-[#00698c] transition-colors"
+                      className="font-serif font-bold text-xl sm:text-2xl text-[#000080] leading-snug group-hover:text-[#00698c] transition-colors"
                       data-node-id={`${card.nodeId}-title`}
                     >
                       {card.title}
                     </h3>
                     <p
-                      className="font-sans font-normal text-base text-[#414651] leading-[24px]"
+                      className="font-sans font-normal text-sm sm:text-base text-[#414651] leading-[24px]"
                       data-node-id={`${card.nodeId}-desc`}
                     >
                       {card.description}
@@ -237,21 +237,21 @@ export function CareersMainSection({ data }: CareersMainSectionProps) {
 
         {/* Right Column: Expression of Interest Form (Figma node 155:77981, p-[32px], gap-[28px]) */}
         <div
-          className="bg-[#e6f9ff] flex flex-col flex-1 w-full gap-[28px] items-start p-6 sm:p-8 lg:p-[32px] relative"
+          className="bg-[#e6f9ff] flex flex-col flex-1 w-full gap-5 sm:gap-[28px] items-start p-4 sm:p-8 lg:p-[32px] relative"
           data-node-id="155:77981"
         >
           {/* Header */}
           <div
-            className="flex flex-col gap-4 items-start w-full"
+            className="flex flex-col gap-3 sm:gap-4 items-start w-full"
             data-node-id="155:77982"
           >
             {/* Apply Badge */}
             <div
-              className="border border-[#00698c] rounded-full px-3 py-2 flex items-center justify-center bg-white/40 backdrop-blur-xs"
+              className="border border-[#00698c] rounded-full px-3 py-1.5 sm:py-2 flex items-center justify-center bg-white/40 backdrop-blur-xs"
               data-node-id="155:77983"
             >
               <span
-                className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]"
+                className="font-sans font-semibold text-xs sm:text-sm md:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]"
                 data-node-id="155:77985"
               >
                 Apply
@@ -260,7 +260,7 @@ export function CareersMainSection({ data }: CareersMainSectionProps) {
 
             {/* Form Title */}
             <h2
-              className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]"
+              className="font-serif font-medium text-2xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-tight sm:tracking-[-0.72px] leading-tight lg:leading-[44px]"
               data-node-id="155:77986"
             >
               Expression of Interest

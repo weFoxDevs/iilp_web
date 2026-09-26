@@ -127,7 +127,7 @@ export default function FellowshipCategories({
     pathwaysList.find((p) => p.id === activeTab) || pathwaysList[0];
 
   return (
-    <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
+    <section className="bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px] items-center">
         {/* Header Section */}
         <div className="flex flex-col items-center gap-4 text-center max-w-[850px]">
@@ -141,7 +141,7 @@ export default function FellowshipCategories({
           )}
 
           {/* Heading */}
-          <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]">
+          <h2 className="font-serif font-medium text-2xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-tight leading-tight lg:leading-[44px]">
             {title}
           </h2>
 
@@ -154,7 +154,7 @@ export default function FellowshipCategories({
         </div>
 
         {/* Tab Filter Pills */}
-        <div className="bg-[#e6f9ff] border border-[#e6f9ff] rounded-full p-1 flex flex-wrap sm:flex-nowrap gap-1 items-center justify-center">
+        <div className="bg-[#e6f9ff] border border-[#e6f9ff] rounded-2xl sm:rounded-full p-1.5 flex flex-wrap sm:flex-nowrap gap-1.5 items-center justify-center">
           {pathwaysList.map((pathway) => {
             const isActive = activeTab === pathway.id;
             return (
@@ -184,7 +184,7 @@ export default function FellowshipCategories({
 
 
         {/* Mission and Vision Container */}
-        <div className="bg-[#00506b] rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-[40px] w-full">
+        <div className="bg-[#00506b] rounded-2xl sm:rounded-3xl p-4 sm:p-10 lg:p-[40px] w-full">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-[23px] items-stretch w-full">
             {/* Column 1: Role Overview */}
             <div className="bg-[#e6f9ff] border border-[#b0ebff] rounded-xl p-6 sm:p-[30px] flex flex-col gap-6 justify-start">

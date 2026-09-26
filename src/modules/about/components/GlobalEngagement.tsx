@@ -48,11 +48,11 @@ export default function GlobalEngagement({ data }: GlobalEngagementProps) {
   const ratingAvatars = meta.ratingAvatars || defaultRatingAvatars;
 
   return (
-    <section className="w-full bg-[#e6f9ff] py-16 lg:py-[140px] px-4 md:px-8 lg:px-16 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-center lg:items-stretch gap-12 lg:gap-[80px]">
+    <section className="w-full bg-[#e6f9ff] py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-center lg:items-stretch gap-10 sm:gap-12 lg:gap-[80px]">
         
         {/* Left: Portrait Student Image with Floating Rating Card */}
-        <div className="w-full lg:w-[580px] h-[520px] sm:h-[620px] lg:h-auto min-h-[520px] lg:min-h-[720px] relative shrink-0 overflow-hidden shadow-sm">
+        <div className="w-full lg:w-[580px] h-[340px] sm:h-[480px] lg:h-auto min-h-[340px] sm:min-h-[480px] lg:min-h-[720px] relative shrink-0 overflow-hidden shadow-sm rounded-lg sm:rounded-none">
           <Image
             src={bgImage}
             alt={title}
@@ -62,7 +62,7 @@ export default function GlobalEngagement({ data }: GlobalEngagementProps) {
           />
 
           {/* Floating Ratings Card */}
-          <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 bg-black/45 backdrop-blur-md border border-white/20 rounded-[10px] p-3.5 sm:p-4 flex items-center gap-3.5 shadow-xl">
+          <div className="absolute bottom-4 left-4 sm:bottom-8 sm:left-8 max-w-[calc(100%-2rem)] bg-black/45 backdrop-blur-md border border-white/20 rounded-[10px] p-3 sm:p-4 flex items-center gap-3 sm:gap-3.5 shadow-xl">
             {/* Overlapping Avatars */}
             <div className="flex items-center -space-x-3.5">
               {ratingAvatars.map((avatar, idx) => (
@@ -98,7 +98,7 @@ export default function GlobalEngagement({ data }: GlobalEngagementProps) {
               </div>
             )}
 
-            <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-[-0.72px] font-serif leading-[1.25]">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-tight font-serif leading-[1.25]">
               {title}
             </h2>
 

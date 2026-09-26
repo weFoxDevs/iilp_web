@@ -160,7 +160,7 @@ export default function InstitutionalLeadership({ data }: InstitutionalLeadershi
   }, []);
 
   return (
-    <section className="w-full bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
+    <section className="w-full bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px]">
         
         {/* Header Row */}
@@ -174,7 +174,7 @@ export default function InstitutionalLeadership({ data }: InstitutionalLeadershi
               </div>
             )}
 
-            <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-[-0.72px] font-serif leading-[44px]">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-tight font-serif leading-tight sm:leading-[44px]">
               {title}
             </h2>
 
@@ -186,10 +186,10 @@ export default function InstitutionalLeadership({ data }: InstitutionalLeadershi
           </div>
 
           {actionText && (
-            <div className="shrink-0">
+            <div className="shrink-0 w-full sm:w-auto">
               <Link
                 href={actionUrl}
-                className="inline-flex items-center justify-center rounded-full bg-[#00bfff] hover:bg-[#00a8e0] text-white px-6 py-3.5 text-base font-semibold shadow-[0px_1px_2px_rgba(29,41,61,0.05)] transition-all font-sans whitespace-nowrap"
+                className="inline-flex items-center justify-center rounded-full bg-[#00bfff] hover:bg-[#00a8e0] text-white px-6 py-3.5 text-base font-semibold shadow-[0px_1px_2px_rgba(29,41,61,0.05)] transition-all font-sans whitespace-nowrap w-full sm:w-auto text-center"
               >
                 {actionText}
               </Link>

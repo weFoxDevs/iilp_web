@@ -15,7 +15,7 @@ export default function ResearchPublicationsHero({ data }: ResearchPublicationsH
   const bgImage = data?.bgImage || "/assets/department-details-hero.png";
 
   return (
-    <section className="relative w-full min-h-[580px] lg:h-[680px] overflow-hidden flex flex-col items-center justify-center pt-[140px] pb-[160px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] text-center isolate">
+    <section className="relative w-full min-h-[460px] sm:min-h-[580px] lg:h-[680px] overflow-hidden flex flex-col items-center justify-center pt-[120px] sm:pt-[140px] pb-[100px] sm:pb-[160px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] text-center isolate">
       {/* Background Image with Dark & Gradient Overlays */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
@@ -44,7 +44,7 @@ export default function ResearchPublicationsHero({ data }: ResearchPublicationsH
         )}
 
         {/* Heading */}
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-serif font-semibold text-white tracking-[-0.96px] leading-tight sm:leading-[1.2] lg:leading-[60px] max-w-[856px]">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[48px] font-serif font-semibold text-white tracking-tight leading-tight sm:leading-[1.2] lg:leading-[60px] max-w-[856px]">
           {title}
         </h1>
 

@@ -51,31 +51,31 @@ export function FounderMessage({ data }: FounderMessageProps) {
   const signatureImage = metadata.signatureImage || defaultFounder.metadata.signatureImage;
 
   return (
-    <section className="w-full bg-[#e6f9ff] py-16 lg:py-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px] relative overflow-hidden">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-[60px] lg:gap-[80px] items-center">
+    <section className="w-full bg-[#e6f9ff] py-12 sm:py-16 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] relative overflow-hidden">
+      <div className="max-w-[1440px] mx-auto flex flex-col gap-10 sm:gap-[60px] lg:gap-[80px] items-center">
         
         {/* Header */}
-        <div className="flex flex-col gap-[16px] items-center text-center">
+        <div className="flex flex-col gap-3 sm:gap-[16px] items-center text-center">
           {section.badge && (
-            <div className="border border-[#00698c] rounded-full px-[12px] py-[8px]">
-              <span className="font-inter font-semibold text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
+            <div className="border border-[#00698c] rounded-full px-3.5 py-1.5 sm:px-[12px] sm:py-[8px]">
+              <span className="font-inter font-semibold text-xs sm:text-[16px] leading-[17.6px] uppercase text-[#0a0d12]">
                 {section.badge}
               </span>
             </div>
           )}
 
-          <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] text-[#0a0d12] tracking-[-0.72px]">
+          <h2 className="font-playfair font-medium text-2xl sm:text-3xl md:text-4xl lg:text-[36px] leading-snug sm:leading-[1.25] lg:leading-[44px] text-[#0a0d12] tracking-[-0.72px]">
             {section.title || defaultFounder.title}
           </h2>
         </div>
 
         {/* Content Wrapper */}
-        <div className="flex flex-col lg:flex-row items-start w-full gap-12 lg:gap-[80px] relative">
+        <div className="flex flex-col lg:flex-row items-start w-full gap-8 sm:gap-12 lg:gap-[80px] relative">
           
           {/* Left Column: Image & Author Info */}
-          <div className="w-full lg:w-[580px] flex flex-col gap-[32px] items-start shrink-0 relative">
+          <div className="w-full lg:w-[580px] flex flex-col gap-6 sm:gap-[32px] items-start shrink-0 relative">
             {/* Main Image */}
-            <div className="relative w-full aspect-[580/663] overflow-hidden">
+            <div className="relative w-full aspect-[580/663] overflow-hidden rounded-xs">
               <Image 
                 src={section.bgImage || defaultFounder.bgImage} 
                 alt={authorName} 
@@ -87,7 +87,7 @@ export function FounderMessage({ data }: FounderMessageProps) {
 
               {/* Signature Watermark Overlay */}
               {signatureImage && (
-                <div className="absolute right-[-20px] sm:right-[-40px] bottom-[20px] sm:bottom-[40px] w-[280px] sm:w-[380px] h-[180px] sm:h-[240px] opacity-25 pointer-events-none z-10">
+                <div className="absolute right-0 sm:right-[-40px] bottom-2 sm:bottom-[40px] w-[200px] sm:w-[380px] h-[120px] sm:h-[240px] opacity-25 pointer-events-none z-10">
                   <Image 
                     src={signatureImage} 
                     alt="Signature" 
@@ -101,18 +101,18 @@ export function FounderMessage({ data }: FounderMessageProps) {
             {/* Author Badge */}
             <div className="flex items-center gap-[12px]">
               <div 
-                className="w-[48px] h-[48px] rounded-full flex items-center justify-center shrink-0 shadow-sm"
+                className="w-10 h-10 sm:w-[48px] sm:h-[48px] rounded-full flex items-center justify-center shrink-0 shadow-sm"
                 style={{ background: "linear-gradient(135deg, rgb(0, 0, 128) 0%, rgb(0, 191, 255) 100%)" }}
               >
-                <span className="font-playfair font-bold text-white text-[16px] leading-[25.6px]">
+                <span className="font-playfair font-bold text-white text-sm sm:text-[16px] leading-none">
                   {authorInitials}
                 </span>
               </div>
               <div className="flex flex-col">
-                <h3 className="font-['Soria',var(--font-playfair),serif] font-bold text-[24px] leading-normal text-[#000080]">
+                <h3 className="font-['Soria',var(--font-playfair),serif] font-bold text-lg sm:text-[24px] leading-tight text-[#000080]">
                   {authorName}
                 </h3>
-                <p className="font-inter font-normal text-[12px] leading-[16px] text-[#6a7282]">
+                <p className="font-inter font-normal text-xs sm:text-[12px] leading-tight text-[#6a7282] mt-0.5">
                   {authorRole}
                 </p>
               </div>
@@ -123,13 +123,13 @@ export function FounderMessage({ data }: FounderMessageProps) {
           <div className="w-full flex-1 flex flex-col items-start pt-0 lg:pt-10">
             {/* Decorative Quote Mark */}
             <div className="flex items-center opacity-20">
-              <span className="font-playfair text-[60px] leading-[60px] text-[#000080]">
+              <span className="font-playfair text-4xl sm:text-[60px] leading-none text-[#000080]">
                 &ldquo;
               </span>
             </div>
             
             {/* Quote Paragraph */}
-            <p className="font-['Soria',var(--font-playfair),serif] font-bold text-[20px] sm:text-[24px] leading-[32px] sm:leading-[38px] text-[#000080] max-w-[768px] mt-2">
+            <p className="font-['Soria',var(--font-playfair),serif] font-bold text-lg sm:text-xl md:text-[24px] leading-relaxed sm:leading-[38px] text-[#000080] max-w-[768px] mt-2">
               {section.subtitle || defaultFounder.subtitle}
             </p>
 
@@ -137,13 +137,12 @@ export function FounderMessage({ data }: FounderMessageProps) {
             {section.actionUrl && (
               <Link 
                 href={section.actionUrl} 
-                className="inline-flex items-center gap-1.5 mt-6 font-inter font-semibold text-[14px] leading-[20px] text-[#00bfff] hover:text-[#00a2d6] transition-colors"
+                className="inline-flex items-center gap-1.5 mt-5 sm:mt-6 font-inter font-semibold text-sm leading-[20px] text-[#00bfff] hover:text-[#00a2d6] transition-colors min-h-[44px]"
               >
                 {section.actionText || defaultFounder.actionText}
               </Link>
             )}
           </div>
-          
         </div>
       </div>
     </section>

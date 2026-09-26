@@ -31,7 +31,7 @@ export default function PublicationDetailsOverview({ publication }: PublicationD
       : defaultResearchAreas;
 
   return (
-    <section className="bg-white py-16 lg:py-[120px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[200px]">
+    <section className="bg-white py-12 sm:py-20 lg:py-[120px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[200px]">
       <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start gap-12 lg:gap-[70px]">
         {/* Left Column: Content Sections */}
         <div className="flex-1 w-full flex flex-col gap-12 lg:gap-[60px]">
@@ -184,7 +184,7 @@ export default function PublicationDetailsOverview({ publication }: PublicationD
                 Share your original research, scholarly work, and academic contributions with the IILP research community.
               </p>
             </div>
-            <div className="flex flex-wrap sm:flex-nowrap gap-3 items-center w-full">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full">
               <Link
                 href="/contact"
                 className="flex-1 inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#00a3db] text-white font-sans font-semibold text-sm px-5 py-3 rounded-full transition-colors whitespace-nowrap text-center"

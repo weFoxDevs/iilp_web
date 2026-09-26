@@ -25,7 +25,7 @@ export default function NewsMediaHero({
     "Stay updated with IILP's latest news, press releases, articles, opinion pieces, interviews, videos, and newsletter archives.";
   const bgImage = data?.bgImage || propBgImage || "/assets/fellowship-hero-bg.png";
   return (
-    <section className="relative w-full overflow-hidden min-h-[580px] lg:min-h-[640px] flex items-end justify-center pb-20 lg:pb-[140px] pt-24 lg:pt-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
+    <section className="relative w-full overflow-hidden min-h-[460px] sm:min-h-[580px] lg:min-h-[640px] flex items-end justify-center pb-16 sm:pb-20 lg:pb-[140px] pt-24 lg:pt-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       {/* Background Image with Gradients */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
@@ -50,7 +50,7 @@ export default function NewsMediaHero({
         </div>
 
         {/* Title */}
-        <h1 className="font-serif font-semibold text-3xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-[-0.96px] leading-tight lg:leading-[60px] max-w-[856px]">
+        <h1 className="font-serif font-semibold text-2xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-tight leading-tight lg:leading-[60px] max-w-[856px]">
           {title}
         </h1>
 

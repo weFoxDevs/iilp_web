@@ -53,18 +53,18 @@ export function ImageGallery({ data }: ImageGalleryProps) {
   const marqueeImages = [...images, ...images, ...images];
 
   return (
-    <section className="w-full bg-[#e6f9ff] py-16 lg:py-[140px] relative overflow-hidden">
-      <div className="relative w-full h-[320px] sm:h-[460px] lg:h-[650px] flex items-center">
+    <section className="w-full bg-[#e6f9ff] py-10 sm:py-16 lg:py-[140px] relative overflow-hidden">
+      <div className="relative w-full h-[240px] sm:h-[380px] lg:h-[650px] flex items-center">
         
         {/* Infinite Scroll Container */}
-        <div className="flex gap-6 sm:gap-8 lg:gap-[70px] absolute left-0 animate-marquee items-center whitespace-nowrap hover:[animation-play-state:paused]">
+        <div className="flex gap-4 sm:gap-8 lg:gap-[70px] absolute left-0 animate-marquee items-center whitespace-nowrap hover:[animation-play-state:paused]">
           {marqueeImages.map((img, index) => (
             <div 
               key={index} 
-              className={`relative shrink-0 overflow-hidden ${
+              className={`relative shrink-0 overflow-hidden rounded-xs ${
                 img.size === "lg" 
-                  ? "w-[280px] h-[280px] sm:w-[420px] sm:h-[420px] lg:w-[650px] lg:h-[650px]" 
-                  : "w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] lg:w-[450px] lg:h-[450px]"
+                  ? "w-[220px] h-[220px] sm:w-[360px] sm:h-[360px] lg:w-[650px] lg:h-[650px]" 
+                  : "w-[160px] h-[160px] sm:w-[260px] sm:h-[260px] lg:w-[450px] lg:h-[450px]"
               }`}
             >
               <Image 

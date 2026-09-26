@@ -46,13 +46,13 @@ export default function InstitutionalProfile({ data }: InstitutionalProfileProps
   const profileDetails = meta.profileDetails || defaultProfileDetails;
 
   return (
-    <section className="w-full bg-white py-16 lg:py-[120px] px-4 md:px-8 lg:px-16 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start gap-12 lg:gap-[80px]">
+    <section className="w-full bg-white py-12 sm:py-16 lg:py-[120px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto flex flex-col lg:flex-row items-start gap-10 sm:gap-12 lg:gap-[80px]">
         
         {/* Left Side: Overlapping Images and Stamp Badge */}
-        <div className="w-full lg:w-[590px] h-[480px] sm:h-[560px] lg:h-[600px] relative shrink-0 mx-auto max-w-[590px]">
+        <div className="w-full lg:w-[590px] h-[360px] sm:h-[500px] lg:h-[600px] relative shrink-0 mx-auto max-w-[590px]">
           {/* Top Left Image: Professor & Student */}
-          <div className="w-[60%] sm:w-[348px] h-[340px] sm:h-[448px] relative overflow-hidden shadow-sm">
+          <div className="w-[62%] sm:w-[348px] h-[250px] sm:h-[400px] lg:h-[448px] relative overflow-hidden shadow-sm rounded-lg sm:rounded-none">
             <Image
               src={image1}
               alt="Faculty and student in discussion"
@@ -64,7 +64,7 @@ export default function InstitutionalProfile({ data }: InstitutionalProfileProps
           </div>
 
           {/* Bottom Right Overlapping Image: Female Student */}
-          <div className="w-[60%] sm:w-[348px] h-[260px] sm:h-[358px] absolute right-0 sm:left-[242px] bottom-0 overflow-hidden border-[4px] border-white shadow-xl">
+          <div className="w-[60%] sm:w-[348px] h-[190px] sm:h-[310px] lg:h-[358px] absolute right-0 sm:left-[242px] bottom-0 overflow-hidden border-[3px] sm:border-[4px] border-white shadow-xl rounded-lg sm:rounded-none">
             <Image
               src={image2}
               alt="Smiling IILP student"
@@ -76,9 +76,9 @@ export default function InstitutionalProfile({ data }: InstitutionalProfileProps
           </div>
 
           {/* Circular Heritage Badge */}
-          <div className="absolute left-[55%] sm:left-[410px] top-[30px] sm:top-[60px] w-[100px] sm:w-[120px] h-[100px] sm:h-[120px] rounded-full bg-white border border-[#641320] flex items-center justify-center shadow-lg z-20">
+          <div className="absolute right-2 sm:right-auto sm:left-[410px] top-[16px] sm:top-[60px] w-[80px] sm:w-[120px] h-[80px] sm:h-[120px] rounded-full bg-white border border-[#641320] flex items-center justify-center shadow-lg z-20">
             {/* Center Wreath Icon */}
-            <div className="relative w-[50px] sm:w-[62px] h-[40px] sm:h-[50px] z-10">
+            <div className="relative w-[36px] sm:w-[62px] h-[28px] sm:h-[50px] z-10">
               <Image
                 src={badgeIcon}
                 alt="Heritage award icon"
@@ -89,7 +89,7 @@ export default function InstitutionalProfile({ data }: InstitutionalProfileProps
             </div>
 
             {/* Circular Rotating Badge Text */}
-            <div className="absolute inset-[-8px] sm:inset-[-12px] flex items-center justify-center animate-[spin_25s_linear_infinite] pointer-events-none">
+            <div className="absolute inset-[-6px] sm:inset-[-12px] flex items-center justify-center animate-[spin_25s_linear_infinite] pointer-events-none">
               <Image
                 src={badgeText}
                 alt="Next-Gen Toward Education Since 1995"
@@ -117,7 +117,7 @@ export default function InstitutionalProfile({ data }: InstitutionalProfileProps
             )}
 
             {/* Title */}
-            <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-[-0.72px] font-serif leading-[1.25]">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-tight font-serif leading-[1.25]">
               {title}
             </h2>
 
@@ -153,11 +153,11 @@ export default function InstitutionalProfile({ data }: InstitutionalProfileProps
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3.5 items-center pt-2 font-sans">
+          <div className="flex flex-col sm:flex-row gap-3.5 items-stretch sm:items-center pt-2 font-sans w-full">
             {actionText && (
               <Link
                 href={actionUrl}
-                className="inline-flex items-center justify-center rounded-full bg-[#00bfff] hover:bg-[#009fd4] text-white px-6 py-3.5 text-sm md:text-base font-semibold shadow-xs transition-colors"
+                className="inline-flex items-center justify-center rounded-full bg-[#00bfff] hover:bg-[#009fd4] text-white px-6 py-3.5 text-sm md:text-base font-semibold shadow-xs transition-colors text-center"
               >
                 {actionText}
               </Link>
@@ -165,7 +165,7 @@ export default function InstitutionalProfile({ data }: InstitutionalProfileProps
             {secondaryActionText && (
               <Link
                 href={secondaryActionUrl}
-                className="inline-flex items-center justify-center rounded-full bg-[#f9fafb] border border-[#e5e7eb] hover:bg-gray-100 text-[#4a5565] px-6 py-3.5 text-sm md:text-base font-semibold shadow-xs transition-colors"
+                className="inline-flex items-center justify-center rounded-full bg-[#f9fafb] border border-[#e5e7eb] hover:bg-gray-100 text-[#4a5565] px-6 py-3.5 text-sm md:text-base font-semibold shadow-xs transition-colors text-center"
               >
                 {secondaryActionText}
               </Link>

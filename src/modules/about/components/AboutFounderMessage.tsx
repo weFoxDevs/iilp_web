@@ -32,7 +32,7 @@ export default function AboutFounderMessage({ data }: AboutFounderMessageProps) 
   const paragraphs = meta.paragraphs || defaultParagraphs;
 
   return (
-    <section id="founder-message" className="w-full bg-white py-16 lg:py-[140px] px-4 md:px-8 lg:px-16 xl:px-[240px] scroll-mt-20 relative">
+    <section id="founder-message" className="w-full bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] scroll-mt-20 relative">
       <span id="founder_message" className="sr-only" />
       <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px]">
         
@@ -46,7 +46,7 @@ export default function AboutFounderMessage({ data }: AboutFounderMessageProps) 
             </div>
           )}
 
-          <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-[-0.72px] font-serif leading-[1.25]">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-tight font-serif leading-[1.25]">
             {title}
           </h2>
         </div>
@@ -56,7 +56,7 @@ export default function AboutFounderMessage({ data }: AboutFounderMessageProps) 
           
           {/* Left Column: Image, Signature Overlay, and Author Badge */}
           <div className="w-full lg:w-[480px] xl:w-[520px] flex flex-col gap-8 shrink-0 relative">
-            <div className="relative w-full h-[520px] sm:h-[620px] lg:h-[660px] overflow-hidden shadow-md">
+            <div className="relative w-full h-[360px] sm:h-[500px] lg:h-[660px] overflow-hidden shadow-md rounded-lg sm:rounded-none">
               <Image
                 src={bgImage}
                 alt={founderName}
@@ -105,7 +105,7 @@ export default function AboutFounderMessage({ data }: AboutFounderMessageProps) 
             </div>
 
             {/* Full Message Paragraphs */}
-            <div className="text-[#000080] font-serif text-lg md:text-[21px] lg:text-[23px] leading-relaxed lg:leading-[36px] flex flex-col gap-6 tracking-[-0.01em]">
+            <div className="text-[#000080] font-serif text-base sm:text-lg md:text-[21px] lg:text-[23px] leading-relaxed lg:leading-[36px] flex flex-col gap-5 sm:gap-6 tracking-[-0.01em]">
               {paragraphs.map((p, idx) => (
                 <p key={idx}>{p}</p>
               ))}

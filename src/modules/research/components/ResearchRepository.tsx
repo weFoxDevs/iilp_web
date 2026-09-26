@@ -153,8 +153,8 @@ export default function ResearchRepository({ data }: ResearchRepositoryProps) {
       : publicationsList;
 
   return (
-    <section className="bg-white py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px]">
+    <section className="bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto flex flex-col gap-10 sm:gap-12 lg:gap-[80px]">
         {/* Top Header Row */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div className="flex flex-col gap-4 max-w-[850px]">
@@ -168,7 +168,7 @@ export default function ResearchRepository({ data }: ResearchRepositoryProps) {
             )}
 
             {/* Title */}
-            <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight sm:leading-[44px]">
+            <h2 className="font-serif font-medium text-2xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-tight sm:tracking-[-0.72px] leading-tight sm:leading-[44px]">
               {title}
             </h2>
 
@@ -182,10 +182,10 @@ export default function ResearchRepository({ data }: ResearchRepositoryProps) {
 
           {/* Submit Research Button */}
           {actionText && (
-            <div className="shrink-0">
+            <div className="shrink-0 w-full sm:w-auto">
               <Link
                 href={actionUrl}
-                className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base px-6 py-3.5 rounded-full drop-shadow-xs transition-colors duration-200 whitespace-nowrap"
+                className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base px-6 py-3.5 rounded-full drop-shadow-xs transition-colors duration-200 whitespace-nowrap w-full sm:w-auto text-center"
               >
                 {actionText}
               </Link>
@@ -194,7 +194,7 @@ export default function ResearchRepository({ data }: ResearchRepositoryProps) {
         </div>
 
         {/* Filter Pills Container */}
-        <div className="bg-[#e6f9ff] border border-[#e6f9ff] p-1.5 rounded-full flex flex-wrap items-center justify-center gap-1.5 w-fit mx-auto shadow-xs">
+        <div className="bg-[#e6f9ff] border border-[#e6f9ff] p-1.5 rounded-2xl sm:rounded-full flex flex-wrap items-center justify-center gap-1.5 w-full sm:w-fit mx-auto shadow-xs">
           {categories.map((cat) => {
             const isActive = activeFilter === cat;
             return (
@@ -202,7 +202,7 @@ export default function ResearchRepository({ data }: ResearchRepositoryProps) {
                 key={cat}
                 type="button"
                 onClick={() => setActiveFilter(cat)}
-                className={`px-4 py-2 rounded-full font-sans font-semibold text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-sans font-semibold text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
                   isActive
                     ? "bg-[#1e2939] text-white shadow-sm"
                     : "bg-white text-[#4a5565] border border-[#e5e7eb] hover:bg-gray-50 hover:text-gray-900"

@@ -65,8 +65,8 @@ export default function GoverningCouncil({ data }: GoverningCouncilProps) {
       : defaultResponsibilities;
 
   return (
-    <section className="w-full bg-[#00506b] py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-16 lg:gap-[80px]">
+    <section className="w-full bg-[#00506b] py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto flex flex-col gap-12 sm:gap-16 lg:gap-[80px]">
         
         {/* Top Section: Heading + Image */}
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-[120px]">
@@ -81,7 +81,7 @@ export default function GoverningCouncil({ data }: GoverningCouncilProps) {
                 </div>
               )}
 
-              <h2 className="text-3xl md:text-4xl lg:text-[36px] font-medium text-white tracking-[-0.72px] font-serif leading-[44px] max-w-[580px]">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[36px] font-medium text-white tracking-tight font-serif leading-tight sm:leading-[44px] max-w-[580px]">
                 {title}
               </h2>
             </div>
@@ -94,7 +94,7 @@ export default function GoverningCouncil({ data }: GoverningCouncilProps) {
           </div>
 
           {/* Feature Image */}
-          <div className="w-full lg:w-[500px] h-[360px] sm:h-[450px] lg:h-[520px] relative shrink-0 overflow-hidden rounded-xl shadow-lg">
+          <div className="w-full lg:w-[500px] h-[250px] sm:h-[400px] lg:h-[520px] relative shrink-0 overflow-hidden rounded-xl shadow-lg">
             <Image
               src={imgSrc}
               alt={title}
@@ -120,7 +120,7 @@ export default function GoverningCouncil({ data }: GoverningCouncilProps) {
               key={index}
               className="bg-white/10 border border-[#00698c] flex items-center gap-4 p-6 transition-colors hover:bg-white/[0.15]"
             >
-              <span className="text-[#00bfff] text-4xl sm:text-5xl lg:text-[72px] font-bold leading-none tracking-[-1.44px] shrink-0 font-sans">
+              <span className="text-[#00bfff] text-3xl sm:text-5xl lg:text-[72px] font-bold leading-none tracking-tight shrink-0 font-sans">
                 {item.number}
               </span>
               <p className="text-white text-base md:text-[18px] leading-[28px] font-sans font-normal">

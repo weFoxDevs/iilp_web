@@ -16,7 +16,7 @@ export function ContactHero({ data }: ContactHeroProps) {
   const bgImage = data?.bgImage || "/images/contact-hero-bg.png";
 
   return (
-    <section className="relative w-full overflow-hidden min-h-[520px] lg:min-h-[580px] flex items-end justify-center pb-24 lg:pb-[140px] pt-32 lg:pt-[160px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
+    <section className="relative w-full overflow-hidden min-h-[440px] sm:min-h-[520px] lg:min-h-[580px] flex items-end justify-center pb-16 sm:pb-24 lg:pb-[140px] pt-24 sm:pt-32 lg:pt-[160px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       {/* Background Image with Dark & Fade Gradients */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
@@ -32,21 +32,21 @@ export function ContactHero({ data }: ContactHeroProps) {
       </div>
 
       {/* Hero Content */}
-      <div className="relative z-10 max-w-[1440px] mx-auto w-full flex flex-col items-center gap-5 sm:gap-6 text-center">
+      <div className="relative z-10 max-w-[1440px] mx-auto w-full flex flex-col items-center gap-4 sm:gap-6 text-center">
         {/* Pill Badge */}
-        <div className="inline-flex items-center border border-[#e6f9ff] rounded-full px-4 py-2 bg-white/10 backdrop-blur-xs shadow-xs">
-          <span className="font-sans font-semibold text-sm sm:text-base text-[#fdfdfd] uppercase tracking-wider leading-[17.6px]">
+        <div className="inline-flex items-center border border-[#e6f9ff] rounded-full px-3.5 py-1.5 sm:px-4 sm:py-2 bg-white/10 backdrop-blur-xs shadow-xs">
+          <span className="font-sans font-semibold text-xs sm:text-base text-[#fdfdfd] uppercase tracking-wider leading-tight sm:leading-[17.6px]">
             {badge}
           </span>
         </div>
 
         {/* Title */}
-        <h1 className="font-serif font-semibold text-3xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-[-0.96px] leading-tight lg:leading-[60px] max-w-[856px]">
+        <h1 className="font-serif font-semibold text-2xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-[-0.96px] leading-tight lg:leading-[60px] max-w-[856px]">
           {title}
         </h1>
 
         {/* Supporting Description */}
-        <p className="font-sans font-normal text-base sm:text-lg lg:text-[20px] text-white/95 leading-relaxed lg:leading-[30px] max-w-[978px]">
+        <p className="font-sans font-normal text-sm sm:text-base md:text-lg lg:text-[20px] text-white/95 leading-relaxed lg:leading-[30px] max-w-[978px]">
           {subtitle}
         </p>
       </div>

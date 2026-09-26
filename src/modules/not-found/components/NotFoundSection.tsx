@@ -5,13 +5,13 @@ import Link from "next/link";
 export function NotFoundSection() {
   return (
     <section
-      className="bg-white flex flex-col items-center pt-8 sm:pt-12 lg:pt-[60px] pb-16 sm:pb-24 lg:pb-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] w-full text-center"
+      className="bg-white flex flex-col items-center pt-8 sm:pt-12 lg:pt-[60px] pb-12 sm:pb-24 lg:pb-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] w-full text-center"
       data-node-id="150:74074"
       data-name="Academic Programs"
     >
       {/* 404 Illustration matching Figma node 150:74182 */}
       <div
-        className="relative w-full max-w-[568px] h-[260px] sm:h-[340px] md:h-[400px] shrink-0 mb-6 sm:mb-8 flex items-center justify-center"
+        className="relative w-full max-w-[568px] h-[220px] sm:h-[340px] md:h-[400px] shrink-0 mb-6 sm:mb-8 flex items-center justify-center"
         data-node-id="150:74182"
         data-name="image 2 [Vectorized]"
       >
@@ -27,7 +27,7 @@ export function NotFoundSection() {
 
       {/* Main Container matching Figma node 150:74245 */}
       <div
-        className="flex flex-col gap-8 sm:gap-12 lg:gap-[56px] items-center justify-center w-full max-w-[1080px] mx-auto"
+        className="flex flex-col gap-6 sm:gap-12 lg:gap-[56px] items-center justify-center w-full max-w-[1080px] mx-auto"
         data-node-id="150:74245"
         data-name="Container"
       >
@@ -37,11 +37,11 @@ export function NotFoundSection() {
         >
           {/* Pill Badge (Figma node 150:74247) */}
           <div
-            className="bg-[rgba(230,249,255,0.1)] border border-[#33ccff] rounded-full px-4 py-2 flex items-center justify-center"
+            className="bg-[rgba(230,249,255,0.1)] border border-[#33ccff] rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 flex items-center justify-center"
             data-node-id="150:74247"
           >
             <span
-              className="font-sans font-semibold text-sm sm:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]"
+              className="font-sans font-semibold text-xs sm:text-sm md:text-base text-[#0a0d12] uppercase tracking-wider leading-[17.6px]"
               data-node-id="150:74249"
             >
               Error
@@ -55,7 +55,7 @@ export function NotFoundSection() {
           >
             {/* Title (Figma node 150:74253) */}
             <h1
-              className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] text-center tracking-[-0.72px] leading-tight lg:leading-[44px]"
+              className="font-serif font-medium text-2xl sm:text-4xl lg:text-[36px] text-[#0a0d12] text-center tracking-tight sm:tracking-[-0.72px] leading-tight lg:leading-[44px]"
               data-node-id="150:74253"
             >
               Sorry. Page Not Found!

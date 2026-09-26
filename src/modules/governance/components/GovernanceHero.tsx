@@ -14,7 +14,7 @@ export default function GovernanceHero({ data }: GovernanceHeroProps) {
   const bgImage = data?.bgImage || '/assets/about-hero-bg.png';
 
   return (
-    <section className="relative w-full min-h-[600px] lg:h-[750px] flex flex-col items-center justify-center pt-[180px] lg:pt-[220px] pb-[140px] lg:pb-[200px] overflow-hidden">
+    <section className="relative w-full min-h-[480px] sm:min-h-[580px] lg:h-[750px] flex flex-col items-center justify-center pt-[130px] sm:pt-[170px] lg:pt-[220px] pb-[90px] sm:pb-[130px] lg:pb-[200px] px-4 sm:px-6 md:px-8 overflow-hidden">
       {/* Background Image from Figma */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
@@ -44,7 +44,7 @@ export default function GovernanceHero({ data }: GovernanceHeroProps) {
         )}
 
         {/* Heading */}
-        <h1 className="text-4xl md:text-5xl lg:text-[48px] font-semibold text-white tracking-[-0.96px] text-center font-serif leading-[1.2] mb-5 drop-shadow-md">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[48px] font-semibold text-white tracking-tight text-center font-serif leading-[1.2] mb-5 drop-shadow-md">
           {title}
         </h1>
 

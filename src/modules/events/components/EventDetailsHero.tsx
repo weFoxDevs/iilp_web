@@ -15,7 +15,7 @@ export function EventDetailsHero({
   bgImage = "/assets/fellowship-hero-bg.png",
 }: EventDetailsHeroProps) {
   return (
-    <section className="relative w-full overflow-hidden min-h-[580px] lg:min-h-[660px] flex items-end justify-center pb-24 lg:pb-[140px] pt-32 lg:pt-[160px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
+    <section className="relative w-full overflow-hidden min-h-[460px] sm:min-h-[580px] lg:min-h-[660px] flex items-end justify-center pb-16 sm:pb-24 lg:pb-[140px] pt-28 sm:pt-32 lg:pt-[160px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       {/* Background Image with Dark & Fade Gradients */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
@@ -40,7 +40,7 @@ export function EventDetailsHero({
         </div>
 
         {/* Title */}
-        <h1 className="font-serif font-semibold text-3xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-[-0.96px] leading-tight lg:leading-[60px] max-w-[856px]">
+        <h1 className="font-serif font-semibold text-2xl sm:text-4xl md:text-5xl lg:text-[48px] text-white tracking-tight leading-tight lg:leading-[60px] max-w-[856px]">
           {title}
         </h1>
 

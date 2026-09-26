@@ -191,7 +191,7 @@ export default function FellowshipApplication({ data }: FellowshipApplicationPro
   };
 
   return (
-    <section id="apply" className="bg-[#e6f9ff] py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] scroll-mt-20">
+    <section id="apply" className="bg-[#e6f9ff] py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] scroll-mt-20">
       <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px] items-center">
         {/* Section Header */}
         <div className="flex flex-col items-center gap-4 text-center max-w-[850px]">
@@ -205,7 +205,7 @@ export default function FellowshipApplication({ data }: FellowshipApplicationPro
           )}
 
           {/* Title */}
-          <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]">
+          <h2 className="font-serif font-medium text-2xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-tight leading-tight lg:leading-[44px]">
             {title}
           </h2>
 
@@ -219,7 +219,7 @@ export default function FellowshipApplication({ data }: FellowshipApplicationPro
 
 
         {/* Form Container */}
-        <div className="bg-white p-6 sm:p-8 md:p-[32px] w-full max-w-[852px] shadow-xs">
+        <div className="bg-white p-4 sm:p-8 md:p-[32px] w-full max-w-[852px] shadow-xs rounded-2xl sm:rounded-none">
           {submitted ? (
             <div className="p-8 text-center flex flex-col items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-[#e6f9ff] flex items-center justify-center text-[#00bfff]">

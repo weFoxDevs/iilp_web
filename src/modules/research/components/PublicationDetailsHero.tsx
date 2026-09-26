@@ -22,7 +22,7 @@ export default function PublicationDetailsHero({ publication }: PublicationDetai
   const isRemoteImage = bgImage.startsWith("http://") || bgImage.startsWith("https://");
 
   return (
-    <section className="relative w-full min-h-[560px] lg:min-h-[640px] overflow-hidden flex flex-col items-center justify-center pt-[150px] sm:pt-[170px] pb-[120px] sm:pb-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[200px] text-center isolate">
+    <section className="relative w-full min-h-[460px] sm:min-h-[560px] lg:min-h-[640px] overflow-hidden flex flex-col items-center justify-center pt-[120px] sm:pt-[170px] pb-[100px] sm:pb-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[200px] text-center isolate">
       {/* Background Image with Dark & Gradient Overlays */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
@@ -41,16 +41,16 @@ export default function PublicationDetailsHero({ publication }: PublicationDetai
       </div>
 
       {/* Content Container */}
-      <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-5 sm:gap-6 relative z-10 w-full">
+      <div className="max-w-[1200px] mx-auto flex flex-col items-center gap-4 sm:gap-6 relative z-10 w-full">
         {/* Pill Badge */}
-        <div className="inline-flex items-center border border-[#e6f9ff]/80 rounded-full px-4 py-1.5 backdrop-blur-md bg-black/25 shadow-xs">
+        <div className="inline-flex items-center border border-[#e6f9ff]/80 rounded-full px-3.5 sm:px-4 py-1.5 backdrop-blur-md bg-black/25 shadow-xs">
           <span className="text-xs sm:text-sm font-sans font-semibold tracking-wider text-white uppercase">
             {category}
           </span>
         </div>
 
         {/* Heading */}
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[46px] font-serif font-semibold text-white tracking-[-0.02em] leading-tight sm:leading-[1.2] lg:leading-[56px] max-w-[980px] drop-shadow-sm">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-[46px] font-serif font-semibold text-white tracking-tight sm:tracking-[-0.02em] leading-tight sm:leading-[1.2] lg:leading-[56px] max-w-[980px] drop-shadow-sm">
           {title}
         </h1>
 
@@ -61,7 +61,7 @@ export default function PublicationDetailsHero({ publication }: PublicationDetai
 
         {/* Author / Date Meta pill */}
         {publication && (
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-2 text-white/95 text-xs sm:text-sm font-sans bg-black/25 backdrop-blur-md px-4 py-2 rounded-full border border-white/15">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-2 text-white/95 text-xs sm:text-sm font-sans bg-black/25 backdrop-blur-md px-3.5 sm:px-4 py-2 rounded-2xl sm:rounded-full border border-white/15 text-center">
             <span className="font-semibold text-white">{publication.authorName}</span>
             {publication.authorRole && (
               <>

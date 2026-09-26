@@ -105,7 +105,7 @@ export function PrivacyPolicyContent({ data }: PrivacyPolicyContentProps = {}) {
 
   return (
     <section
-      className="bg-white flex items-start justify-center px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px] py-16 sm:py-24 lg:py-[140px] relative w-full"
+      className="bg-white flex items-start justify-center px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px] py-12 sm:py-20 lg:py-[140px] relative w-full"
       data-node-id="150:74280"
     >
       <div

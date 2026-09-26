@@ -76,8 +76,8 @@ export default function ReadMoreResearch({ currentId }: ReadMoreResearchProps) {
   const displayed = items.length > 0 ? items : fallbackRelated;
 
   return (
-    <section className="bg-[#e6f9ff] py-16 lg:py-[140px] px-6 sm:px-12 md:px-16 lg:px-20 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px]">
+    <section className="bg-[#e6f9ff] py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+      <div className="max-w-[1440px] mx-auto flex flex-col gap-10 sm:gap-12 lg:gap-[80px]">
         {/* Top Header Row */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div className="flex flex-col gap-4 max-w-[650px]">
@@ -89,16 +89,16 @@ export default function ReadMoreResearch({ currentId }: ReadMoreResearchProps) {
             </div>
 
             {/* Section Title */}
-            <h2 className="font-serif font-medium text-3xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-[-0.72px] leading-tight lg:leading-[44px]">
+            <h2 className="font-serif font-medium text-2xl sm:text-4xl lg:text-[36px] text-[#0a0d12] tracking-tight sm:tracking-[-0.72px] leading-tight lg:leading-[44px]">
               Read more Research
             </h2>
           </div>
 
           {/* View All Button */}
-          <div className="self-start sm:self-auto">
+          <div className="w-full sm:w-auto">
             <Link
               href="/publications"
-              className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base px-6 py-3.5 rounded-full drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] transition-colors whitespace-nowrap"
+              className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#009ecc] text-white font-sans font-semibold text-base px-6 py-3.5 rounded-full drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] transition-colors whitespace-nowrap w-full sm:w-auto text-center"
             >
               View All
             </Link>

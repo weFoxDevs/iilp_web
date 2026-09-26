@@ -77,29 +77,29 @@ export function Testimonial() {
   const currentTestimonial = items[activeIndex] || defaultTestimonials[0];
 
   return (
-    <section className="w-full bg-white pb-16 lg:pb-[140px] px-4 md:px-8 lg:px-12 xl:px-[240px]">
+    <section className="w-full bg-white pb-12 sm:pb-16 lg:pb-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto">
-        <div className="bg-[#160d03] rounded-[8px] p-8 md:p-12 lg:pl-[64px] lg:pr-[76px] lg:pt-[61px] lg:pb-[69px] relative flex flex-col lg:flex-row justify-between items-start lg:items-center gap-10 lg:gap-16 overflow-hidden">
+        <div className="bg-[#160d03] rounded-2xl sm:rounded-[8px] p-6 sm:p-8 md:p-12 lg:pl-[64px] lg:pr-[76px] lg:pt-[61px] lg:pb-[69px] relative flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 sm:gap-10 lg:gap-16 overflow-hidden">
           
           {/* Left Column: Heading */}
           <div className="w-full lg:w-[451px] shrink-0">
-            <h2 className="font-playfair font-medium text-3xl md:text-4xl lg:text-[36px] leading-[1.25] lg:leading-[44px] text-white tracking-[-0.72px] max-w-[451px]">
+            <h2 className="font-playfair font-medium text-2xl sm:text-3xl md:text-4xl lg:text-[36px] leading-snug sm:leading-[1.25] lg:leading-[44px] text-white tracking-[-0.72px] max-w-[451px]">
               Happy students sharing experiences
             </h2>
           </div>
 
           {/* Right Column: Testimonial Carousel */}
-          <div className="w-full lg:w-[594px] flex flex-col relative min-h-[290px] justify-between">
+          <div className="w-full lg:w-[594px] flex flex-col relative min-h-[260px] sm:min-h-[290px] justify-between">
             
             {/* Active Testimonial Slide */}
-            <div className="flex flex-col gap-[24px] w-full animate-slide-in" key={currentTestimonial.id}>
+            <div className="flex flex-col gap-4 sm:gap-[24px] w-full animate-slide-in" key={currentTestimonial.id}>
               {/* Tagline */}
-              <p className="font-satoshi font-medium text-base md:text-[18px] leading-[30.6px] text-white/70">
+              <p className="font-satoshi font-medium text-sm sm:text-base md:text-[18px] leading-relaxed sm:leading-[30.6px] text-white/70">
                 {currentTestimonial.tagline}
               </p>
               
               {/* Quote */}
-              <p className="font-inter font-medium text-xl md:text-[24px] leading-[1.4] md:leading-[33.6px] tracking-[-0.5px] text-white">
+              <p className="font-inter font-medium text-base sm:text-xl md:text-[24px] leading-relaxed sm:leading-[1.4] md:leading-[33.6px] tracking-[-0.5px] text-white">
                 &ldquo;{currentTestimonial.quote}&rdquo;
               </p>
 
