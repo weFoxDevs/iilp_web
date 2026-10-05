@@ -10,6 +10,7 @@ import {
 import { uploadMediaFile } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
 import ConfirmationModal from "./ConfirmationModal";
+import { RichTextEditor } from "./RichTextEditor";
 
 interface LeadershipManagerProps {
   token: string;
@@ -437,7 +438,7 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
       {/* Modal: Add or Edit Leadership Member */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-gray-100 my-8">
+          <div className="bg-white rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl border border-gray-100 my-8">
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50">
               <h3 className="font-bold text-gray-900 text-lg">
                 {editingId ? "Edit Leadership Profile" : "Add New Leadership Profile"}
@@ -453,7 +454,11 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+            <form
+              onSubmit={handleSave}
+              data-lenis-prevent="true"
+              className="p-6 space-y-4 max-h-[80vh] overflow-y-auto modal-scroll"
+            >
               {/* Name & Initials */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
@@ -564,17 +569,21 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
                 </div>
               </div>
 
-              {/* About / Bio */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+              {/* About / Bio – Rich Text Editor */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
                   About / Bio (Detailed Profile Overview)
+                  <span className="ml-1.5 font-normal text-gray-400 capitalize">
+                    (Rich Text Editor)
+                  </span>
                 </label>
-                <textarea
-                  rows={3}
+                <RichTextEditor
                   value={formData.about || ""}
-                  onChange={(e) => setFormData({ ...formData, about: e.target.value })}
+                  onChange={(html) =>
+                    setFormData((prev) => ({ ...prev, about: html }))
+                  }
                   placeholder="The Vice President supports the President in providing institutional leadership..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-hidden focus:border-[#00698c]"
+                  minHeight={220}
                 />
               </div>
 
