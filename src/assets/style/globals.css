@@ -264,26 +264,58 @@ select option {
  * ------------------------------------------------------------- */
 .modal-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #c7c7e8 transparent;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 .modal-scroll::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 
 .modal-scroll::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 99px;
-  margin-top: 16px;
-  margin-bottom: 16px;
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
 
 .modal-scroll::-webkit-scrollbar-thumb {
-  background: #c7c7e8;
+  background: #cbd5e1;
   border-radius: 99px;
   transition: background 0.2s;
 }
 
 .modal-scroll::-webkit-scrollbar-thumb:hover {
-  background: #8f8fd0;
+  background: #94a3b8;
 }
+
+/* -------------------------------------------------------------
+ * Modal Transitions
+ * ------------------------------------------------------------- */
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-overlay-in {
+  animation: overlayFadeIn 0.2s ease-out forwards;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-in {
+  animation: modalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

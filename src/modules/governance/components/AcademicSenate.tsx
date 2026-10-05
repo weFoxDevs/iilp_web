@@ -13,7 +13,11 @@ export default function AcademicSenate({ data }: AcademicSenateProps) {
     data?.subtitle ??
     'The Academic Senate serves as the principal academic and intellectual authority of IILP, responsible for safeguarding academic quality, promoting scholarly excellence, ensuring research integrity, and providing strategic leadership on all academic matters. Composition: Dean of Academic Affairs (currently vacant), together with departmental leadership.';
   const actionText = data?.actionText ?? 'Explore Academic Departments';
-  const actionUrl = data?.actionUrl ?? '/academic#departments';
+  const rawActionUrl = data?.actionUrl ?? '/academics#departments';
+  const actionUrl =
+    rawActionUrl === '/academic#departments' || rawActionUrl === '/academic'
+      ? '/academics#departments'
+      : rawActionUrl;
   const bgImage = data?.bgImage || '/assets/about-vision-students.png';
 
   return (

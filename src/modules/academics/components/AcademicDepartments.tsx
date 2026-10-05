@@ -126,7 +126,7 @@ export default function AcademicDepartments({ data }: AcademicDepartmentsProps) 
       : defaultDepartments);
 
   return (
-    <section className="bg-white py-12 md:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
+    <section id="departments" className="bg-white py-12 md:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
       <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px]">
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">

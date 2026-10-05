@@ -28,6 +28,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/academic",
+        destination: "/academics",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

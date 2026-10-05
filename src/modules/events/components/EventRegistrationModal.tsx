@@ -93,6 +93,7 @@ export function EventRegistrationModal({
       aria-modal="true"
     >
       <div
+        data-lenis-prevent="true"
         className="bg-white rounded-[24px] shadow-2xl w-full max-w-[760px] p-6 sm:p-10 relative overflow-y-auto flex flex-col gap-6 max-h-[calc(100vh-4rem)] modal-scroll my-8"
         onClick={(e) => e.stopPropagation()}
       >

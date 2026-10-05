@@ -1,14 +1,13 @@
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PageSectionData } from '@/common/services/cms.service';
+import { fetchPublicLeadershipMembers } from '@/common/services/leadership.service';
+import LeadershipProfileModal, {
+  LeadershipMemberData,
+} from '@/modules/leadership-directory/components/LeadershipProfileModal';
 
-interface FoundingMember {
-  name: string;
-  role: string;
-  image: string;
-}
-
-const defaultFoundingMembers: FoundingMember[] = [
+const defaultFoundingMembers: LeadershipMemberData[] = [
   {
     name: 'Mohammed Siraj',
     role: 'Founding Member',
@@ -31,6 +30,14 @@ interface FoundingMembersProps {
 }
 
 export default function FoundingMembers({ data }: FoundingMembersProps) {
+  const [selectedMember, setSelectedMember] = useState<LeadershipMemberData | null>(null);
+  const [membersList, setMembersList] = useState<LeadershipMemberData[]>(() => {
+    if (Array.isArray(data?.metadata?.members) && data.metadata.members.length > 0) {
+      return data.metadata.members as LeadershipMemberData[];
+    }
+    return defaultFoundingMembers;
+  });
+
   const badge = data?.badge ?? 'Founding Members';
   const title = data?.title ?? 'Board of Founding Members';
   const subtitle =
@@ -39,10 +46,61 @@ export default function FoundingMembers({ data }: FoundingMembersProps) {
   const actionText = data?.actionText ?? 'View Leadership Directory';
   const actionUrl = data?.actionUrl ?? '/leadership-directory';
 
-  const membersList: FoundingMember[] =
-    Array.isArray(data?.metadata?.members) && data.metadata.members.length > 0
-      ? (data.metadata.members as FoundingMember[])
-      : defaultFoundingMembers;
+  useEffect(() => {
+    let active = true;
+    fetchPublicLeadershipMembers()
+      .then((apiMembers) => {
+        if (!active || !Array.isArray(apiMembers) || apiMembers.length === 0) return;
+
+        // Filter for members associated with the founding board from leadership API
+        const founding = apiMembers.filter(
+          (m) =>
+            m.isActive !== false &&
+            (m.role?.toLowerCase().includes('founding') ||
+              m.role?.toLowerCase().includes('founder'))
+        );
+
+        if (founding.length > 0) {
+          // Deduplicate by name if duplicate entries exist in API
+          const seen = new Set<string>();
+          const unique: LeadershipMemberData[] = [];
+          for (const m of founding) {
+            const key = m.name?.trim().toLowerCase();
+            if (key && !seen.has(key)) {
+              seen.add(key);
+
+              // Look for any full profile entry for this person in apiMembers to enrich missing bio/functions
+              const fullProfile = apiMembers.find(
+                (other) =>
+                  other.name?.trim().toLowerCase() === key &&
+                  (other.about ||
+                    (Array.isArray(other.accountabilityFunctions) &&
+                      other.accountabilityFunctions.length > 0))
+              );
+
+              unique.push({
+                ...m,
+                image: m.image || fullProfile?.image,
+                about: m.about || fullProfile?.about,
+                accountabilityFunctions:
+                  Array.isArray(m.accountabilityFunctions) &&
+                  m.accountabilityFunctions.length > 0
+                    ? m.accountabilityFunctions
+                    : fullProfile?.accountabilityFunctions,
+              });
+            }
+          }
+          setMembersList(unique);
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load public leadership members for founding board:', err);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <section className="w-full bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
@@ -85,9 +143,12 @@ export default function FoundingMembers({ data }: FoundingMembersProps) {
         {/* Members Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-[24px] w-full">
           {membersList.map((member, index) => (
-
-            <div key={index} className="flex flex-col items-start w-full group">
-              <div className="relative w-full aspect-[277.5/370] overflow-hidden bg-gray-100">
+            <div
+              key={index}
+              onClick={() => setSelectedMember(member)}
+              className="flex flex-col items-start w-full group cursor-pointer"
+            >
+              <div className="relative w-full aspect-[277.5/370] overflow-hidden bg-gray-100 rounded-sm">
                 <Image
                   src={member.image || '/assets/governance-founding-member.png'}
                   alt={member.name || 'Founding Member'}
@@ -98,7 +159,7 @@ export default function FoundingMembers({ data }: FoundingMembersProps) {
               </div>
 
               <div className="flex flex-col gap-2.5 items-start mt-6 lg:mt-[30px] w-full">
-                <h3 className="text-2xl lg:text-[24px] font-serif font-bold text-[#0a0d12] leading-tight">
+                <h3 className="text-2xl lg:text-[24px] font-serif font-bold text-[#0a0d12] leading-tight group-hover:text-[#00bfff] transition-colors">
                   {member.name}
                 </h3>
                 <p className="text-base md:text-[20px] text-[#414651] font-sans leading-[30px]">
@@ -110,6 +171,13 @@ export default function FoundingMembers({ data }: FoundingMembersProps) {
         </div>
 
       </div>
+
+      {/* Leadership Profile Modal */}
+      <LeadershipProfileModal
+        member={selectedMember}
+        isOpen={Boolean(selectedMember)}
+        onClose={() => setSelectedMember(null)}
+      />
     </section>
   );
 }
