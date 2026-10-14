@@ -27,7 +27,11 @@ export default function DepartmentFaculty() {
         if (!isMounted) return;
         const members = data || [];
         setFacultyMembers(members);
-        setHasMore(members.length >= PAGE_SIZE);
+        if (members.meta?.hasNextPage !== undefined) {
+          setHasMore(members.meta.hasNextPage);
+        } else {
+          setHasMore(members.length >= PAGE_SIZE);
+        }
       })
       .catch((err) => {
         console.warn("[DepartmentFaculty] Failed to load academic leadership members:", err);
@@ -64,7 +68,9 @@ export default function DepartmentFaculty() {
           return [...prev, ...fresh];
         });
         setCurrentPage(nextPage);
-        if (newMembers.length < PAGE_SIZE) {
+        if (newMembers.meta?.hasNextPage !== undefined) {
+          setHasMore(newMembers.meta.hasNextPage);
+        } else if (newMembers.length < PAGE_SIZE) {
           setHasMore(false);
         }
       } else {

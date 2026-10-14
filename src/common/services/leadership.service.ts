@@ -167,10 +167,48 @@ export interface FetchLeadershipOptions {
   offset?: number;
 }
 
+export interface LeadershipPaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  perPage: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  next: number | null;
+  prev: number | null;
+  nextPage: number | null;
+  prevPage: number | null;
+}
+
+export interface PaginatedLeadershipResponse {
+  data: LeadershipMemberItem[];
+  items?: LeadershipMemberItem[];
+  meta: LeadershipPaginationMeta;
+  total: number;
+  page: number;
+  limit: number;
+  perPage: number;
+  totalPages: number;
+  next: number | null;
+  prev: number | null;
+}
+
+export type LeadershipMemberList = LeadershipMemberItem[] & {
+  meta?: LeadershipPaginationMeta;
+  total?: number;
+  page?: number;
+  limit?: number;
+  perPage?: number;
+  totalPages?: number;
+  next?: number | null;
+  prev?: number | null;
+};
+
 export async function fetchPublicLeadershipMembers(
   typeOrOptions?: string | FetchLeadershipOptions,
   options?: { limit?: number; page?: number; offset?: number }
-): Promise<LeadershipMemberItem[]> {
+): Promise<LeadershipMemberList> {
   try {
     let type: string | undefined;
     let limit: number | undefined;
@@ -201,13 +239,58 @@ export async function fetchPublicLeadershipMembers(
     const res = await fetch(url);
     if (!res.ok) {
       console.warn(`[Leadership] Failed to fetch public members: status ${res.status}`);
-      return [];
+      return [] as LeadershipMemberList;
     }
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
+    const json = await res.json();
+    let items: LeadershipMemberItem[] = [];
+    let meta: LeadershipPaginationMeta | undefined = undefined;
+
+    if (Array.isArray(json)) {
+      items = json;
+    } else if (json && typeof json === 'object') {
+      if (Array.isArray(json.data)) {
+        items = json.data;
+      } else if (Array.isArray(json.items)) {
+        items = json.items;
+      }
+      if (json.meta) {
+        meta = json.meta;
+      } else if (json.total !== undefined) {
+        const total = Number(json.total) || 0;
+        const curPage = Number(json.page) || 1;
+        const perPage = Number(json.perPage || json.limit) || items.length || 1;
+        const totalPages = Number(json.totalPages) || Math.max(1, Math.ceil(total / perPage));
+        meta = {
+          total,
+          page: curPage,
+          limit: perPage,
+          perPage,
+          totalPages,
+          hasNextPage: curPage < totalPages,
+          hasPrevPage: curPage > 1,
+          next: curPage < totalPages ? curPage + 1 : null,
+          prev: curPage > 1 ? curPage - 1 : null,
+          nextPage: curPage < totalPages ? curPage + 1 : null,
+          prevPage: curPage > 1 ? curPage - 1 : null,
+        };
+      }
+    }
+
+    const result = [...items] as LeadershipMemberList;
+    if (meta) {
+      result.meta = meta;
+      result.total = meta.total;
+      result.page = meta.page;
+      result.limit = meta.limit;
+      result.perPage = meta.perPage;
+      result.totalPages = meta.totalPages;
+      result.next = meta.next;
+      result.prev = meta.prev;
+    }
+    return result;
   } catch (err) {
     console.warn('[Leadership] Network error while fetching public leadership members:', err);
-    return [];
+    return [] as LeadershipMemberList;
   }
 }
 
