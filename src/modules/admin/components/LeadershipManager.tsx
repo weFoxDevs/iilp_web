@@ -26,6 +26,10 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
   const [roleFilter, setRoleFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(9); // 9 members per page (3x3 grid)
+
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -263,6 +267,21 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
     return matchesSearch && matchesRole && matchesType;
   });
 
+  // Reset page when filter or page size changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, roleFilter, typeFilter, pageSize]);
+
+  // Paginated members slice
+  const totalFiltered = filteredMembers.length;
+  const effectivePageSize = pageSize === 0 ? totalFiltered || 1 : pageSize;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / effectivePageSize));
+  const safePage = Math.min(Math.max(1, currentPage), totalPages);
+  const paginatedMembers =
+    pageSize === 0
+      ? filteredMembers
+      : filteredMembers.slice((safePage - 1) * effectivePageSize, safePage * effectivePageSize);
+
   return (
     <div className="space-y-6">
       {/* Top Header & Actions */}
@@ -363,7 +382,7 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMembers.map((item) => (
+          {paginatedMembers.map((item) => (
             <div
               key={item.id}
               className={`bg-white rounded-2xl border transition-all p-5 flex flex-col justify-between shadow-xs hover:shadow-md ${
@@ -464,6 +483,111 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination Bar */}
+      {!isLoading && totalFiltered > 0 && (
+        <div className="bg-white px-5 py-4 rounded-2xl border border-gray-200 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+            <span>
+              Showing{" "}
+              <span className="font-bold text-gray-900">
+                {totalFiltered === 0 ? 0 : (safePage - 1) * effectivePageSize + 1}
+              </span>
+              {" – "}
+              <span className="font-bold text-gray-900">
+                {Math.min(safePage * effectivePageSize, totalFiltered)}
+              </span>{" "}
+              of <span className="font-bold text-gray-900">{totalFiltered}</span> leaders
+            </span>
+
+            <div className="flex items-center gap-1.5 pl-3 border-l border-gray-200">
+              <label htmlFor="per-page-select" className="text-gray-500">Per page:</label>
+              <select
+                id="per-page-select"
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-800 font-semibold focus:bg-white focus:outline-hidden focus:border-[#00698c] cursor-pointer"
+              >
+                <option value={6}>6</option>
+                <option value={9}>9</option>
+                <option value={12}>12</option>
+                <option value={24}>24</option>
+                <option value={0}>All</option>
+              </select>
+            </div>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={safePage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                <span>Previous</span>
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => {
+                    if (totalPages <= 7) return true;
+                    if (p === 1 || p === totalPages) return true;
+                    if (Math.abs(p - safePage) <= 1) return true;
+                    return false;
+                  })
+                  .reduce<Array<number | string>>((acc, p, idx, arr) => {
+                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) {
+                      acc.push(`dots-${p}`);
+                    }
+                    acc.push(p);
+                    return acc;
+                  }, [])
+                  .map((item) => {
+                    if (typeof item === "string") {
+                      return (
+                        <span key={item} className="px-2 text-xs text-gray-400">
+                          …
+                        </span>
+                      );
+                    }
+                    const num = item;
+                    const isActive = safePage === num;
+                    return (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setCurrentPage(num)}
+                        className={`min-w-8 h-8 px-2.5 rounded-lg font-bold text-xs cursor-pointer transition-all ${
+                          isActive
+                            ? "bg-[#00698c] text-white shadow-xs"
+                            : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    );
+                  })}
+              </div>
+
+              <button
+                type="button"
+                disabled={safePage >= totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
+              >
+                <span>Next</span>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       )}
 

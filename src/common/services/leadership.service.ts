@@ -330,12 +330,35 @@ export async function fetchLeadershipMemberByIdOrSlug(
 
 export async function fetchAdminLeadershipMembers(
   token: string,
-  type?: string
-): Promise<LeadershipMemberItem[]> {
-  const url =
-    type && type !== 'all'
-      ? `${getApiUrl()}/admin/leadership?type=${encodeURIComponent(type)}`
-      : `${getApiUrl()}/admin/leadership`;
+  typeOrOptions?: string | FetchLeadershipOptions,
+  options?: { limit?: number; page?: number; offset?: number }
+): Promise<LeadershipMemberList> {
+  let type: string | undefined;
+  let limit: number | undefined;
+  let page: number | undefined;
+  let offset: number | undefined;
+
+  if (typeof typeOrOptions === 'string') {
+    type = typeOrOptions;
+    limit = options?.limit;
+    page = options?.page;
+    offset = options?.offset;
+  } else if (typeOrOptions && typeof typeOrOptions === 'object') {
+    type = typeOrOptions.type;
+    limit = typeOrOptions.limit;
+    page = typeOrOptions.page;
+    offset = typeOrOptions.offset;
+  }
+
+  const params = new URLSearchParams();
+  if (type && type !== 'all') params.append('type', type);
+  if (limit !== undefined && limit > 0) params.append('limit', String(limit));
+  if (page !== undefined && page > 0) params.append('page', String(page));
+  if (offset !== undefined && offset >= 0) params.append('offset', String(offset));
+
+  const qs = params.toString();
+  const url = qs ? `${getApiUrl()}/admin/leadership?${qs}` : `${getApiUrl()}/admin/leadership`;
+
   const res = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -345,8 +368,53 @@ export async function fetchAdminLeadershipMembers(
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || `Failed to fetch leadership members (${res.status})`);
   }
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
+  const json = await res.json();
+  let items: LeadershipMemberItem[] = [];
+  let meta: LeadershipPaginationMeta | undefined = undefined;
+
+  if (Array.isArray(json)) {
+    items = json;
+  } else if (json && typeof json === 'object') {
+    if (Array.isArray(json.data)) {
+      items = json.data;
+    } else if (Array.isArray(json.items)) {
+      items = json.items;
+    }
+    if (json.meta) {
+      meta = json.meta;
+    } else if (json.total !== undefined) {
+      const total = Number(json.total) || 0;
+      const curPage = Number(json.page) || 1;
+      const perPage = Number(json.perPage || json.limit) || items.length || 1;
+      const totalPages = Number(json.totalPages) || Math.max(1, Math.ceil(total / perPage));
+      meta = {
+        total,
+        page: curPage,
+        limit: perPage,
+        perPage,
+        totalPages,
+        hasNextPage: curPage < totalPages,
+        hasPrevPage: curPage > 1,
+        next: curPage < totalPages ? curPage + 1 : null,
+        prev: curPage > 1 ? curPage - 1 : null,
+        nextPage: curPage < totalPages ? curPage + 1 : null,
+        prevPage: curPage > 1 ? curPage - 1 : null,
+      };
+    }
+  }
+
+  const result = [...items] as LeadershipMemberList;
+  if (meta) {
+    result.meta = meta;
+    result.total = meta.total;
+    result.page = meta.page;
+    result.limit = meta.limit;
+    result.perPage = meta.perPage;
+    result.totalPages = meta.totalPages;
+    result.next = meta.next;
+    result.prev = meta.prev;
+  }
+  return result;
 }
 
 export async function createAdminLeadershipMember(
