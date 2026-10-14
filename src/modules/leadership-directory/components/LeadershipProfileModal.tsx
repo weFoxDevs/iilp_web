@@ -113,15 +113,11 @@ export default function LeadershipProfileModal({
     .map((p) => p.trim())
     .filter(Boolean);
 
-  const fallbackFunctions = isFounding
-    ? DEFAULT_FOUNDING_FUNCTIONS
-    : DEFAULT_FUNCTIONS;
-
   const functionsList =
     Array.isArray(member.accountabilityFunctions) &&
     member.accountabilityFunctions.length > 0
       ? member.accountabilityFunctions
-      : fallbackFunctions;
+      : [];
 
   return (
     <div

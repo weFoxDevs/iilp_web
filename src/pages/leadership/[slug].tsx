@@ -253,15 +253,11 @@ export default function LeadershipDetailsPage() {
   const defaultAbout = isFounding ? DEFAULT_FOUNDING_ABOUT : DEFAULT_VP_ABOUT;
   const aboutText = member?.about?.trim() || defaultAbout;
 
-  const fallbackFunctions = isFounding
-    ? DEFAULT_FOUNDING_FUNCTIONS
-    : DEFAULT_FUNCTIONS;
-
   const functionsList =
     Array.isArray(member?.accountabilityFunctions) &&
     member.accountabilityFunctions.length > 0
       ? member.accountabilityFunctions
-      : fallbackFunctions;
+      : [];
 
   // Build structured sections for pagination / tabs supporting both Rich Text HTML & plain text
   const sections = parseProfileSections(aboutText, functionsList);
