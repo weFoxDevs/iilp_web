@@ -50,6 +50,147 @@ function isSectionHeading(text: string): boolean {
   );
 }
 
+function cleanHeadingText(raw: string): string {
+  return raw
+    .replace(/<[^>]+>/g, '') // remove HTML tags
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getShortTitle(title: string): string {
+  return (
+    title
+      .replace(/^(academic background|education)/i, 'Academic')
+      .replace(/^(research and scholarly interests|research interests)/i, 'Research')
+      .replace(/^(publications and academic contributions|publications)/i, 'Publications')
+      .replace(/^(institutional leadership and vision|leadership and vision)/i, 'Leadership')
+      .slice(0, 22)
+      .trim() || 'Section'
+  );
+}
+
+interface ProfileSection {
+  id: string;
+  title: string;
+  shortTitle: string;
+  htmlContent: string;
+  functions?: string[];
+}
+
+function parseProfileSections(
+  rawAbout: string,
+  functionsList: string[]
+): ProfileSection[] {
+  const sections: ProfileSection[] = [];
+  const text = (rawAbout || '').trim();
+  const isHtml = /<[a-z][\s\S]*>/i.test(text);
+
+  if (isHtml) {
+    // Check for heading tags: <h1>, <h2>, <h3>, <h4>
+    const headingRegex = /<h([1-4])[^>]*>([\s\S]*?)<\/h\1>/gi;
+    const matches: { index: number; fullLength: number; title: string }[] = [];
+    let m: RegExpExecArray | null;
+
+    while ((m = headingRegex.exec(text)) !== null) {
+      matches.push({
+        index: m.index,
+        fullLength: m[0].length,
+        title: cleanHeadingText(m[2]),
+      });
+    }
+
+    if (matches.length > 0) {
+      // Content before first heading
+      const introHtml = text.slice(0, matches[0].index).trim();
+      if (introHtml) {
+        sections.push({
+          id: 'sec-1',
+          title: 'Overview & Biography',
+          shortTitle: 'Overview',
+          htmlContent: introHtml,
+        });
+      }
+
+      // Sections defined by headings
+      for (let i = 0; i < matches.length; i++) {
+        const currentMatch = matches[i];
+        const nextIndex =
+          i + 1 < matches.length ? matches[i + 1].index : text.length;
+        const sectionHtml = text
+          .slice(currentMatch.index + currentMatch.fullLength, nextIndex)
+          .trim();
+
+        sections.push({
+          id: `sec-${sections.length + 1}`,
+          title: currentMatch.title || 'Section',
+          shortTitle: getShortTitle(currentMatch.title),
+          htmlContent: sectionHtml,
+        });
+      }
+    } else {
+      // HTML without <h1>-<h4> tags (just <p> tags)
+      sections.push({
+        id: 'sec-1',
+        title: 'Overview & Biography',
+        shortTitle: 'Overview',
+        htmlContent: text,
+      });
+    }
+  } else {
+    // Plain text input (split by newlines)
+    const lines = text
+      .split(/\r?\n+/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    let currentTitle = 'Overview & Biography';
+    let currentParas: string[] = [];
+
+    for (const line of lines) {
+      if (isSectionHeading(line)) {
+        if (currentParas.length > 0) {
+          sections.push({
+            id: `sec-${sections.length + 1}`,
+            title: currentTitle,
+            shortTitle: getShortTitle(currentTitle),
+            htmlContent: currentParas.map((p) => `<p>${p}</p>`).join(''),
+          });
+        }
+        currentTitle = line;
+        currentParas = [];
+      } else {
+        currentParas.push(line);
+      }
+    }
+
+    if (currentParas.length > 0) {
+      sections.push({
+        id: `sec-${sections.length + 1}`,
+        title: currentTitle,
+        shortTitle: getShortTitle(currentTitle),
+        htmlContent: currentParas.map((p) => `<p>${p}</p>`).join(''),
+      });
+    }
+  }
+
+  // If accountability functions exist, append as the final section
+  if (functionsList && functionsList.length > 0) {
+    sections.push({
+      id: `sec-${sections.length + 1}`,
+      title: 'Key Functions & Institutional Responsibilities',
+      shortTitle: 'Functions',
+      htmlContent: '',
+      functions: functionsList,
+    });
+  }
+
+  return sections;
+}
+
 export default function LeadershipDetailsPage() {
   const router = useRouter();
   const { slug } = router.query;
@@ -115,12 +256,6 @@ export default function LeadershipDetailsPage() {
   const defaultAbout = isFounding ? DEFAULT_FOUNDING_ABOUT : DEFAULT_VP_ABOUT;
   const aboutText = member?.about?.trim() || defaultAbout;
 
-  // Split about text into paragraphs
-  const paragraphs = aboutText
-    .split(/\r?\n+/)
-    .map((p) => p.trim())
-    .filter(Boolean);
-
   const fallbackFunctions = isFounding
     ? DEFAULT_FOUNDING_FUNCTIONS
     : DEFAULT_FUNCTIONS;
@@ -131,61 +266,8 @@ export default function LeadershipDetailsPage() {
       ? member.accountabilityFunctions
       : fallbackFunctions;
 
-  // Build structured sections for pagination / tabs if content is long
-  const sections: {
-    id: string;
-    title: string;
-    shortTitle: string;
-    paragraphs: string[];
-    functions?: string[];
-  }[] = [];
-
-  let currentTitle = 'Overview & Biography';
-  let currentShort = 'Overview';
-  let currentParas: string[] = [];
-
-  for (const p of paragraphs) {
-    if (isSectionHeading(p)) {
-      if (currentParas.length > 0) {
-        sections.push({
-          id: `sec-${sections.length + 1}`,
-          title: currentTitle,
-          shortTitle: currentShort,
-          paragraphs: currentParas,
-        });
-      }
-      currentTitle = p;
-      // Derive a short clean title for buttons
-      currentShort = p
-        .replace(/^(academic background|education)/i, 'Academic')
-        .replace(/^(research and scholarly interests|research interests)/i, 'Research')
-        .replace(/^(publications and academic contributions|publications)/i, 'Publications')
-        .replace(/^(institutional leadership and vision|leadership and vision)/i, 'Leadership')
-        .slice(0, 22);
-      currentParas = [];
-    } else {
-      currentParas.push(p);
-    }
-  }
-
-  if (currentParas.length > 0) {
-    sections.push({
-      id: `sec-${sections.length + 1}`,
-      title: currentTitle,
-      shortTitle: currentShort,
-      paragraphs: currentParas,
-    });
-  }
-
-  if (functionsList.length > 0) {
-    sections.push({
-      id: `sec-${sections.length + 1}`,
-      title: 'Key Functions & Institutional Responsibilities',
-      shortTitle: 'Functions',
-      paragraphs: [],
-      functions: functionsList,
-    });
-  }
+  // Build structured sections for pagination / tabs supporting both Rich Text HTML & plain text
+  const sections = parseProfileSections(aboutText, functionsList);
 
   const [activeSectionIndex, setActiveSectionIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'paged' | 'full'>('paged');
@@ -540,20 +622,17 @@ export default function LeadershipDetailsPage() {
                           </div>
                         </div>
 
-                        {/* Section Paragraphs */}
-                        {currentSection.paragraphs.length > 0 && (
-                          <div className="space-y-5 text-[#374151] text-base sm:text-lg leading-relaxed font-sans">
-                            {currentSection.paragraphs.map((para, pIdx) => (
-                              <p key={pIdx} className="leading-relaxed">
-                                {para}
-                              </p>
-                            ))}
-                          </div>
-                        )}
+                        {/* Section HTML Content */}
+                        {currentSection.htmlContent ? (
+                          <div
+                            className="w-full text-base sm:text-lg text-[#374151] font-sans leading-relaxed [&>p]:mb-5 [&>p]:leading-relaxed [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-5 [&>blockquote]:border-l-4 [&>blockquote]:border-[#00698c] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:my-4 [&>blockquote]:text-slate-600 [&>a]:text-[#00698c] [&>a]:underline [&>strong]:font-semibold [&>strong]:text-slate-900"
+                            dangerouslySetInnerHTML={{ __html: currentSection.htmlContent }}
+                          />
+                        ) : null}
 
                         {/* Functions / Responsibilities List */}
                         {currentSection.functions && currentSection.functions.length > 0 && (
-                          <div className="space-y-3">
+                          <div className="space-y-3 mt-4">
                             <p className="text-sm text-gray-500 font-sans italic mb-4">
                               Mandated institutional roles and institutional accountabilities:
                             </p>
@@ -635,44 +714,39 @@ export default function LeadershipDetailsPage() {
                   </div>
                 ) : (
                   /* FULL CONTINUOUS VIEW (Fallback or when toggled to Full) */
-                  <div className="w-full mt-6">
-                    {/* Biography Paragraphs */}
-                    <div className="space-y-5 text-[#374151] text-base sm:text-lg leading-relaxed font-sans">
-                      {paragraphs.map((p, idx) => {
-                        if (isSectionHeading(p)) {
-                          return (
-                            <h2
-                              key={idx}
-                              className="text-xl sm:text-2xl font-bold text-[#111827] font-serif pt-6 pb-2 border-b border-gray-100 w-full"
-                            >
-                              {p}
-                            </h2>
-                          );
-                        }
-                        return (
-                          <p key={idx} className="leading-relaxed">
-                            {p}
-                          </p>
-                        );
-                      })}
-                    </div>
+                  <div className="w-full mt-6 space-y-8">
+                    {sections.map((sec, idx) => (
+                      <div key={sec.id} className="w-full">
+                        {idx > 0 && (
+                          <h2 className="text-xl sm:text-2xl font-bold text-[#111827] font-serif pt-6 pb-2 border-b border-gray-100 mb-5">
+                            {sec.title}
+                          </h2>
+                        )}
 
-                    {/* Accountability Functions / Strategic Responsibilities */}
-                    {functionsList.length > 0 && (
-                      <div className="mt-10 pt-8 border-t border-gray-200/80 w-full">
-                        <h3 className="text-lg sm:text-xl font-bold text-[#111827] mb-4 font-serif">
-                          Key Functions & Institutional Responsibilities
-                        </h3>
-                        <ul className="space-y-2.5">
-                          {functionsList.map((fn, idx) => (
-                            <li key={idx} className="flex items-start gap-3 text-base text-[#4b5563]">
-                              <span className="w-2 h-2 rounded-full bg-[#00698c] mt-2 shrink-0" />
-                              <span>{fn}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        {sec.htmlContent && (
+                          <div
+                            className="w-full text-base sm:text-lg text-[#374151] font-sans leading-relaxed [&>p]:mb-5 [&>p]:leading-relaxed [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-5 [&>blockquote]:border-l-4 [&>blockquote]:border-[#00698c] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:my-4 [&>blockquote]:text-slate-600 [&>a]:text-[#00698c] [&>a]:underline [&>strong]:font-semibold [&>strong]:text-slate-900"
+                            dangerouslySetInnerHTML={{ __html: sec.htmlContent }}
+                          />
+                        )}
+
+                        {sec.functions && sec.functions.length > 0 && (
+                          <div className="mt-8 pt-6 border-t border-gray-200/80 w-full">
+                            <h3 className="text-lg sm:text-xl font-bold text-[#111827] mb-4 font-serif">
+                              Key Functions & Institutional Responsibilities
+                            </h3>
+                            <ul className="space-y-2.5">
+                              {sec.functions.map((fn, fIdx) => (
+                                <li key={fIdx} className="flex items-start gap-3 text-base text-[#4b5563]">
+                                  <span className="w-2 h-2 rounded-full bg-[#00698c] mt-2 shrink-0" />
+                                  <span>{fn}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
                 )}
               </div>
