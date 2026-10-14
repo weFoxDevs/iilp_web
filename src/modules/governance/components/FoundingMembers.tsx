@@ -165,11 +165,11 @@ export default function FoundingMembers({
         {/* 4-Column Portrait Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
           {membersList.map((member, index) => {
-            const memberSlug = createSlugFromName(member.name);
+            const memberIdOrSlug = member.id || member._id || createSlugFromName(member.name);
             return (
               <Link
-                key={member._id || member.id || `${member.name}-${index}`}
-                href={`/leadership/${memberSlug}`}
+                key={member.id || member._id || `${member.name}-${index}`}
+                href={`/leadership/${memberIdOrSlug}`}
                 className="flex flex-col items-center text-center group cursor-pointer transition-all duration-300"
               >
                 {/* Portrait image with softly rounded top corners */}

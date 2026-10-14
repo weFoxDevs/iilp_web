@@ -200,11 +200,11 @@ export default function InstitutionalLeadership({ data }: InstitutionalLeadershi
         {/* 12-Member Grid (4 columns) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-[24px] w-full">
           {membersList.map((member, index) => {
-            const memberSlug = createSlugFromName(member.name);
+            const memberIdOrSlug = member.id || member._id || createSlugFromName(member.name);
             return (
               <Link
-                key={index}
-                href={`/leadership/${memberSlug}`}
+                key={member.id || member._id || index}
+                href={`/leadership/${memberIdOrSlug}`}
                 className="flex flex-col items-start w-full group cursor-pointer"
               >
                 <div className="relative w-full aspect-[277.5/370] overflow-hidden bg-gray-100 rounded-sm">

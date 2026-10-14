@@ -306,13 +306,15 @@ export async function fetchLeadershipMemberByIdOrSlug(
       if (res.ok) {
         const item = await res.json();
         if (item && item.id) return item;
+        if (item && item.data && item.data.id) return item.data;
       }
     } catch (err) {
       console.warn(`[Leadership] Failed to fetch by ID ${identifier}:`, err);
     }
+    return null;
   }
 
-  // Fallback or search by slug/name across public members
+  // Fallback or search by slug/name across public members ONLY when not a UUID
   const allMembers = await fetchPublicLeadershipMembers();
   const cleanTarget = identifier.toLowerCase().trim();
 

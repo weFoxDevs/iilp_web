@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 export interface LeadershipMemberData {
+  id?: string;
+  _id?: string;
   name: string;
   role: string;
   initials?: string;

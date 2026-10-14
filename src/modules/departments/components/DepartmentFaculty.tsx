@@ -137,7 +137,7 @@ export default function DepartmentFaculty() {
         ) : facultyMembers.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
             {facultyMembers.map((member, index) => {
-              const memberSlug = createSlugFromName(member.name);
+              const memberIdOrSlug = member.id || createSlugFromName(member.name);
               const hasImg = member.image && !failedImages[member.id];
               const initials =
                 member.initials ||
@@ -153,7 +153,7 @@ export default function DepartmentFaculty() {
               return (
                 <Link
                   key={member.id || `${member.name}-${index}`}
-                  href={`/leadership/${memberSlug}`}
+                  href={`/leadership/${memberIdOrSlug}`}
                   className="flex flex-col items-center text-center group cursor-pointer transition-all duration-300"
                 >
                   {/* Portrait image with softly rounded top corners (matches Governance page) */}
