@@ -219,21 +219,7 @@ export default function LeadershipDetailsPage() {
     fetchLeadershipMemberByIdOrSlug(slug)
       .then((data) => {
         if (!isMounted) return;
-        if (data) {
-          setMember(data);
-        } else {
-          // Fallback search across public members
-          fetchPublicLeadershipMembers().then((all) => {
-            if (!isMounted) return;
-            const match = all.find(
-              (m) =>
-                createSlugFromName(m.name) === slug ||
-                m.id?.toLowerCase() === slug.toLowerCase() ||
-                m.name.toLowerCase().trim() === slug.toLowerCase()
-            );
-            if (match) setMember(match);
-          });
-        }
+        setMember(data);
       })
       .catch((err) => {
         console.warn('[LeadershipDetailsPage] Failed to fetch member:', err);

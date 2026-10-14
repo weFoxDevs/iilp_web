@@ -162,8 +162,8 @@ export default function GovernanceTierPage() {
               /* 4-Column Portrait Cards matching UoPeople reference */
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 items-start">
                 {members.map((member) => {
-                  const slugName = createSlugFromName(member.name);
-                  const memberHref = `/leadership/${slugName}`;
+                  const memberIdOrSlug = member.id || createSlugFromName(member.name);
+                  const memberHref = `/leadership/${memberIdOrSlug}`;
 
                   return (
                     <Link
