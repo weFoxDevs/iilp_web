@@ -8,8 +8,10 @@ import { EventsCalendar } from "@/modules/events/components/EventsCalendar";
 import { NewsletterArchive } from "@/modules/events/components/NewsletterArchive";
 import { PhotoGallery } from "@/modules/events/components/PhotoGallery";
 
+import EventsSkeleton from "@/modules/events/components/EventsSkeleton";
+
 export default function EventsPage() {
-  const { getSection } = usePageContent("events");
+  const { getSection, isLoading } = usePageContent("events");
 
   return (
     <>
@@ -25,17 +27,23 @@ export default function EventsPage() {
         <Header />
 
         <main className="flex-grow">
-          {/* Hero Section (Frame 147:65673) */}
-          <EventsHero data={getSection("hero")} />
+          {isLoading ? (
+            <EventsSkeleton />
+          ) : (
+            <>
+              {/* Hero Section (Frame 147:65673) */}
+              <EventsHero data={getSection("hero")} />
 
-          {/* Upcoming Events Calendar & Grid (Frame 147:65681) */}
-          <EventsCalendar data={getSection("events_calendar")} />
+              {/* Upcoming Events Calendar & Grid (Frame 147:65681) */}
+              <EventsCalendar data={getSection("events_calendar")} />
 
-          {/* Newsletter Archive Banner (Frame 147:65856) */}
-          <NewsletterArchive data={getSection("newsletter_banner")} />
+              {/* Newsletter Archive Banner (Frame 147:65856) */}
+              <NewsletterArchive data={getSection("newsletter_banner")} />
 
-          {/* Photo Gallery / Visual Media Section (Frame 147:65883) */}
-          <PhotoGallery data={getSection("photo_gallery")} />
+              {/* Photo Gallery / Visual Media Section (Frame 147:65883) */}
+              <PhotoGallery data={getSection("photo_gallery")} />
+            </>
+          )}
         </main>
 
         {/* Footer with "Join the IILP Community Today" CTA (Frame 147:65936 & 147:65953) */}

@@ -12,13 +12,17 @@ import {
   PublicationItem,
 } from "@/common/services/publications.service";
 
+import { PublicationDetailsSkeleton } from "@/common/components/PageSkeletons";
+
 export default function PublicationDetailsPage() {
   const router = useRouter();
   const { id, slug } = router.query;
   const [publication, setPublication] = useState<PublicationItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
+    setIsLoading(true);
     const target = (slug as string) || (id as string);
 
     if (target) {
@@ -28,7 +32,10 @@ export default function PublicationDetailsPage() {
             setPublication(data);
           }
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => {
+          if (isMounted) setIsLoading(false);
+        });
     } else {
       // Default: load the first active publication
       fetchPublicPublications()
@@ -37,7 +44,10 @@ export default function PublicationDetailsPage() {
             setPublication(items[0]);
           }
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => {
+          if (isMounted) setIsLoading(false);
+        });
     }
 
     return () => {
@@ -63,9 +73,15 @@ export default function PublicationDetailsPage() {
       <div className="flex flex-col min-h-screen bg-white font-sans">
         <Header />
         <main className="flex-grow">
-          <PublicationDetailsHero publication={publication} />
-          <PublicationDetailsOverview publication={publication} />
-          <ReadMoreResearch currentId={publication?.id} />
+          {isLoading ? (
+            <PublicationDetailsSkeleton />
+          ) : (
+            <>
+              <PublicationDetailsHero publication={publication} />
+              <PublicationDetailsOverview publication={publication} />
+              <ReadMoreResearch currentId={publication?.id} />
+            </>
+          )}
         </main>
         <Footer />
       </div>

@@ -12,8 +12,10 @@ import { FounderMessage } from "@/modules/home/components/FounderMessage";
 import { NewsMedia } from "@/modules/home/components/NewsMedia";
 import { usePageContent } from "@/common/hooks/usePageContent";
 
+import HomeSkeleton from "@/modules/home/components/HomeSkeleton";
+
 export default function Home() {
-  const { getSection } = usePageContent("home");
+  const { getSection, isLoading } = usePageContent("home");
 
   return (
     <>
@@ -29,18 +31,24 @@ export default function Home() {
       <Header />
       
       <main className="flex-grow overflow-x-hidden">
-        <Hero data={getSection("hero")} />
-        <MissionVision
-          missionData={getSection("our_mission")}
-          visionData={getSection("our_vision")}
-        />
-        <AcademicPrograms data={getSection("academic_programs")} />
-        <Events data={getSection("events")} />
-        <Testimonial />
-        <ImageGallery data={getSection("image_gallery")} />
-        <FellowshipNetwork data={getSection("fellowship_network")} />
-        <FounderMessage data={getSection("founder_message")} />
-        <NewsMedia data={getSection("news_media")} />
+        {isLoading ? (
+          <HomeSkeleton />
+        ) : (
+          <>
+            <Hero data={getSection("hero")} />
+            <MissionVision
+              missionData={getSection("our_mission")}
+              visionData={getSection("our_vision")}
+            />
+            <AcademicPrograms data={getSection("academic_programs")} />
+            <Events data={getSection("events")} />
+            <Testimonial />
+            <ImageGallery data={getSection("image_gallery")} />
+            <FellowshipNetwork data={getSection("fellowship_network")} />
+            <FounderMessage data={getSection("founder_message")} />
+            <NewsMedia data={getSection("news_media")} />
+          </>
+        )}
       </main>
       
       <Footer />

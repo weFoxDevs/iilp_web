@@ -6,6 +6,7 @@ import {
   fetchPublicPublications,
   PublicationItem,
 } from "@/common/services/publications.service";
+import { CardGridSkeleton } from "@/common/components/Skeleton";
 
 const filterCategories = [
   "All Publications",
@@ -216,9 +217,8 @@ export default function ResearchRepository({ data }: ResearchRepositoryProps) {
 
         {/* 2x2 Publications Grid */}
         {isLoading ? (
-          <div className="py-12 flex flex-col items-center justify-center gap-3">
-            <div className="w-8 h-8 border-3 border-[#00bfff] border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-gray-500 font-sans">Loading scholarly research...</p>
+          <div className="py-6 w-full">
+            <CardGridSkeleton count={4} columns="grid-cols-1 lg:grid-cols-2" />
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-[30px]">

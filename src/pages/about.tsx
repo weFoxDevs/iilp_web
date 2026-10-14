@@ -11,9 +11,10 @@ import GlobalEngagement from '@/modules/about/components/GlobalEngagement';
 import AboutFounderMessage from '@/modules/about/components/AboutFounderMessage';
 import AboutGallery from '@/modules/about/components/AboutGallery';
 import { usePageContent } from '@/common/hooks/usePageContent';
+import AboutSkeleton from '@/modules/about/components/AboutSkeleton';
 
 export default function AboutPage() {
-  const { getSection } = usePageContent('about');
+  const { getSection, isLoading } = usePageContent('about');
 
   return (
     <>
@@ -28,18 +29,24 @@ export default function AboutPage() {
       <div className="flex flex-col min-h-screen bg-white font-sans">
       <Header />
       <main className="flex-grow">
-        <AboutHero data={getSection('hero')} />
-        <InstitutionalProfile data={getSection('profile') || getSection('institutional_profile')} />
-        <MissionAndVision
-          missionData={getSection('our_mission')}
-          visionData={getSection('our_vision')}
-          data={getSection('mission_vision')}
-        />
-        <StrategicObjectives data={getSection('objectives') || getSection('strategic_objectives')} />
-        <InstitutionalValues data={getSection('values') || getSection('institutional_values')} />
-        <GlobalEngagement data={getSection('global_engagement')} />
-        <AboutFounderMessage data={getSection('founder_message')} />
-        <AboutGallery data={getSection('gallery')} />
+        {isLoading ? (
+          <AboutSkeleton />
+        ) : (
+          <>
+            <AboutHero data={getSection('hero')} />
+            <InstitutionalProfile data={getSection('profile') || getSection('institutional_profile')} />
+            <MissionAndVision
+              missionData={getSection('our_mission')}
+              visionData={getSection('our_vision')}
+              data={getSection('mission_vision')}
+            />
+            <StrategicObjectives data={getSection('objectives') || getSection('strategic_objectives')} />
+            <InstitutionalValues data={getSection('values') || getSection('institutional_values')} />
+            <GlobalEngagement data={getSection('global_engagement')} />
+            <AboutFounderMessage data={getSection('founder_message')} />
+            <AboutGallery data={getSection('gallery')} />
+          </>
+        )}
       </main>
       <Footer />
     </div>

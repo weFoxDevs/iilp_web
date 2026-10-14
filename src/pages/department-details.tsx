@@ -10,15 +10,22 @@ import DepartmentFaculty from "@/modules/departments/components/DepartmentFacult
 import DepartmentAcademicPrograms from "@/modules/departments/components/DepartmentAcademicPrograms";
 import { fetchDepartmentByIdOrSlug, DepartmentItem } from "@/common/services/departments.service";
 
+import { DepartmentDetailsSkeleton } from "@/common/components/PageSkeletons";
+
 export default function DepartmentDetailsPage() {
   const router = useRouter();
   const { id } = router.query;
   const [department, setDepartment] = useState<DepartmentItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!id || typeof id !== "string") return;
+    if (!id || typeof id !== "string") {
+      setIsLoading(false);
+      return;
+    }
 
     let isMounted = true;
+    setIsLoading(true);
     fetchDepartmentByIdOrSlug(id)
       .then((data) => {
         if (isMounted && data) {
@@ -27,6 +34,9 @@ export default function DepartmentDetailsPage() {
       })
       .catch((err) => {
         console.warn("[DepartmentDetailsPage] Failed to fetch department:", err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
       });
 
     return () => {
@@ -43,10 +53,16 @@ export default function DepartmentDetailsPage() {
       <div className="flex flex-col min-h-screen bg-white font-sans">
         <Header />
         <main className="flex-grow">
-          <DepartmentDetailsHero department={department} />
-          <DepartmentOverview department={department} />
-          <DepartmentFaculty />
-          <DepartmentAcademicPrograms />
+          {isLoading ? (
+            <DepartmentDetailsSkeleton />
+          ) : (
+            <>
+              <DepartmentDetailsHero department={department} />
+              <DepartmentOverview department={department} />
+              <DepartmentFaculty />
+              <DepartmentAcademicPrograms />
+            </>
+          )}
         </main>
         <Footer />
       </div>

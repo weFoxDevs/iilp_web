@@ -4,8 +4,10 @@ import { Footer } from "@/common/components/Footer";
 import { usePageContent } from "@/common/hooks/usePageContent";
 import { TermsHero, TermsContent } from "@/modules/terms";
 
+import { GenericPageSkeleton } from "@/common/components/PageSkeletons";
+
 export default function TermsOfUsePage() {
-  const { getSection } = usePageContent("terms-of-use");
+  const { getSection, isLoading } = usePageContent("terms-of-use");
 
   return (
     <>
@@ -23,17 +25,23 @@ export default function TermsOfUsePage() {
 
         {/* Main Content */}
         <main className="flex-grow">
-          {/* Hero Section (Figma node 155:75196) */}
-          <TermsHero data={getSection("hero")} />
+          {isLoading ? (
+            <GenericPageSkeleton title="Terms of Use" />
+          ) : (
+            <>
+              {/* Hero Section (Figma node 155:75196) */}
+              <TermsHero data={getSection("hero")} />
 
-          {/* Terms Body Content (Figma node 155:75208) */}
-          <TermsContent
-            data={
-              getSection("policy_sections") ||
-              getSection("terms_sections") ||
-              getSection("content")
-            }
-          />
+              {/* Terms Body Content (Figma node 155:75208) */}
+              <TermsContent
+                data={
+                  getSection("policy_sections") ||
+                  getSection("terms_sections") ||
+                  getSection("content")
+                }
+              />
+            </>
+          )}
         </main>
 
         {/* Institutional Footer (Figma Frame 155:75195 renders Footer without CTA) */}

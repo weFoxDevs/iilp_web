@@ -8,6 +8,7 @@ import {
   fetchPublicEvents,
   transformApiEventToEventItem,
 } from "@/common/services/events.service";
+import { CardGridSkeleton } from "@/common/components/Skeleton";
 
 const categories: EventCategory[] = [
   "All",
@@ -113,11 +114,10 @@ export function EventsCalendar({ data }: EventsCalendarProps = {}) {
           })}
         </div>
 
-        {/* Loading Spinner */}
+        {/* Loading Skeleton */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <div className="w-10 h-10 border-4 border-[#00bfff] border-t-transparent rounded-full animate-spin" />
-            <p className="text-gray-500 text-sm">Loading events...</p>
+          <div className="py-8 w-full">
+            <CardGridSkeleton count={6} columns="grid-cols-1 md:grid-cols-2 lg:grid-cols-3" />
           </div>
         ) : eventsList.length > 0 ? (
           /* Events Grid */

@@ -9,6 +9,7 @@ import "quill/dist/quill.snow.css";
 import { useEffect } from 'react';
 import Lenis from 'lenis';
 import { useRouter } from 'next/router';
+import { RouteProgressBar } from "@/common/components/RouteProgressBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -67,6 +68,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
       <div className={`${geistSans.variable} ${geistMono.variable} min-h-screen flex flex-col antialiased overflow-x-hidden`}>
+        <RouteProgressBar />
         <AuthProvider>
           <SiteLayoutProvider>
             <Component {...pageProps} />

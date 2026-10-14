@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PageSectionData } from '@/common/services/cms.service';
-import { fetchPublicLeadershipMembers } from '@/common/services/leadership.service';
-import LeadershipProfileModal, {
-  LeadershipMemberData,
-} from './LeadershipProfileModal';
+import {
+  fetchPublicLeadershipMembers,
+  createSlugFromName,
+} from '@/common/services/leadership.service';
+import { LeadershipMemberData } from './LeadershipProfileModal';
 
 const MEMBERS: LeadershipMemberData[] = [
   {
@@ -131,7 +132,6 @@ interface InstitutionalLeadershipProps {
 }
 
 export default function InstitutionalLeadership({ data }: InstitutionalLeadershipProps) {
-  const [selectedMember, setSelectedMember] = useState<LeadershipMemberData | null>(null);
   const [membersList, setMembersList] = useState<LeadershipMemberData[]>(MEMBERS);
 
   const badge = data?.badge ?? 'Our Team';
@@ -199,42 +199,38 @@ export default function InstitutionalLeadership({ data }: InstitutionalLeadershi
 
         {/* 12-Member Grid (4 columns) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-[24px] w-full">
-          {membersList.map((member, index) => (
-            <div
-              key={index}
-              onClick={() => setSelectedMember(member)}
-              className="flex flex-col items-start w-full group cursor-pointer"
-            >
-              <div className="relative w-full aspect-[277.5/370] overflow-hidden bg-gray-100 rounded-sm">
-                <Image
-                  src={member.image || '/assets/governance-founding-member.png'}
-                  alt={member.name}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
+          {membersList.map((member, index) => {
+            const memberSlug = createSlugFromName(member.name);
+            return (
+              <Link
+                key={index}
+                href={`/leadership/${memberSlug}`}
+                className="flex flex-col items-start w-full group cursor-pointer"
+              >
+                <div className="relative w-full aspect-[277.5/370] overflow-hidden bg-gray-100 rounded-sm">
+                  <Image
+                    src={member.image || '/assets/governance-founding-member.png'}
+                    alt={member.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
 
-              <div className="flex flex-col gap-1.5 items-start mt-5 lg:mt-[30px] w-full">
-                <h3 className="text-xl lg:text-[24px] font-serif font-bold text-[#0a0d12] leading-tight group-hover:text-[#00bfff] transition-colors">
-                  {member.name}
-                </h3>
-                <p className="text-base md:text-[20px] text-[#414651] font-sans leading-[30px]">
-                  {member.role}
-                </p>
-              </div>
-            </div>
-          ))}
+                <div className="flex flex-col gap-1.5 items-start mt-5 lg:mt-[30px] w-full">
+                  <h3 className="text-xl lg:text-[24px] font-serif font-bold text-[#0a0d12] leading-tight group-hover:text-[#00bfff] transition-colors">
+                    {member.name}
+                  </h3>
+                  <p className="text-base md:text-[20px] text-[#414651] font-sans leading-[30px]">
+                    {member.role}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
 
       </div>
-
-      {/* Leadership Profile Modal */}
-      <LeadershipProfileModal
-        member={selectedMember}
-        isOpen={Boolean(selectedMember)}
-        onClose={() => setSelectedMember(null)}
-      />
     </section>
   );
 }

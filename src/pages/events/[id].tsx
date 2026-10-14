@@ -14,6 +14,7 @@ import {
   transformApiEventToEventItem,
 } from "@/common/services/events.service";
 import { EventItem } from "@/modules/events/types";
+import { EventDetailsSkeleton } from "@/common/components/PageSkeletons";
 
 interface EventDetailPageProps {
   defaultSlug?: string;
@@ -94,10 +95,7 @@ export default function EventDetailPage({ defaultSlug }: EventDetailPageProps = 
 
         <main className="flex-grow">
           {isLoading ? (
-            <div className="min-h-[500px] flex flex-col items-center justify-center gap-3">
-              <div className="w-10 h-10 border-4 border-[#00bfff] border-t-transparent rounded-full animate-spin" />
-              <p className="text-gray-500 text-sm">Loading event details...</p>
-            </div>
+            <EventDetailsSkeleton />
           ) : !event ? (
             <div className="min-h-[500px] flex flex-col items-center justify-center gap-4 text-center px-6">
               <div className="w-16 h-16 rounded-full bg-sky-50 text-[#00698c] flex items-center justify-center">

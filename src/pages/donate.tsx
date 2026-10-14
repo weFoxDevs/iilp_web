@@ -8,8 +8,10 @@ import {
   WaysToGiveSection,
 } from "@/modules/donate";
 
+import { GenericPageSkeleton } from "@/common/components/PageSkeletons";
+
 export default function DonatePage() {
-  const { getSection } = usePageContent("donate");
+  const { getSection, isLoading } = usePageContent("donate");
 
   return (
     <>
@@ -27,18 +29,24 @@ export default function DonatePage() {
 
         {/* Main Content */}
         <main className="flex-grow">
-          {/* Section 1: Hero Banner (Figma node 155:76236) */}
-          <DonateHero data={getSection("hero")} />
+          {isLoading ? (
+            <GenericPageSkeleton title="Donate" />
+          ) : (
+            <>
+              {/* Section 1: Hero Banner (Figma node 155:76236) */}
+              <DonateHero data={getSection("hero")} />
 
-          {/* Section 2: Why Give & Make a Gift Form (Figma node 155:76605) */}
-          <DonateMainSection
-            data={getSection("impact_intro") || getSection("why_give")}
-          />
+              {/* Section 2: Why Give & Make a Gift Form (Figma node 155:76605) */}
+              <DonateMainSection
+                data={getSection("impact_intro") || getSection("why_give")}
+              />
 
-          {/* Section 3: Ways to Give Channels (Configurable via CMS) */}
-          <WaysToGiveSection
-            data={getSection("ways_to_give") || getSection("impact_funds")}
-          />
+              {/* Section 3: Ways to Give Channels (Configurable via CMS) */}
+              <WaysToGiveSection
+                data={getSection("ways_to_give") || getSection("impact_funds")}
+              />
+            </>
+          )}
         </main>
 
         {/* Institutional Footer (Figma Frame 155:76235 renders Footer without CTA) */}

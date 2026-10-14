@@ -7,6 +7,8 @@ import FellowshipCategories from "@/modules/fellowships/components/FellowshipCat
 import FellowshipApplication from "@/modules/fellowships/components/FellowshipApplication";
 import { usePageContent } from "@/common/hooks/usePageContent";
 
+import FellowshipsSkeleton from "@/modules/fellowships/components/FellowshipsSkeleton";
+
 interface FellowshipsPageProps {
   defaultTab?: "research" | "junior" | "honorary";
 }
@@ -14,7 +16,7 @@ interface FellowshipsPageProps {
 export default function FellowshipsPage({
   defaultTab = "research",
 }: FellowshipsPageProps) {
-  const { getSection } = usePageContent("fellowships");
+  const { getSection, isLoading } = usePageContent("fellowships");
 
   return (
     <>
@@ -29,14 +31,20 @@ export default function FellowshipsPage({
       <div className="flex flex-col min-h-screen bg-white font-sans">
       <Header />
       <main className="flex-grow">
-        <FellowshipHero data={getSection("hero")} />
-        <FellowshipCategories
-          initialTab={defaultTab}
-          data={getSection("pathways_intro") || getSection("categories")}
-        />
-        <FellowshipApplication
-          data={getSection("application_cta") || getSection("application")}
-        />
+        {isLoading ? (
+          <FellowshipsSkeleton />
+        ) : (
+          <>
+            <FellowshipHero data={getSection("hero")} />
+            <FellowshipCategories
+              initialTab={defaultTab}
+              data={getSection("pathways_intro") || getSection("categories")}
+            />
+            <FellowshipApplication
+              data={getSection("application_cta") || getSection("application")}
+            />
+          </>
+        )}
       </main>
       <Footer />
     </div>
