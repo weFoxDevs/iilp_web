@@ -71,7 +71,11 @@ export default function FoundingMembers({
     if (initialMembers && initialMembers.length > 0) {
       const processed = processFoundingMembers(initialMembers);
       setMembersList(processed);
-      setHasMore(initialMembers.length >= PAGE_SIZE);
+      if ((initialMembers as any).meta?.hasNextPage !== undefined) {
+        setHasMore((initialMembers as any).meta.hasNextPage);
+      } else {
+        setHasMore(initialMembers.length >= PAGE_SIZE);
+      }
       return;
     }
 
@@ -82,7 +86,11 @@ export default function FoundingMembers({
         if (!active || !Array.isArray(apiMembers)) return;
         const processed = processFoundingMembers(apiMembers);
         setMembersList(processed);
-        setHasMore(apiMembers.length >= PAGE_SIZE);
+        if (apiMembers.meta?.hasNextPage !== undefined) {
+          setHasMore(apiMembers.meta.hasNextPage);
+        } else {
+          setHasMore(apiMembers.length >= PAGE_SIZE);
+        }
       })
       .catch((err) => {
         console.warn('Could not load public leadership members for founding board:', err);
@@ -122,8 +130,10 @@ export default function FoundingMembers({
 
         setCurrentPage(nextPage);
 
-        // If returned members are fewer than PAGE_SIZE, no more pages exist
-        if (newMembers.length < PAGE_SIZE) {
+        // If backend meta is provided, use hasNextPage; otherwise fallback to length check
+        if (newMembers.meta?.hasNextPage !== undefined) {
+          setHasMore(newMembers.meta.hasNextPage);
+        } else if (newMembers.length < PAGE_SIZE) {
           setHasMore(false);
         }
       } else {
