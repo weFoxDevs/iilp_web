@@ -2,96 +2,87 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PageSectionData } from '@/common/services/cms.service';
-import { fetchPublicLeadershipMembers } from '@/common/services/leadership.service';
-import LeadershipProfileModal, {
-  LeadershipMemberData,
-} from '@/modules/leadership-directory/components/LeadershipProfileModal';
+import {
+  fetchPublicLeadershipMembers,
+  createSlugFromName,
+} from '@/common/services/leadership.service';
+import { LeadershipMemberData } from '@/modules/leadership-directory/components/LeadershipProfileModal';
 
-const defaultFoundingMembers: LeadershipMemberData[] = [
-  {
-    name: 'Mohammed Siraj',
-    role: 'Founding Member',
-    image: '/assets/governance-founding-member.png',
-  },
-  {
-    name: 'Mujibur Rahman',
-    role: 'Founding Member',
-    image: '/assets/governance-founding-member.png',
-  },
-  {
-    name: 'MD. Mahamudun Noby Rupok',
-    role: 'Founding Member',
-    image: '/assets/governance-founding-member.png',
-  },
-];
+export type FoundingMemberItem = LeadershipMemberData & {
+  id?: string;
+  _id?: string;
+  isActive?: boolean;
+};
 
 interface FoundingMembersProps {
   data?: Partial<PageSectionData>;
+  initialMembers?: FoundingMemberItem[];
 }
 
-export default function FoundingMembers({ data }: FoundingMembersProps) {
-  const [selectedMember, setSelectedMember] = useState<LeadershipMemberData | null>(null);
-  const [membersList, setMembersList] = useState<LeadershipMemberData[]>(() => {
-    if (Array.isArray(data?.metadata?.members) && data.metadata.members.length > 0) {
-      return data.metadata.members as LeadershipMemberData[];
+function processFoundingMembers(
+  apiMembers: FoundingMemberItem[]
+): FoundingMemberItem[] {
+  if (!Array.isArray(apiMembers) || apiMembers.length === 0) {
+    return [];
+  }
+
+  return apiMembers
+    .filter((m) => m && m.isActive !== false)
+    .map((m) => {
+      let displayRole = m.role || 'Founding Member';
+      if (
+        displayRole.toLowerCase().includes('founder') &&
+        displayRole.toLowerCase().includes('president')
+      ) {
+        displayRole = 'Founder & President';
+      }
+
+      return {
+        ...m,
+        role: displayRole,
+        image: m.image || '/assets/governance-founding-member.png',
+      };
+    });
+}
+
+const PAGE_SIZE = 4;
+
+export default function FoundingMembers({
+  data,
+  initialMembers,
+}: FoundingMembersProps) {
+  const [membersList, setMembersList] = useState<FoundingMemberItem[]>(() => {
+    if (initialMembers && initialMembers.length > 0) {
+      return processFoundingMembers(initialMembers);
     }
-    return defaultFoundingMembers;
+    return [];
   });
 
-  const badge = data?.badge ?? 'Founding Members';
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
   const title = data?.title ?? 'Board of Founding Members';
   const subtitle =
     data?.subtitle ??
     'The Board of Founding Members comprises the individuals who supported the founder during the establishment process of the International Institute for Law and Politics and provided guidance on institutional, strategic, and organizational foundation.';
-  const actionText = data?.actionText ?? 'View Leadership Directory';
-  const actionUrl = data?.actionUrl ?? '/leadership-directory';
 
   useEffect(() => {
+    if (initialMembers && initialMembers.length > 0) {
+      const processed = processFoundingMembers(initialMembers);
+      setMembersList(processed);
+      setHasMore(initialMembers.length >= PAGE_SIZE);
+      return;
+    }
+
+    // Initial fetch if no initialMembers were supplied
     let active = true;
-    fetchPublicLeadershipMembers()
+    fetchPublicLeadershipMembers({ limit: PAGE_SIZE, page: 1 })
       .then((apiMembers) => {
-        if (!active || !Array.isArray(apiMembers) || apiMembers.length === 0) return;
-
-        // Filter for members associated with the founding board from leadership API
-        const founding = apiMembers.filter(
-          (m) =>
-            m.isActive !== false &&
-            (m.role?.toLowerCase().includes('founding') ||
-              m.role?.toLowerCase().includes('founder'))
-        );
-
-        if (founding.length > 0) {
-          // Deduplicate by name if duplicate entries exist in API
-          const seen = new Set<string>();
-          const unique: LeadershipMemberData[] = [];
-          for (const m of founding) {
-            const key = m.name?.trim().toLowerCase();
-            if (key && !seen.has(key)) {
-              seen.add(key);
-
-              // Look for any full profile entry for this person in apiMembers to enrich missing bio/functions
-              const fullProfile = apiMembers.find(
-                (other) =>
-                  other.name?.trim().toLowerCase() === key &&
-                  (other.about ||
-                    (Array.isArray(other.accountabilityFunctions) &&
-                      other.accountabilityFunctions.length > 0))
-              );
-
-              unique.push({
-                ...m,
-                image: m.image || fullProfile?.image,
-                about: m.about || fullProfile?.about,
-                accountabilityFunctions:
-                  Array.isArray(m.accountabilityFunctions) &&
-                  m.accountabilityFunctions.length > 0
-                    ? m.accountabilityFunctions
-                    : fullProfile?.accountabilityFunctions,
-              });
-            }
-          }
-          setMembersList(unique);
-        }
+        if (!active || !Array.isArray(apiMembers)) return;
+        const processed = processFoundingMembers(apiMembers);
+        setMembersList(processed);
+        setHasMore(apiMembers.length >= PAGE_SIZE);
       })
       .catch((err) => {
         console.warn('Could not load public leadership members for founding board:', err);
@@ -100,84 +91,141 @@ export default function FoundingMembers({ data }: FoundingMembersProps) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [initialMembers]);
+
+  const handleLoadMore = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+    const nextPage = currentPage + 1;
+
+    try {
+      const newMembers = await fetchPublicLeadershipMembers({
+        limit: PAGE_SIZE,
+        page: nextPage,
+      });
+
+      if (Array.isArray(newMembers) && newMembers.length > 0) {
+        const processed = processFoundingMembers(newMembers);
+
+        setMembersList((prev) => {
+          const existingIds = new Set(
+            prev.map((m) => (m.id || m.name || '').trim().toLowerCase())
+          );
+          const fresh = processed.filter(
+            (m) => !existingIds.has((m.id || m.name || '').trim().toLowerCase())
+          );
+          return [...prev, ...fresh];
+        });
+
+        setCurrentPage(nextPage);
+
+        // If returned members are fewer than PAGE_SIZE, no more pages exist
+        if (newMembers.length < PAGE_SIZE) {
+          setHasMore(false);
+        }
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.warn('Error loading more members from API:', err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   return (
-    <section className="w-full bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-12 lg:gap-[80px]">
-        
-        {/* Header Row */}
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-[80px] items-start lg:items-end justify-between w-full">
-          <div className="flex-1 flex flex-col gap-4 items-start">
-            {badge && (
-              <div className="inline-flex items-center border border-[#00698c] rounded-full px-3 py-2">
-                <span className="text-sm md:text-[16px] font-semibold tracking-wider text-[#0a0d12] uppercase leading-[17.6px]">
-                  {badge}
-                </span>
-              </div>
-            )}
+    <section className="w-full bg-white py-14 sm:py-20 lg:py-24 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-20">
+      <div className="max-w-[1360px] mx-auto">
+        {/* Section Header - Clean, bold, matching reference design */}
+        <div className="max-w-4xl mb-10 sm:mb-14 text-left">
+          <h2 className="text-3xl sm:text-4xl lg:text-[40px] font-bold uppercase tracking-tight text-[#1a142e] font-serif sm:font-sans leading-tight">
+            {title}
+          </h2>
 
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[36px] font-medium text-[#0a0d12] tracking-tight font-serif leading-tight sm:leading-[44px]">
-              {title}
-            </h2>
-
-            {subtitle && (
-              <p className="text-[#0a0d12] text-base md:text-lg lg:text-[20px] leading-relaxed lg:leading-[30px] font-normal font-sans max-w-[850px]">
-                {subtitle}
-              </p>
-            )}
-          </div>
-
-          {actionText && (
-            <div className="shrink-0 w-full sm:w-auto">
-              <Link
-                href={actionUrl}
-                className="inline-flex items-center justify-center rounded-full bg-[#00bfff] hover:bg-[#00a8e0] text-white px-6 py-3.5 text-base font-semibold shadow-[0px_1px_2px_rgba(29,41,61,0.05)] transition-all font-sans whitespace-nowrap w-full sm:w-auto text-center"
-              >
-                {actionText}
-              </Link>
-            </div>
+          {subtitle && (
+            <p className="mt-4 text-[#374151] text-base sm:text-lg lg:text-[18px] leading-relaxed font-sans">
+              {subtitle}
+            </p>
           )}
         </div>
 
-        {/* Members Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-[24px] w-full">
-          {membersList.map((member, index) => (
-            <div
-              key={index}
-              onClick={() => setSelectedMember(member)}
-              className="flex flex-col items-start w-full group cursor-pointer"
-            >
-              <div className="relative w-full aspect-[277.5/370] overflow-hidden bg-gray-100 rounded-sm">
-                <Image
-                  src={member.image || '/assets/governance-founding-member.png'}
-                  alt={member.name || 'Founding Member'}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
+        {/* 4-Column Portrait Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
+          {membersList.map((member, index) => {
+            const memberSlug = createSlugFromName(member.name);
+            return (
+              <Link
+                key={member._id || member.id || `${member.name}-${index}`}
+                href={`/leadership/${memberSlug}`}
+                className="flex flex-col items-center text-center group cursor-pointer transition-all duration-300"
+              >
+                {/* Portrait image with softly rounded top corners */}
+                <div className="relative w-full aspect-[3/4] overflow-hidden rounded-t-2xl sm:rounded-t-3xl bg-gray-100 shadow-xs">
+                  <Image
+                    src={member.image || '/assets/governance-founding-member.png'}
+                    alt={member.name || 'Founding Member'}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
 
-              <div className="flex flex-col gap-2.5 items-start mt-6 lg:mt-[30px] w-full">
-                <h3 className="text-2xl lg:text-[24px] font-serif font-bold text-[#0a0d12] leading-tight group-hover:text-[#00bfff] transition-colors">
-                  {member.name}
-                </h3>
-                <p className="text-base md:text-[20px] text-[#414651] font-sans leading-[30px]">
-                  {member.role}
-                </p>
-              </div>
-            </div>
-          ))}
+                {/* Name & Role centered below image */}
+                <div className="mt-4 w-full flex flex-col items-center px-1">
+                  <h3 className="text-base sm:text-lg font-bold text-[#111827] group-hover:text-[#00698c] transition-colors leading-snug">
+                    {member.name}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#4b5563] mt-1 leading-snug max-w-[260px]">
+                    {member.role || 'Founding Member'}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
 
+        {/* LOAD MORE Button - Fetches next 4 from API */}
+        {hasMore && (
+          <div className="flex justify-center mt-12 sm:mt-16">
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              className="inline-flex items-center justify-center rounded-full bg-[#93186c] hover:bg-[#7e145b] active:scale-95 text-white px-9 py-3.5 text-sm sm:text-[15px] font-bold tracking-wider uppercase shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-70 select-none"
+            >
+              {isLoadingMore ? (
+                <span className="flex items-center gap-2">
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Loading...
+                </span>
+              ) : (
+                'LOAD MORE'
+              )}
+            </button>
+          </div>
+        )}
       </div>
-
-      {/* Leadership Profile Modal */}
-      <LeadershipProfileModal
-        member={selectedMember}
-        isOpen={Boolean(selectedMember)}
-        onClose={() => setSelectedMember(null)}
-      />
     </section>
   );
 }

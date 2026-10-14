@@ -2,6 +2,7 @@ export interface LeadershipMemberItem {
   id: string;
   name: string;
   role: string;
+  type?: string;
   initials?: string;
   image: string;
   about?: string;
@@ -12,14 +13,192 @@ export interface LeadershipMemberItem {
   updatedAt?: string;
 }
 
+export interface LeadershipTypeConfig {
+  id: string; // e.g. 'founding-authority'
+  title: string; // e.g. 'Founding Authority'
+  subtitle: string; // Brief description
+  badge: string; // E.g. 'GOVERNANCE BODY'
+  detailedCharter: string;
+  bgImage?: string;
+}
+
+export const LEADERSHIP_TYPES: LeadershipTypeConfig[] = [
+  {
+    id: 'founding-authority',
+    title: 'Founding Authority',
+    subtitle: 'Founder & President — visionary and strategic authority',
+    badge: 'Founding Office',
+    detailedCharter:
+      'The Founding Authority provides highest visionary guidance, foundational values, and strategic governance to the International Institute for Law and Politics (IILP), safeguarding its long-term integrity, academic freedom, and institutional trajectory.',
+    bgImage: '/assets/about-hero-bg.png',
+  },
+  {
+    id: 'founding-members',
+    title: 'Board of Founding Members',
+    subtitle: 'Foundational stewardship and institutional legacy',
+    badge: 'Founding Board',
+    detailedCharter:
+      'The Board of Founding Members serves as the cornerstone of the Institute, contributing institutional oversight, ethics, and sustained advisory to guarantee fidelity to our global founding mission.',
+    bgImage: '/assets/about-hero-bg.png',
+  },
+  {
+    id: 'governing-council',
+    title: 'Governing Council',
+    subtitle: 'Highest governing and decision-making body',
+    badge: 'Governing Council',
+    detailedCharter:
+      'The Governing Council functions as the supreme policymaking and fiduciary council of the Institute, formulating institutional policy, approving appointments, and steering systemic development.',
+    bgImage: '/assets/about-hero-bg.png',
+  },
+  {
+    id: 'executive-directorate',
+    title: 'Executive Directorate Board',
+    subtitle: 'Operational leadership and program delivery',
+    badge: 'Executive Directorate',
+    detailedCharter:
+      'The Executive Directorate Board executes programmatic strategies, directs operational divisions, manages daily administrative functions, and delivers academic agendas across regional centers.',
+    bgImage: '/assets/about-hero-bg.png',
+  },
+  {
+    id: 'academic-leadership',
+    title: 'Academic Leadership',
+    subtitle: 'Departmental deans, faculty heads, and distinguished faculty',
+    badge: 'Academic Leadership',
+    detailedCharter:
+      'The Academic Leadership encompasses departmental chairs, faculty heads, and distinguished scholars directing academic programs, curriculum excellence, and research endeavors across the Institute.',
+    bgImage: '/assets/department-details-hero.png',
+  },
+  {
+    id: 'academic-senate',
+    title: 'Academic Senate',
+    subtitle: 'Principal academic and intellectual authority',
+    badge: 'Academic Senate',
+    detailedCharter:
+      'The Academic Senate oversees curriculum integrity, research ethics, faculty appointments, peer-reviewed standards, and scholarly publications across all academic disciplines.',
+    bgImage: '/assets/department-details-hero.png',
+  },
+  {
+    id: 'ict-media-cell',
+    title: 'ICT & Media Cell',
+    subtitle: 'Digital presence, media and communications',
+    badge: 'Digital Directorate',
+    detailedCharter:
+      'The ICT & Media Cell leads digital platforms, public communications, open-access knowledge repositories, technological infrastructure, and strategic media outreach globally.',
+    bgImage: '/assets/department-details-hero.png',
+  },
+  {
+    id: 'advisory-board',
+    title: 'Advisory Board',
+    subtitle: 'External strategic and intellectual guidance',
+    badge: 'International Advisory',
+    detailedCharter:
+      'The Advisory Board convenes distinguished jurists, policymakers, international advocates, and diplomats who advise the Institute on transnational initiatives, partnerships, and global challenges.',
+    bgImage: '/assets/about-hero-bg.png',
+  },
+  {
+    id: 'global-fellowship-network',
+    title: 'Global Fellowship Network',
+    subtitle: 'International scholarly and research community',
+    badge: 'Fellowship Network',
+    detailedCharter:
+      'The Global Fellowship Network connects resident and visiting researchers, post-doctoral scholars, and practitioners contributing groundbreaking research in law, justice, and politics.',
+    bgImage: '/assets/about-hero-bg.png',
+  },
+  {
+    id: 'ethics-commission',
+    title: 'Ethics & Accountability Commission',
+    subtitle: 'Institutional integrity and ethical governance',
+    badge: 'Integrity Commission',
+    detailedCharter:
+      'The Ethics & Accountability Commission ensures full institutional transparency, investigates compliance matters, and establishes rigorous conflict-of-interest standards.',
+    bgImage: '/assets/department-details-hero.png',
+  },
+  {
+    id: 'youth-leadership-assembly',
+    title: 'Youth Leadership Assembly',
+    subtitle: 'Youth participation and leadership development',
+    badge: 'Youth Assembly',
+    detailedCharter:
+      'The Youth Leadership Assembly empowers emerging advocates, student leaders, and young scholars to lead dialogue, formulate policy recommendations, and foster civic leadership.',
+    bgImage: '/assets/department-details-hero.png',
+  },
+];
+
+export function getLeadershipTypeConfig(slugOrId?: string): LeadershipTypeConfig {
+  if (!slugOrId) return LEADERSHIP_TYPES[1]; // default founding-members
+  const clean = slugOrId.toLowerCase().trim();
+  const found = LEADERSHIP_TYPES.find(
+    (t) =>
+      t.id === clean ||
+      createSlugFromName(t.title) === clean ||
+      t.title.toLowerCase() === clean
+  );
+  if (found) return found;
+
+  return {
+    id: clean,
+    title: slugOrId
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' '),
+    subtitle: 'Institutional Leadership and Governance Body',
+    badge: 'Governance Tier',
+    detailedCharter:
+      'Committed to advancing the strategic vision, scholarly integrity, and institutional mission of the International Institute for Law and Politics (IILP).',
+    bgImage: '/assets/about-hero-bg.png',
+  };
+}
+
 const getApiUrl = () =>
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
-// ==================== PUBLIC API ====================
+export function createSlugFromName(name: string): string {
+  return (name || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
-export async function fetchPublicLeadershipMembers(): Promise<LeadershipMemberItem[]> {
+export interface FetchLeadershipOptions {
+  type?: string;
+  limit?: number;
+  page?: number;
+  offset?: number;
+}
+
+export async function fetchPublicLeadershipMembers(
+  typeOrOptions?: string | FetchLeadershipOptions,
+  options?: { limit?: number; page?: number; offset?: number }
+): Promise<LeadershipMemberItem[]> {
   try {
-    const res = await fetch(`${getApiUrl()}/leadership`);
+    let type: string | undefined;
+    let limit: number | undefined;
+    let page: number | undefined;
+    let offset: number | undefined;
+
+    if (typeof typeOrOptions === 'string') {
+      type = typeOrOptions;
+      limit = options?.limit;
+      page = options?.page;
+      offset = options?.offset;
+    } else if (typeOrOptions && typeof typeOrOptions === 'object') {
+      type = typeOrOptions.type;
+      limit = typeOrOptions.limit;
+      page = typeOrOptions.page;
+      offset = typeOrOptions.offset;
+    }
+
+    const params = new URLSearchParams();
+    if (type && type !== 'all') params.append('type', type);
+    if (limit !== undefined && limit > 0) params.append('limit', String(limit));
+    if (page !== undefined && page > 0) params.append('page', String(page));
+    if (offset !== undefined && offset >= 0) params.append('offset', String(offset));
+
+    const qs = params.toString();
+    const url = qs ? `${getApiUrl()}/leadership?${qs}` : `${getApiUrl()}/leadership`;
+
+    const res = await fetch(url);
     if (!res.ok) {
       console.warn(`[Leadership] Failed to fetch public members: status ${res.status}`);
       return [];
@@ -32,10 +211,49 @@ export async function fetchPublicLeadershipMembers(): Promise<LeadershipMemberIt
   }
 }
 
+export async function fetchLeadershipMemberByIdOrSlug(
+  identifier: string
+): Promise<LeadershipMemberItem | null> {
+  if (!identifier) return null;
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identifier);
+
+  if (isUuid) {
+    try {
+      const res = await fetch(`${getApiUrl()}/leadership/${identifier}`);
+      if (res.ok) {
+        const item = await res.json();
+        if (item && item.id) return item;
+      }
+    } catch (err) {
+      console.warn(`[Leadership] Failed to fetch by ID ${identifier}:`, err);
+    }
+  }
+
+  // Fallback or search by slug/name across public members
+  const allMembers = await fetchPublicLeadershipMembers();
+  const cleanTarget = identifier.toLowerCase().trim();
+
+  const found = allMembers.find((m) => {
+    if (m.id && m.id.toLowerCase() === cleanTarget) return true;
+    if (m.name && createSlugFromName(m.name) === cleanTarget) return true;
+    if (m.name && m.name.toLowerCase().trim() === cleanTarget) return true;
+    return false;
+  });
+
+  return found || null;
+}
+
 // ==================== ADMIN API ====================
 
-export async function fetchAdminLeadershipMembers(token: string): Promise<LeadershipMemberItem[]> {
-  const res = await fetch(`${getApiUrl()}/admin/leadership`, {
+export async function fetchAdminLeadershipMembers(
+  token: string,
+  type?: string
+): Promise<LeadershipMemberItem[]> {
+  const url =
+    type && type !== 'all'
+      ? `${getApiUrl()}/admin/leadership?type=${encodeURIComponent(type)}`
+      : `${getApiUrl()}/admin/leadership`;
+  const res = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

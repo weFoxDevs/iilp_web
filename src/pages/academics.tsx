@@ -6,8 +6,10 @@ import AcademicDepartments from "@/modules/academics/components/AcademicDepartme
 import ApplyAcademicProgram from "@/modules/academics/components/ApplyAcademicProgram";
 import { usePageContent } from "@/common/hooks/usePageContent";
 
+import AcademicsSkeleton from "@/modules/academics/components/AcademicsSkeleton";
+
 export default function AcademicsPage() {
-  const { getSection } = usePageContent("academics");
+  const { getSection, isLoading } = usePageContent("academics");
 
   return (
     <>
@@ -22,9 +24,15 @@ export default function AcademicsPage() {
       <div className="flex flex-col min-h-screen bg-white font-sans">
       <Header />
       <main className="flex-grow">
-        <AcademicProgramsHero data={getSection("hero")} />
-        <AcademicDepartments data={getSection("departments_intro")} />
-        <ApplyAcademicProgram data={getSection("apply_program_banner")} />
+        {isLoading ? (
+          <AcademicsSkeleton />
+        ) : (
+          <>
+            <AcademicProgramsHero data={getSection("hero")} />
+            <AcademicDepartments data={getSection("departments_intro")} />
+            <ApplyAcademicProgram data={getSection("apply_program_banner")} />
+          </>
+        )}
       </main>
       <Footer />
     </div>

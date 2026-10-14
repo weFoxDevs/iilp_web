@@ -7,8 +7,10 @@ import LeadershipDirectoryHero from "@/modules/leadership-directory/components/L
 import InstitutionalLeadership from "@/modules/leadership-directory/components/InstitutionalLeadership";
 import JoinTeamBanner from "@/modules/leadership-directory/components/JoinTeamBanner";
 
+import LeadershipDirectorySkeleton from "@/modules/leadership-directory/components/LeadershipDirectorySkeleton";
+
 export default function LeadershipDirectoryPage() {
-  const { getSection } = usePageContent("leadership-directory");
+  const { getSection, isLoading } = usePageContent("leadership-directory");
 
   return (
     <>
@@ -23,9 +25,15 @@ export default function LeadershipDirectoryPage() {
       <div className="flex flex-col min-h-screen bg-white font-sans">
       <Header />
       <main className="flex-grow">
-        <LeadershipDirectoryHero data={getSection("hero")} />
-        <InstitutionalLeadership data={getSection("institutional_leadership")} />
-        <JoinTeamBanner data={getSection("join_team_banner")} />
+        {isLoading ? (
+          <LeadershipDirectorySkeleton />
+        ) : (
+          <>
+            <LeadershipDirectoryHero data={getSection("hero")} />
+            <InstitutionalLeadership data={getSection("institutional_leadership")} />
+            <JoinTeamBanner data={getSection("join_team_banner")} />
+          </>
+        )}
       </main>
       <Footer />
     </div>

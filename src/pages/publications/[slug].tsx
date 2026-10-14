@@ -11,6 +11,7 @@ import {
   fetchPublicPublicationByIdentifier,
   PublicationItem,
 } from "@/common/services/publications.service";
+import { PublicationDetailsSkeleton } from "@/common/components/PageSkeletons";
 
 const fallbackPublicationsMap: Record<string, PublicationItem> = {
   "refugee-protection-in-a-fragmented-global-order-policy-priorities-for-2026": {
@@ -195,10 +196,7 @@ export default function PublicationDynamicDetailsPage() {
         <Header />
         <main className="flex-grow">
           {isLoading ? (
-            <div className="min-h-[500px] flex flex-col items-center justify-center gap-3">
-              <div className="w-10 h-10 border-4 border-[#00bfff] border-t-transparent rounded-full animate-spin" />
-              <p className="text-gray-500 text-sm">Loading publication details...</p>
-            </div>
+            <PublicationDetailsSkeleton />
           ) : !publication ? (
             <div className="min-h-[500px] flex flex-col items-center justify-center gap-4 text-center px-6">
               <div className="w-16 h-16 rounded-full bg-sky-50 text-[#00698c] flex items-center justify-center">

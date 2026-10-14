@@ -8,8 +8,10 @@ import {
   ContactInfoGrid,
 } from "@/modules/contact";
 
+import { GenericPageSkeleton } from "@/common/components/PageSkeletons";
+
 export default function ContactPage() {
-  const { getSection } = usePageContent("contact");
+  const { getSection, isLoading } = usePageContent("contact");
 
   return (
     <>
@@ -27,19 +29,25 @@ export default function ContactPage() {
 
         {/* Main Contact Page Content */}
         <main className="flex-grow">
-          {/* Section 1: Hero Banner */}
-          <ContactHero data={getSection("hero")} />
+          {isLoading ? (
+            <GenericPageSkeleton title="Contact Us" />
+          ) : (
+            <>
+              {/* Section 1: Hero Banner */}
+              <ContactHero data={getSection("hero")} />
 
-          {/* Section 2: Send a Message Form & Campus Map */}
-          <ContactFormSection
-            data={getSection("contact_form") || getSection("form")}
-            mapData={getSection("contact_map")}
-          />
+              {/* Section 2: Send a Message Form & Campus Map */}
+              <ContactFormSection
+                data={getSection("contact_form") || getSection("form")}
+                mapData={getSection("contact_map")}
+              />
 
-          {/* Section 3: Contact Information (4 Cards) */}
-          <ContactInfoGrid
-            data={getSection("contact_info_cards") || getSection("info_grid")}
-          />
+              {/* Section 3: Contact Information (4 Cards) */}
+              <ContactInfoGrid
+                data={getSection("contact_info_cards") || getSection("info_grid")}
+              />
+            </>
+          )}
         </main>
 
         {/* Section 4 & 5: CTA Banner + Institutional Footer */}

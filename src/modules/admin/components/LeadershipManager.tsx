@@ -6,6 +6,8 @@ import {
   updateAdminLeadershipMember,
   deleteAdminLeadershipMember,
   LeadershipMemberItem,
+  LEADERSHIP_TYPES,
+  getLeadershipTypeConfig,
 } from "@/common/services/leadership.service";
 import { uploadMediaFile } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
@@ -22,6 +24,7 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,6 +36,7 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
   const [formData, setFormData] = useState<Partial<LeadershipMemberItem>>({
     name: "",
     role: "Vice President",
+    type: "founding-members",
     initials: "",
     image: "/assets/governance-founding-member.png",
     about: "",
@@ -81,6 +85,7 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
     setFormData({
       name: "",
       role: "Vice President",
+      type: "founding-members",
       initials: "",
       image: "/assets/governance-founding-member.png",
       about: "",
@@ -98,6 +103,7 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
     setFormData({
       name: item.name,
       role: item.role,
+      type: item.type || "founding-members",
       initials: item.initials || "",
       image: item.image || "/assets/governance-founding-member.png",
       about: item.about || "",
@@ -187,6 +193,7 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
       const payload: Partial<LeadershipMemberItem> = {
         name: formData.name.trim(),
         role: formData.role.trim(),
+        type: formData.type || "founding-members",
         initials: formData.initials?.trim() || undefined,
         image: finalImageUrl,
         about: formData.about?.trim() || undefined,
@@ -249,9 +256,11 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
     const matchesSearch =
       m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (m.type && m.type.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (m.about && m.about.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesRole = roleFilter === "all" || m.role === roleFilter;
-    return matchesSearch && matchesRole;
+    const matchesType = typeFilter === "all" || (m.type || "founding-members") === typeFilter;
+    return matchesSearch && matchesRole && matchesType;
   });
 
   return (
@@ -282,7 +291,7 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
             </svg>
-            <span>+ Add Leader</span>
+            <span>Add Leader</span>
           </button>
         </div>
       </div>
@@ -302,20 +311,38 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
           </svg>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Role:</label>
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="flex-1 sm:flex-none bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:bg-white focus:outline-hidden focus:border-[#00698c]"
-          >
-            <option value="all">All Roles ({members.length})</option>
-            {roles.map((r) => (
-              <option key={r} value={r}>
-                {r} ({members.filter((m) => m.role === r).length})
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Body / Tier:</label>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:bg-white focus:outline-hidden focus:border-[#00698c]"
+            >
+              <option value="all">All Bodies ({members.length})</option>
+              {LEADERSHIP_TYPES.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.title} ({members.filter((m) => (m.type || "founding-members") === t.id).length})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Role:</label>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:bg-white focus:outline-hidden focus:border-[#00698c]"
+            >
+              <option value="all">All Roles ({members.length})</option>
+              {roles.map((r) => (
+                <option key={r} value={r}>
+                  {r} ({members.filter((m) => m.role === r).length})
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -362,9 +389,14 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#e6f9ff] text-[#00506b] border border-[#b0ebff]">
-                        {item.role}
-                      </span>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-100 text-[#00698c] border border-sky-200">
+                          {getLeadershipTypeConfig(item.type).badge}
+                        </span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#e6f9ff] text-[#00506b] border border-[#b0ebff]">
+                          {item.role}
+                        </span>
+                      </div>
                       <button
                         type="button"
                         onClick={() => handleToggleActive(item)}
@@ -488,6 +520,32 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm font-mono focus:outline-hidden focus:border-[#00698c]"
                   />
                 </div>
+              </div>
+
+              {/* Governance Body / Leadership Type */}
+              <div className="bg-sky-50/70 p-3.5 rounded-xl border border-sky-100">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-[#00506b] uppercase tracking-wider">
+                    Governance Body / Leadership Type *
+                  </label>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white text-[#00698c] border border-sky-200">
+                    {getLeadershipTypeConfig(formData.type).badge}
+                  </span>
+                </div>
+                <select
+                  value={formData.type || "founding-members"}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-white border border-sky-200 rounded-xl text-sm font-semibold text-gray-900 focus:outline-hidden focus:border-[#00698c] focus:ring-2 focus:ring-[#00698c]/20"
+                >
+                  {LEADERSHIP_TYPES.map((tier) => (
+                    <option key={tier.id} value={tier.id}>
+                      {tier.title} — ({tier.subtitle})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-gray-600 mt-1.5 leading-normal">
+                  Determines which dedicated governance body and page this leader appears under on the website (e.g. Founding Authority, Board of Founding Members, Governing Council, etc.).
+                </p>
               </div>
 
               {/* Role & Sort Order */}

@@ -7,8 +7,10 @@ import ResearchPublicationsHero from "@/modules/research/components/ResearchPubl
 import ResearchRepository from "@/modules/research/components/ResearchRepository";
 import SubmitResearchBanner from "@/modules/research/components/SubmitResearchBanner";
 
+import ResearchSkeleton from "@/modules/research/components/ResearchSkeleton";
+
 export default function ResearchPublicationsPage() {
-  const { getSection } = usePageContent("research-publications");
+  const { getSection, isLoading } = usePageContent("research-publications");
 
   return (
     <>
@@ -23,9 +25,15 @@ export default function ResearchPublicationsPage() {
       <div className="flex flex-col min-h-screen bg-white font-sans">
       <Header />
       <main className="flex-grow">
-        <ResearchPublicationsHero data={getSection("hero")} />
-        <ResearchRepository data={getSection("research_repository")} />
-        <SubmitResearchBanner data={getSection("submit_research_banner")} />
+        {isLoading ? (
+          <ResearchSkeleton />
+        ) : (
+          <>
+            <ResearchPublicationsHero data={getSection("hero")} />
+            <ResearchRepository data={getSection("research_repository")} />
+            <SubmitResearchBanner data={getSection("submit_research_banner")} />
+          </>
+        )}
       </main>
       <Footer />
     </div>

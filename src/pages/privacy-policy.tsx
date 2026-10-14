@@ -7,8 +7,10 @@ import {
   PrivacyPolicyContent,
 } from "@/modules/privacy";
 
+import { GenericPageSkeleton } from "@/common/components/PageSkeletons";
+
 export default function PrivacyPolicyPage() {
-  const { getSection } = usePageContent("privacy-policy");
+  const { getSection, isLoading } = usePageContent("privacy-policy");
 
   return (
     <>
@@ -26,13 +28,19 @@ export default function PrivacyPolicyPage() {
 
         {/* Main Content */}
         <main className="flex-grow">
-          {/* Hero Section (Figma node 150:74268) */}
-          <PrivacyPolicyHero data={getSection("hero")} />
+          {isLoading ? (
+            <GenericPageSkeleton title="Privacy Policy" />
+          ) : (
+            <>
+              {/* Hero Section (Figma node 150:74268) */}
+              <PrivacyPolicyHero data={getSection("hero")} />
 
-          {/* Policy Body Content (Figma node 150:74280) */}
-          <PrivacyPolicyContent
-            data={getSection("policy_sections") || getSection("content")}
-          />
+              {/* Policy Body Content (Figma node 150:74280) */}
+              <PrivacyPolicyContent
+                data={getSection("policy_sections") || getSection("content")}
+              />
+            </>
+          )}
         </main>
 
         {/* Institutional Footer (Figma Frame 150:74267 renders Footer without CTA) */}
