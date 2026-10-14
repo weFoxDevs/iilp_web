@@ -53,11 +53,22 @@ function isSectionHeading(text: string): boolean {
 function cleanHeadingText(raw: string): string {
   return raw
     .replace(/<[^>]+>/g, '') // remove HTML tags
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\u00A0/g, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
     .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function cleanProfileHtml(html: string): string {
+  if (!html) return '';
+  return html
+    // Crucial: replace all non-breaking spaces with standard space so text wraps naturally across lines
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\u00A0/g, ' ')
+    .replace(/ {2,}/g, ' ')
     .trim();
 }
 
@@ -86,7 +97,7 @@ function parseProfileSections(
   functionsList: string[]
 ): ProfileSection[] {
   const sections: ProfileSection[] = [];
-  const text = (rawAbout || '').trim();
+  const text = cleanProfileHtml(rawAbout || '');
   const isHtml = /<[a-z][\s\S]*>/i.test(text);
 
   if (isHtml) {
@@ -111,7 +122,7 @@ function parseProfileSections(
           id: 'sec-1',
           title: 'Overview & Biography',
           shortTitle: 'Overview',
-          htmlContent: introHtml,
+          htmlContent: cleanProfileHtml(introHtml),
         });
       }
 
@@ -128,7 +139,7 @@ function parseProfileSections(
           id: `sec-${sections.length + 1}`,
           title: currentMatch.title || 'Section',
           shortTitle: getShortTitle(currentMatch.title),
-          htmlContent: sectionHtml,
+          htmlContent: cleanProfileHtml(sectionHtml),
         });
       }
     } else {
@@ -137,7 +148,7 @@ function parseProfileSections(
         id: 'sec-1',
         title: 'Overview & Biography',
         shortTitle: 'Overview',
-        htmlContent: text,
+        htmlContent: cleanProfileHtml(text),
       });
     }
   } else {
@@ -507,7 +518,7 @@ export default function LeadershipDetailsPage() {
               </div>
 
               {/* Right Column: Name, Role & Page/Section System */}
-              <div id="leadership-content-top" className="lg:col-span-8 flex flex-col items-start scroll-mt-28 w-full">
+              <div id="leadership-content-top" className="lg:col-span-8 flex flex-col items-start scroll-mt-28 w-full min-w-0 max-w-full">
                 {/* Header Row: Name & View Toggle */}
                 <div className="w-full flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-gray-100">
                   <div>
@@ -572,9 +583,9 @@ export default function LeadershipDetailsPage() {
 
                 {/* Section Content: PAGED MODE */}
                 {hasLongContent && viewMode === 'paged' ? (
-                  <div className="w-full mt-6">
+                  <div className="w-full mt-6 max-w-full">
                     {/* Top Section Tabs / Stepper */}
-                    <div className="flex items-center gap-2 overflow-x-auto pb-3 pt-1 scrollbar-none w-full border-b border-gray-100 mb-6">
+                    <div className="flex items-center gap-2 overflow-x-auto pb-3 pt-1 scrollbar-none w-full max-w-full border-b border-gray-100 mb-6">
                       {sections.map((sec, idx) => {
                         const isActive = activeSectionIndex === idx;
                         return (
@@ -591,32 +602,32 @@ export default function LeadershipDetailsPage() {
                             className={`shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer ${
                               isActive
                                 ? 'bg-[#00698c] text-white shadow-sm ring-2 ring-[#00698c]/20'
-                                : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-[#00698c] border border-gray-200/60'
+                                : 'bg-white text-gray-700 hover:bg-gray-50 hover:text-[#00698c] border border-gray-200'
                             }`}
                           >
                             <span
                               className={`w-5 h-5 rounded-full text-[11px] font-bold flex items-center justify-center shrink-0 ${
-                                isActive ? 'bg-white text-[#00698c]' : 'bg-gray-200 text-gray-700'
+                                isActive ? 'bg-white text-[#00698c]' : 'bg-gray-100 text-gray-700'
                               }`}
                             >
                               {idx + 1}
                             </span>
-                            <span>{sec.shortTitle}</span>
+                            <span className="whitespace-nowrap">{sec.shortTitle}</span>
                           </button>
                         );
                       })}
                     </div>
 
                     {/* Active Section Content Card */}
-                    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-6 sm:p-8 min-h-[360px] flex flex-col justify-between transition-all">
+                    <div className="w-full max-w-full bg-white rounded-2xl border border-gray-200/90 shadow-xs p-6 sm:p-8 min-h-[360px] flex flex-col justify-between transition-all overflow-hidden">
                       <div>
                         {/* Section Header with Step Badge */}
-                        <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-6 border-b border-gray-100">
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#00698c] px-2.5 py-1 rounded-full bg-sky-50 border border-sky-100">
+                        <div className="flex flex-wrap items-center justify-between gap-3 pb-5 mb-6 border-b border-gray-100">
+                          <div className="flex items-center gap-3">
+                            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#00698c] px-3 py-1 rounded-full bg-sky-50 border border-sky-100">
                               Page {activeSectionIndex + 1} of {sections.length}
                             </span>
-                            <h2 className="text-xl sm:text-2xl font-bold text-[#111827] font-serif">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-[#0f172a] font-serif tracking-tight">
                               {currentSection.title}
                             </h2>
                           </div>
@@ -625,14 +636,14 @@ export default function LeadershipDetailsPage() {
                         {/* Section HTML Content */}
                         {currentSection.htmlContent ? (
                           <div
-                            className="w-full text-base sm:text-lg text-[#374151] font-sans leading-relaxed [&>p]:mb-5 [&>p]:leading-relaxed [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-5 [&>blockquote]:border-l-4 [&>blockquote]:border-[#00698c] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:my-4 [&>blockquote]:text-slate-600 [&>a]:text-[#00698c] [&>a]:underline [&>strong]:font-semibold [&>strong]:text-slate-900"
+                            className="w-full text-base sm:text-[17px] text-[#334155] font-sans leading-[1.8] sm:leading-[1.85] break-words [word-break:break-word] [overflow-wrap:break-word] space-y-4 [&>p]:mb-4 [&>p]:leading-[1.85] [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-4 [&>blockquote]:border-l-4 [&>blockquote]:border-[#00698c] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:my-4 [&>blockquote]:text-slate-600 [&>a]:text-[#00698c] [&>a]:underline [&>strong]:font-semibold [&>strong]:text-[#0f172a]"
                             dangerouslySetInnerHTML={{ __html: currentSection.htmlContent }}
                           />
                         ) : null}
 
                         {/* Functions / Responsibilities List */}
                         {currentSection.functions && currentSection.functions.length > 0 && (
-                          <div className="space-y-3 mt-4">
+                          <div className="space-y-3 mt-6">
                             <p className="text-sm text-gray-500 font-sans italic mb-4">
                               Mandated institutional roles and institutional accountabilities:
                             </p>
@@ -640,7 +651,7 @@ export default function LeadershipDetailsPage() {
                               {currentSection.functions.map((fn, fIdx) => (
                                 <li
                                   key={fIdx}
-                                  className="flex items-start gap-3 text-base sm:text-lg text-[#374151] p-3 rounded-xl bg-gray-50/70 border border-gray-100"
+                                  className="flex items-start gap-3 text-base sm:text-lg text-[#334155] p-3.5 rounded-xl bg-gray-50/70 border border-gray-100"
                                 >
                                   <span className="w-2.5 h-2.5 rounded-full bg-[#00698c] mt-2 shrink-0" />
                                   <span>{fn}</span>
@@ -660,7 +671,7 @@ export default function LeadershipDetailsPage() {
                           className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                             activeSectionIndex === 0
                               ? 'text-gray-300 bg-gray-50 cursor-not-allowed border border-gray-100'
-                              : 'text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 shadow-xs hover:text-[#00698c]'
+                              : 'text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 shadow-xs hover:text-[#00698c] cursor-pointer'
                           }`}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -670,7 +681,7 @@ export default function LeadershipDetailsPage() {
                         </button>
 
                         {/* Page Numbers Indicator */}
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap justify-center">
                           {sections.map((_, idx) => (
                             <button
                               key={idx}
@@ -683,10 +694,10 @@ export default function LeadershipDetailsPage() {
                                 }
                               }}
                               aria-label={`Go to section ${idx + 1}`}
-                              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center ${
+                              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center cursor-pointer ${
                                 activeSectionIndex === idx
                                   ? 'bg-[#00698c] text-white shadow-xs'
-                                  : 'text-gray-600 hover:bg-gray-100'
+                                  : 'text-gray-600 bg-white border border-gray-200/80 hover:bg-gray-50 hover:border-[#00698c]/30 hover:text-[#00698c]'
                               }`}
                             >
                               {idx + 1}
@@ -701,7 +712,7 @@ export default function LeadershipDetailsPage() {
                           className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                             activeSectionIndex === sections.length - 1
                               ? 'text-gray-300 bg-gray-50 cursor-not-allowed border border-gray-100'
-                              : 'text-white bg-[#00698c] hover:bg-[#00516c] shadow-xs'
+                              : 'text-white bg-[#00698c] hover:bg-[#00516c] shadow-xs cursor-pointer'
                           }`}
                         >
                           <span>Next Section</span>
@@ -714,18 +725,18 @@ export default function LeadershipDetailsPage() {
                   </div>
                 ) : (
                   /* FULL CONTINUOUS VIEW (Fallback or when toggled to Full) */
-                  <div className="w-full mt-6 space-y-8">
+                  <div className="w-full mt-6 space-y-8 max-w-full">
                     {sections.map((sec, idx) => (
                       <div key={sec.id} className="w-full">
                         {idx > 0 && (
-                          <h2 className="text-xl sm:text-2xl font-bold text-[#111827] font-serif pt-6 pb-2 border-b border-gray-100 mb-5">
+                          <h2 className="text-xl sm:text-2xl font-bold text-[#0f172a] font-serif pt-6 pb-2 border-b border-gray-100 mb-5">
                             {sec.title}
                           </h2>
                         )}
 
                         {sec.htmlContent && (
                           <div
-                            className="w-full text-base sm:text-lg text-[#374151] font-sans leading-relaxed [&>p]:mb-5 [&>p]:leading-relaxed [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-5 [&>blockquote]:border-l-4 [&>blockquote]:border-[#00698c] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:my-4 [&>blockquote]:text-slate-600 [&>a]:text-[#00698c] [&>a]:underline [&>strong]:font-semibold [&>strong]:text-slate-900"
+                            className="w-full text-base sm:text-[17px] text-[#334155] font-sans leading-[1.8] sm:leading-[1.85] break-words [word-break:break-word] [overflow-wrap:break-word] space-y-4 [&>p]:mb-4 [&>p]:leading-[1.85] [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-4 [&>blockquote]:border-l-4 [&>blockquote]:border-[#00698c] [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:my-4 [&>blockquote]:text-slate-600 [&>a]:text-[#00698c] [&>a]:underline [&>strong]:font-semibold [&>strong]:text-[#0f172a]"
                             dangerouslySetInnerHTML={{ __html: sec.htmlContent }}
                           />
                         )}
