@@ -176,6 +176,10 @@ export const defaultLeadershipTiers: LeadershipTierItem[] = [
     title: "Youth Leadership Assembly",
     desc: "Youth participation and leadership development",
   },
+  {
+    title: "Members Respectively",
+    desc: "Institutional members and designated representatives",
+  },
 ];
 
 export const defaultStructureIntroMetadata: StructureIntroMetadata = {

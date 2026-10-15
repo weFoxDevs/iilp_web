@@ -122,6 +122,15 @@ export const LEADERSHIP_TYPES: LeadershipTypeConfig[] = [
       'The Youth Leadership Assembly empowers emerging advocates, student leaders, and young scholars to lead dialogue, formulate policy recommendations, and foster civic leadership.',
     bgImage: '/assets/department-details-hero.png',
   },
+  {
+    id: 'members-respectively',
+    title: 'Members Respectively',
+    subtitle: 'Institutional members and designated representatives',
+    badge: 'Members Respectively',
+    detailedCharter:
+      'Members Respectively comprises distinguished institutional members, fellows, and delegates serving in their respective capacities to advance the mission, governance, and academic programs of the International Institute for Law and Politics (IILP).',
+    bgImage: '/assets/department-details-hero.png',
+  },
 ];
 
 export function getLeadershipTypeConfig(slugOrId?: string): LeadershipTypeConfig {
