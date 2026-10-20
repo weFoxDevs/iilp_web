@@ -3,6 +3,7 @@ export interface LeadershipMemberItem {
   name: string;
   role: string;
   type?: string;
+  types?: string[];
   initials?: string;
   image: string;
   about?: string;
@@ -122,20 +123,22 @@ export const LEADERSHIP_TYPES: LeadershipTypeConfig[] = [
       'The Youth Leadership Assembly empowers emerging advocates, student leaders, and young scholars to lead dialogue, formulate policy recommendations, and foster civic leadership.',
     bgImage: '/assets/department-details-hero.png',
   },
-  {
-    id: 'members-respectively',
-    title: 'Members Respectively',
-    subtitle: 'Institutional members and designated representatives',
-    badge: 'Members Respectively',
-    detailedCharter:
-      'Members Respectively comprises distinguished institutional members, fellows, and delegates serving in their respective capacities to advance the mission, governance, and academic programs of the International Institute for Law and Politics (IILP).',
-    bgImage: '/assets/department-details-hero.png',
-  },
 ];
+
+export function getLeadershipTypeConfigs(slugOrId?: string): LeadershipTypeConfig[] {
+  if (!slugOrId) return [LEADERSHIP_TYPES[1]]; // default founding-members
+  const parts = slugOrId
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (parts.length === 0) return [LEADERSHIP_TYPES[1]];
+  return parts.map((part) => getLeadershipTypeConfig(part));
+}
 
 export function getLeadershipTypeConfig(slugOrId?: string): LeadershipTypeConfig {
   if (!slugOrId) return LEADERSHIP_TYPES[1]; // default founding-members
-  const clean = slugOrId.toLowerCase().trim();
+  const firstPart = slugOrId.split(',')[0].trim();
+  const clean = firstPart.toLowerCase();
   const found = LEADERSHIP_TYPES.find(
     (t) =>
       t.id === clean ||
@@ -146,7 +149,7 @@ export function getLeadershipTypeConfig(slugOrId?: string): LeadershipTypeConfig
 
   return {
     id: clean,
-    title: slugOrId
+    title: firstPart
       .split('-')
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' '),

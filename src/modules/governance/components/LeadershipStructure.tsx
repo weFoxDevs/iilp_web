@@ -45,10 +45,6 @@ const defaultLeadershipTiers: LeadershipTier[] = [
     title: 'Youth Leadership Assembly',
     desc: 'Youth participation and leadership development',
   },
-  {
-    title: 'Members Respectively',
-    desc: 'Institutional members and designated representatives',
-  },
 ];
 
 const TIER_SLUGS: Record<string, string> = {
@@ -61,7 +57,6 @@ const TIER_SLUGS: Record<string, string> = {
   'Global Fellowship Network': 'global-fellowship-network',
   'Ethics & Accountability Commission': 'ethics-commission',
   'Youth Leadership Assembly': 'youth-leadership-assembly',
-  'Members Respectively': 'members-respectively',
 };
 
 interface LeadershipStructureProps {
