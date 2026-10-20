@@ -8,6 +8,7 @@ import {
   LeadershipMemberItem,
   LEADERSHIP_TYPES,
   getLeadershipTypeConfig,
+  getLeadershipTypeConfigs,
 } from "@/common/services/leadership.service";
 import { uploadMediaFile } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
@@ -48,6 +49,9 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
     sortOrder: 0,
     isActive: true,
   });
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(["founding-members"]);
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+  const [typeSearchTerm, setTypeSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
@@ -81,6 +85,8 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
     }
     setPendingPhotoFile(null);
     setLocalPhotoPreview(null);
+    setIsTypeDropdownOpen(false);
+    setTypeSearchTerm("");
     setIsModalOpen(false);
   };
 
@@ -97,6 +103,9 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
       sortOrder: members.length,
       isActive: true,
     });
+    setSelectedTypes(["founding-members"]);
+    setIsTypeDropdownOpen(false);
+    setTypeSearchTerm("");
     setPendingPhotoFile(null);
     setLocalPhotoPreview(null);
     setIsModalOpen(true);
@@ -117,6 +126,12 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
       sortOrder: item.sortOrder ?? 0,
       isActive: item.isActive ?? true,
     });
+    const parsedTypes = item.type
+      ? item.type.split(",").map((s) => s.trim()).filter(Boolean)
+      : ["founding-members"];
+    setSelectedTypes(parsedTypes.length > 0 ? parsedTypes : ["founding-members"]);
+    setIsTypeDropdownOpen(false);
+    setTypeSearchTerm("");
     setPendingPhotoFile(null);
     setLocalPhotoPreview(null);
     setIsModalOpen(true);
@@ -179,6 +194,10 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
       onShowToast("Role/Title is required", "error");
       return;
     }
+    if (selectedTypes.length === 0) {
+      onShowToast("Please select at least one Governance Body / Leadership Type", "error");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -197,7 +216,8 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
       const payload: Partial<LeadershipMemberItem> = {
         name: formData.name.trim(),
         role: formData.role.trim(),
-        type: formData.type || "founding-members",
+        type: selectedTypes.join(","),
+        types: selectedTypes,
         initials: formData.initials?.trim() || undefined,
         image: finalImageUrl,
         about: formData.about?.trim() || undefined,
@@ -263,7 +283,8 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
       (m.type && m.type.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (m.about && m.about.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesRole = roleFilter === "all" || m.role === roleFilter;
-    const matchesType = typeFilter === "all" || (m.type || "founding-members") === typeFilter;
+    const memberTypes = (m.type || "founding-members").split(",").map((s) => s.trim());
+    const matchesType = typeFilter === "all" || memberTypes.includes(typeFilter);
     return matchesSearch && matchesRole && matchesType;
   });
 
@@ -339,11 +360,19 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
               className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:bg-white focus:outline-hidden focus:border-[#00698c]"
             >
               <option value="all">All Bodies ({members.length})</option>
-              {LEADERSHIP_TYPES.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.title} ({members.filter((m) => (m.type || "founding-members") === t.id).length})
-                </option>
-              ))}
+              {LEADERSHIP_TYPES.map((t) => {
+                const count = members.filter((m) =>
+                  (m.type || "founding-members")
+                    .split(",")
+                    .map((s) => s.trim())
+                    .includes(t.id)
+                ).length;
+                return (
+                  <option key={t.id} value={t.id}>
+                    {t.title} ({count})
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -409,9 +438,14 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-100 text-[#00698c] border border-sky-200">
-                          {getLeadershipTypeConfig(item.type).badge}
-                        </span>
+                        {getLeadershipTypeConfigs(item.type).map((cfg) => (
+                          <span
+                            key={cfg.id}
+                            className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-100 text-[#00698c] border border-sky-200"
+                          >
+                            {cfg.badge}
+                          </span>
+                        ))}
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#e6f9ff] text-[#00506b] border border-[#b0ebff]">
                           {item.role}
                         </span>
@@ -646,29 +680,166 @@ export function LeadershipManager({ token, onShowToast }: LeadershipManagerProps
                 </div>
               </div>
 
-              {/* Governance Body / Leadership Type */}
-              <div className="bg-sky-50/70 p-3.5 rounded-xl border border-sky-100">
-                <div className="flex items-center justify-between mb-1.5">
+              {/* Governance Body / Leadership Type (Multiple Select) */}
+              <div className="bg-sky-50/70 p-4 rounded-xl border border-sky-100">
+                <div className="flex items-center justify-between mb-2">
                   <label className="block text-xs font-bold text-[#00506b] uppercase tracking-wider">
                     Governance Body / Leadership Type *
+                    <span className="ml-1 text-[11px] font-normal text-gray-500 lowercase">
+                      (multiple select)
+                    </span>
                   </label>
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white text-[#00698c] border border-sky-200">
-                    {getLeadershipTypeConfig(formData.type).badge}
+                    {selectedTypes.length} {selectedTypes.length === 1 ? "Body" : "Bodies"} Selected
                   </span>
                 </div>
-                <select
-                  value={formData.type || "founding-members"}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-white border border-sky-200 rounded-xl text-sm font-semibold text-gray-900 focus:outline-hidden focus:border-[#00698c] focus:ring-2 focus:ring-[#00698c]/20"
-                >
-                  {LEADERSHIP_TYPES.map((tier) => (
-                    <option key={tier.id} value={tier.id}>
-                      {tier.title} — ({tier.subtitle})
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[11px] text-gray-600 mt-1.5 leading-normal">
-                  Determines which dedicated governance body and page this leader appears under on the website (e.g. Founding Authority, Board of Founding Members, Governing Council, etc.).
+
+                {/* Selected Chips Display */}
+                <div className="flex flex-wrap items-center gap-1.5 p-2 bg-white border border-sky-200 rounded-xl min-h-[44px] mb-2.5">
+                  {selectedTypes.length === 0 ? (
+                    <span className="text-xs text-rose-500 italic px-1">
+                      No governance bodies selected. Click below to select at least one.
+                    </span>
+                  ) : (
+                    selectedTypes.map((tid) => {
+                      const cfg = getLeadershipTypeConfig(tid);
+                      return (
+                        <span
+                          key={tid}
+                          className="inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-lg text-xs font-semibold bg-sky-50 text-[#00698c] border border-sky-200"
+                        >
+                          <span>{cfg.title}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (selectedTypes.length === 1) {
+                                onShowToast("At least one governance body must remain selected", "error");
+                                return;
+                              }
+                              setSelectedTypes((prev) => prev.filter((t) => t !== tid));
+                            }}
+                            className="w-4 h-4 rounded-full flex items-center justify-center text-[#00698c] hover:bg-sky-200 hover:text-[#00506b] transition-colors cursor-pointer"
+                            title={`Remove ${cfg.title}`}
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </span>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Dropdown Toggle & Actions */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsTypeDropdownOpen((prev) => !prev)}
+                      className="flex-1 flex items-center justify-between px-3.5 py-2.5 bg-white hover:bg-sky-50/50 border border-sky-200 rounded-xl text-xs font-semibold text-gray-800 transition cursor-pointer shadow-2xs"
+                    >
+                      <span className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-[#00698c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                        <span>{isTypeDropdownOpen ? "Close Governance Body Options" : "Select / Modify Governance Bodies..."}</span>
+                      </span>
+                      <svg
+                        className={`w-4 h-4 text-gray-500 transition-transform ${isTypeDropdownOpen ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedTypes.length === LEADERSHIP_TYPES.length) {
+                          setSelectedTypes(["founding-members"]);
+                        } else {
+                          setSelectedTypes(LEADERSHIP_TYPES.map((t) => t.id));
+                        }
+                      }}
+                      className="px-3 py-2.5 bg-white hover:bg-sky-50 border border-sky-200 rounded-xl text-xs font-semibold text-[#00698c] transition cursor-pointer shadow-2xs shrink-0"
+                    >
+                      {selectedTypes.length === LEADERSHIP_TYPES.length ? "Reset Default" : `Select All (${LEADERSHIP_TYPES.length})`}
+                    </button>
+                  </div>
+
+                  {/* Options List */}
+                  {isTypeDropdownOpen && (
+                    <div className="bg-white border border-sky-200 rounded-xl p-3 shadow-md space-y-2">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={typeSearchTerm}
+                          onChange={(e) => setTypeSearchTerm(e.target.value)}
+                          placeholder="Search governance bodies..."
+                          className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-900 focus:bg-white focus:outline-hidden focus:border-[#00698c]"
+                        />
+                        <svg className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+
+                      <div className="max-h-56 overflow-y-auto space-y-1 pr-1 divide-y divide-gray-100 modal-scroll">
+                        {LEADERSHIP_TYPES.filter(
+                          (t) =>
+                            !typeSearchTerm ||
+                            t.title.toLowerCase().includes(typeSearchTerm.toLowerCase()) ||
+                            t.subtitle.toLowerCase().includes(typeSearchTerm.toLowerCase()) ||
+                            t.badge.toLowerCase().includes(typeSearchTerm.toLowerCase())
+                        ).map((tier) => {
+                          const isSelected = selectedTypes.includes(tier.id);
+                          return (
+                            <div
+                              key={tier.id}
+                              onClick={() => {
+                                if (isSelected) {
+                                  if (selectedTypes.length === 1) {
+                                    onShowToast("At least one governance body must remain selected", "error");
+                                    return;
+                                  }
+                                  setSelectedTypes((prev) => prev.filter((t) => t !== tier.id));
+                                } else {
+                                  setSelectedTypes((prev) => [...prev, tier.id]);
+                                }
+                              }}
+                              className={`flex items-start gap-3 p-2.5 rounded-lg cursor-pointer transition select-none ${
+                                isSelected
+                                  ? "bg-sky-50 border border-sky-200 text-[#00506b]"
+                                  : "hover:bg-gray-50 border border-transparent text-gray-700"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => {}}
+                                className="mt-0.5 h-4 w-4 rounded-sm border-gray-300 text-[#00698c] focus:ring-[#00698c] cursor-pointer"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-xs font-bold truncate">{tier.title}</span>
+                                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm bg-sky-100 text-[#00698c] shrink-0">
+                                    {tier.badge}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-gray-500 truncate mt-0.5">{tier.subtitle}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-[11px] text-gray-600 mt-2 leading-normal">
+                  Determines which dedicated governance body and page this leader appears under on the website (e.g. Founding Authority, Board of Founding Members, Governing Council, etc.). You can select multiple bodies.
                 </p>
               </div>
 

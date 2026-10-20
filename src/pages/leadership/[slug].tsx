@@ -10,6 +10,7 @@ import {
   fetchPublicLeadershipMembers,
   createSlugFromName,
   getLeadershipTypeConfig,
+  getLeadershipTypeConfigs,
   LeadershipMemberItem,
 } from '@/common/services/leadership.service';
 
@@ -350,11 +351,18 @@ export default function LeadershipDetailsPage() {
               )}
             </nav>
 
-            {/* Pill Badge */}
-            <div className="inline-flex items-center justify-center border border-[#e6f9ff]/80 rounded-full px-4 py-1.5 mb-3.5 backdrop-blur-md bg-black/25 shadow-xs">
-              <span className="text-[#fdfdfd] text-xs sm:text-sm font-semibold uppercase tracking-wider font-inter">
-                {getLeadershipTypeConfig(member?.type).badge}
-              </span>
+            {/* Pill Badge(s) */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-3.5">
+              {getLeadershipTypeConfigs(member?.type).map((cfg) => (
+                <div
+                  key={cfg.id}
+                  className="inline-flex items-center justify-center border border-[#e6f9ff]/80 rounded-full px-4 py-1.5 backdrop-blur-md bg-black/25 shadow-xs"
+                >
+                  <span className="text-[#fdfdfd] text-xs sm:text-sm font-semibold uppercase tracking-wider font-inter">
+                    {cfg.badge}
+                  </span>
+                </div>
+              ))}
             </div>
 
             {/* Leader Name Heading */}
