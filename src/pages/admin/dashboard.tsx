@@ -16,6 +16,7 @@ import { FellowshipApplicationsManager } from "@/modules/admin/components/Fellow
 import { LeadershipManager } from "@/modules/admin/components/LeadershipManager";
 import { PublicationsManager } from "@/modules/admin/components/PublicationsManager";
 import { ContactInquiriesManager } from "@/modules/admin/components/ContactInquiriesManager";
+import { AdmissionsManager } from "@/modules/admin/components/AdmissionsManager";
 import { ProfileSettings } from "@/modules/admin/components/ProfileSettings";
 
 interface DashboardMetrics {
@@ -123,6 +124,7 @@ const VALID_TABS = [
   "admin-manage",
   "role-manage",
   "events",
+  "admission-applications",
   "fellowship-applications",
   "contact-inquiries",
   "leadership",
@@ -147,6 +149,7 @@ export const TAB_PERMISSION_MAP: Record<TabType, string[]> = {
   "admin-manage": ["user:view"],
   "role-manage": ["role:view"],
   events: ["event:view"],
+  "admission-applications": ["admission:view", "fellowship:view"],
   "fellowship-applications": ["fellowship:view"],
   "contact-inquiries": ["contact:view"],
   "site-layout": ["site_layout:view"],
@@ -1306,6 +1309,37 @@ export default function AdminDashboard() {
                       {summary.metrics.totalEvents}
                     </span>
                   )}
+                </button>
+              )}
+
+              {canAccessTab("admission-applications") && (
+                <button
+                  onClick={() => handleTabChange("admission-applications")}
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "admission-applications"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                      activeTab === "admission-applications"
+                        ? "bg-[#00bfff] text-white"
+                        : "bg-[#f0f4f8] text-[#4a5565]"
+                    }`}>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <span className="font-bold truncate whitespace-nowrap">Admissions</span>
+                  </div>
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                    activeTab === "admission-applications"
+                      ? "bg-white/20 text-white"
+                      : "bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff]"
+                  }`}>
+                    New
+                  </span>
                 </button>
               )}
 
@@ -2724,6 +2758,14 @@ export default function AdminDashboard() {
           {/* TAB: SITE LAYOUT & BRANDING */}
           {activeTab === "site-layout" && token && (
             <SiteLayoutManager
+              token={token}
+              onShowToast={handleShowToast}
+            />
+          )}
+
+          {/* TAB: ADMISSION APPLICATIONS */}
+          {activeTab === "admission-applications" && token && (
+            <AdmissionsManager
               token={token}
               onShowToast={handleShowToast}
             />

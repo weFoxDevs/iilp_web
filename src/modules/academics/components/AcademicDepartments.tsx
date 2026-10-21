@@ -76,14 +76,33 @@ const defaultDepartments: Department[] = [
   },
 ];
 
+import { DepartmentItem } from "@/common/services/departments.service";
+
 interface AcademicDepartmentsProps {
   data?: Partial<PageSectionData>;
+  departments?: DepartmentItem[];
 }
 
-export default function AcademicDepartments({ data }: AcademicDepartmentsProps) {
+export default function AcademicDepartments({ data, departments }: AcademicDepartmentsProps) {
   const [apiDepartments, setApiDepartments] = useState<Department[] | null>(null);
 
   useEffect(() => {
+    if (departments && departments.length > 0) {
+      setApiDepartments(
+        departments.map((d, idx) => ({
+          id: d.slug || d.id || `dept-${idx}`,
+          number: d.number || String(idx + 1).padStart(2, "0"),
+          title: d.name,
+          description: d.description,
+          image: d.image || "/assets/academic-thumbnail-1.png",
+          hasActionButton: d.hasActionButton ?? true,
+          highlighted: Boolean(d.isHighlighted),
+          slug: d.slug,
+        }))
+      );
+      return;
+    }
+
     let isMounted = true;
     fetchDepartments({ activeOnly: true })
       .then((items) => {
@@ -109,7 +128,7 @@ export default function AcademicDepartments({ data }: AcademicDepartmentsProps) 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [departments]);
 
   const badge = data?.badge ?? "Our Disciplines";
   const title = data?.title ?? "Six Academic Departments";

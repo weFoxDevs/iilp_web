@@ -2,12 +2,23 @@ import NavBar from './NavBar';
 import { useSiteLayout } from './SiteLayoutContext';
 
 export function Header() {
-  const { topBar } = useSiteLayout();
+  const { topBar, isLoading } = useSiteLayout();
 
   return (
     <header className="absolute top-0 left-0 z-50 w-full bg-transparent font-sans">
-      {/* Top Contact Bar */}
-      {topBar.isVisible && (
+      {/* Top Contact Bar Skeleton or Real Content */}
+      {isLoading ? (
+        <div className="bg-[#000080] text-white text-[14px] h-[39.8px] hidden md:flex items-center justify-center overflow-clip px-6 lg:px-[30px] font-sans animate-pulse">
+          <div className="max-w-[1440px] w-full flex items-center justify-between text-[#f8f4f1]">
+            <div className="flex items-center gap-6">
+              <div className="h-3 w-32 bg-white/20 rounded" />
+              <div className="h-3 w-36 bg-white/20 rounded" />
+              <div className="h-3 w-48 bg-white/20 rounded" />
+            </div>
+            <div className="h-3 w-40 bg-white/20 rounded" />
+          </div>
+        </div>
+      ) : topBar.isVisible ? (
         <div className="bg-[#000080] text-white text-[14px] h-[39.8px] hidden md:flex items-center justify-center overflow-clip px-6 lg:px-[30px] font-sans">
           <div className="max-w-[1440px] w-full flex items-center justify-between text-[#f8f4f1]">
             <div className="flex items-center">
@@ -37,7 +48,7 @@ export function Header() {
             )}
           </div>
         </div>
-      )}
+      ) : null}
       
       {/* Main Navigation Bar */}
       <NavBar />

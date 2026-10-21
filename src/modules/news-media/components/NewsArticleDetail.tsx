@@ -130,7 +130,7 @@ export default function NewsArticleDetail({ article }: NewsArticleDetailProps) {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center w-full">
               <Link
-                href="/fellowships#apply"
+                href="/apply"
                 className="flex-1 bg-[#00bfff] hover:bg-[#00a3db] text-white font-sans font-semibold text-sm py-3 px-5 rounded-full text-center transition-colors whitespace-nowrap shadow-xs"
               >
                 Apply Online

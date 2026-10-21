@@ -6,6 +6,7 @@ import {
   deleteAdminSection,
   uploadMediaFile,
   deleteMediaFile,
+  seedAdminApplySections,
   PageSectionData,
 } from "@/common/services/cms.service";
 import { ToastType } from "@/common/components/Toast";
@@ -24,6 +25,7 @@ const COMMON_PAGES = [
   { slug: "home", label: "Home Page (/)" },
   { slug: "about", label: "About Page (/about)" },
   { slug: "academics", label: "Academics (/academics)" },
+  { slug: "apply", label: "Apply / Admissions (/apply)" },
   { slug: "fellowships", label: "Fellowships (/fellowships)" },
   { slug: "governance", label: "Governance (/governance)" },
   { slug: "leadership-directory", label: "Leadership (/leadership-directory)" },
@@ -125,6 +127,91 @@ export const defaultPathwaysIntroMetadata: PathwaysIntroMetadata = {
         "National or international recognition in their domain",
         "Alignment with IILP's values and mission",
         "Nomination by IILP leadership or existing fellows",
+      ],
+    },
+  ],
+};
+
+export const defaultApplyPathwaysMetadata: PathwaysIntroMetadata = {
+  pathways: [
+    {
+      id: "diploma",
+      name: "Diploma Programs",
+      icon: "/assets/tab-planet.svg",
+      title: "Postgraduate Diploma Programs",
+      description:
+        "Comprehensive postgraduate-level programs designed for graduates and early-to-mid career professionals seeking deep specialization in law, politics, and international affairs.",
+      eligibility: [
+        "Bachelor's degree or higher in law, social sciences, or related discipline",
+        "Demonstrated interest in international legal and political issues",
+        "Proficiency in English (or primary instruction language)",
+        "Official academic certificate, transcripts, and personal statement",
+      ],
+      benefits: [
+        "Professional qualification recognized by international academic bodies",
+        "In-depth curriculum taught by global leading faculty and practitioners",
+        "Direct research supervision and policy brief publishing opportunities",
+        "Full alumni access to IILP research library and global network",
+      ],
+    },
+    {
+      id: "certificate",
+      name: "Certificate Programs",
+      icon: "/assets/tab-hat.svg",
+      title: "Specialized Certificate Programs",
+      description:
+        "Targeted, intensive credentials focused on core contemporary themes such as human rights law, public policy, humanitarian affairs, and peace studies.",
+      eligibility: [
+        "Minimum higher secondary or undergraduate standing",
+        "Clear academic or professional interest in chosen study area",
+        "Statement of purpose outlining motivations and career goals",
+        "Commitment to participating in online discussions and assessments",
+      ],
+      benefits: [
+        "Official IILP Academic Certificate upon successful completion",
+        "Flexible online study format designed for working professionals",
+        "Applied case study discussions and international policy analysis",
+        "Networking with an international cohort of peer scholars",
+      ],
+    },
+    {
+      id: "training",
+      name: "Professional Training",
+      icon: "/assets/tab-trophy.svg",
+      title: "Professional & Executive Training",
+      description:
+        "Executive-level workshops and training modules tailored for public officials, civil society leaders, legal counsel, and diplomats.",
+      eligibility: [
+        "Working professional with minimum 2-3 years in public or private sector",
+        "Professional CV highlighting legal, policy, or leadership responsibilities",
+        "Commitment to executive workshop schedules and simulation exercises",
+        "Interest in multilateral diplomacy, arbitration, or human rights advocacy",
+      ],
+      benefits: [
+        "Executive Certificate of Completion from IILP",
+        "Applied skills in policy negotiation, advocacy, and strategic diplomacy",
+        "Exclusive peer roundtables and Chatham House rule dialogues",
+        "Inclusion in IILP Executive Practitioner Directory",
+      ],
+    },
+    {
+      id: "short-course",
+      name: "Short Courses",
+      icon: "/assets/tab-planet.svg",
+      title: "Modular Short Courses",
+      description:
+        "Focused modular courses spanning 2 to 6 weeks, providing rapid foundational knowledge on critical global legal and governance issues.",
+      eligibility: [
+        "Open admission for students, researchers, and curious practitioners",
+        "Basic interest in contemporary global political and legal issues",
+        "Willingness to engage in weekly online readings and assignments",
+        "No formal prerequisite degree strictly mandated",
+      ],
+      benefits: [
+        "Modular Certificate of Participation and digital credential",
+        "Self-paced interactive lectures and curated reading packs",
+        "Direct feedback from course instructors and discussion forums",
+        "Pathway credit transfer toward full IILP Diploma programs",
       ],
     },
   ],
@@ -971,6 +1058,70 @@ export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
     { key: "departments", label: "Academic Departments", defaultTitle: "Our Academic Departments" },
     { key: "apply", label: "Apply to Academic Programs", defaultTitle: "Admissions & Applications" },
   ],
+  apply: [
+    {
+      key: "hero",
+      label: "Apply Hero Banner",
+      defaultTitle: "Online Admission & Application Form",
+      defaultBadge: "Academic Admissions • 2026",
+      defaultSubtitle:
+        "Academic Programs • Certificate Courses • Diploma Programs • Professional Training",
+      defaultBgImage: "/assets/fellowship-hero-bg.png",
+      defaultActionText: "Start Application ↓",
+      defaultActionUrl: "#apply",
+    },
+    {
+      key: "pathways_intro",
+      label: "Four Educational Pathways",
+      defaultTitle: "Four Educational Pathways",
+      defaultBadge: "Academic & Training Tracks",
+      defaultSubtitle:
+        "IILP offers specialized academic and professional programs designed to prepare future leaders in law, politics, human rights, and governance.",
+      defaultMetadata: defaultApplyPathwaysMetadata,
+    },
+    {
+      key: "application_cta",
+      label: "Online Application Portal & Info",
+      defaultTitle: "Submit Your Admission Application",
+      defaultBadge: "Online Application Portal",
+      defaultSubtitle:
+        "Complete the official admission form below for academic programs, diplomas, certificates, and professional training. You will receive an official reference number and automated confirmation email.",
+      defaultActionText: "Submit Application",
+      defaultActionUrl: "#apply",
+    },
+  ],
+  admissions: [
+    {
+      key: "hero",
+      label: "Apply Hero Banner",
+      defaultTitle: "Online Admission & Application Form",
+      defaultBadge: "Academic Admissions • 2026",
+      defaultSubtitle:
+        "Academic Programs • Certificate Courses • Diploma Programs • Professional Training",
+      defaultBgImage: "/assets/fellowship-hero-bg.png",
+      defaultActionText: "Start Application ↓",
+      defaultActionUrl: "#apply",
+    },
+    {
+      key: "pathways_intro",
+      label: "Four Educational Pathways",
+      defaultTitle: "Four Educational Pathways",
+      defaultBadge: "Academic & Training Tracks",
+      defaultSubtitle:
+        "IILP offers specialized academic and professional programs designed to prepare future leaders in law, politics, human rights, and governance.",
+      defaultMetadata: defaultApplyPathwaysMetadata,
+    },
+    {
+      key: "application_cta",
+      label: "Online Application Portal & Info",
+      defaultTitle: "Submit Your Admission Application",
+      defaultBadge: "Online Application Portal",
+      defaultSubtitle:
+        "Complete the official admission form below for academic programs, diplomas, certificates, and professional training. You will receive an official reference number and automated confirmation email.",
+      defaultActionText: "Submit Application",
+      defaultActionUrl: "#apply",
+    },
+  ],
   fellowships: [
     {
       key: "hero",
@@ -1745,6 +1896,11 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
   const [uploadingFoundingMemberIdx, setUploadingFoundingMemberIdx] = useState<number | null>(null);
 
   const getPathwaysMetadata = (): PathwaysIntroMetadata => {
+    const defaultMeta =
+      selectedPage === "apply" || selectedPage === "admissions"
+        ? defaultApplyPathwaysMetadata
+        : defaultPathwaysIntroMetadata;
+
     try {
       const parsed = JSON.parse(metadataJson || "{}");
       if (Array.isArray(parsed.pathways)) {
@@ -1760,9 +1916,9 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
           })),
         };
       }
-      return defaultPathwaysIntroMetadata;
+      return defaultMeta;
     } catch {
-      return defaultPathwaysIntroMetadata;
+      return defaultMeta;
     }
   };
 
@@ -2514,6 +2670,44 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
     }
   };
 
+  const handleSeedDefaults = async () => {
+    if (
+      !confirm(
+        `Seed/populate default sections for /${selectedPage}? Existing sections with matching keys will be refreshed with standard default content.`
+      )
+    ) {
+      return;
+    }
+    setIsSaving(true);
+    try {
+      if (selectedPage === "apply" || selectedPage === "admissions") {
+        await seedAdminApplySections(token);
+        onShowToast("Apply page sections seeded successfully!", "success");
+      } else {
+        const defs = PAGE_SECTIONS_REGISTRY[selectedPage] || [];
+        for (const def of defs) {
+          await upsertAdminSection(token, selectedPage, def.key, {
+            title: def.defaultTitle || "",
+            subtitle: def.defaultSubtitle || "",
+            badge: def.defaultBadge || "",
+            bgImage: def.defaultBgImage || "",
+            actionText: def.defaultActionText || "",
+            actionUrl: def.defaultActionUrl || "",
+            metadata: def.defaultMetadata || {},
+            isActive: true,
+          });
+        }
+        onShowToast(`Default sections populated for /${selectedPage}!`, "success");
+      }
+      loadSections();
+      loadPageSlugs();
+    } catch (err: unknown) {
+      onShowToast(err instanceof Error ? err.message : "Failed to seed default sections", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header bar */}
@@ -2548,6 +2742,17 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
           </select>
 
           <button
+            onClick={handleSeedDefaults}
+            disabled={isSaving}
+            className="inline-flex items-center justify-center gap-1.5 bg-white border border-[#b0ebff] hover:bg-[#e6f9ff] text-[#00698c] px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shadow-xs cursor-pointer w-full sm:w-auto"
+          >
+            <svg className="w-4 h-4 text-[#00bfff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Seed Defaults
+          </button>
+
+          <button
             onClick={handleOpenCreate}
             className="inline-flex items-center justify-center gap-2 bg-[#00bfff] hover:bg-[#00a6e0] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer w-full sm:w-auto"
           >
@@ -2574,14 +2779,22 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
           </div>
           <h3 className="text-base font-bold text-[#101828]">No Sections Defined Yet</h3>
           <p className="text-xs text-[#4a5565] max-w-md mx-auto mt-1 mb-4">
-            /{selectedPage} currently has no stored blocks in the CMS. Create the first section to make this page dynamically customizable.
+            /{selectedPage} currently has no stored blocks in the CMS. Create the first section or seed standard defaults.
           </p>
-          <button
-            onClick={handleOpenCreate}
-            className="bg-[#00bfff] hover:bg-[#00a6e0] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-          >
-            Create Initial &lsquo;hero&rsquo; Block
-          </button>
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <button
+              onClick={handleOpenCreate}
+              className="bg-[#00bfff] hover:bg-[#00a6e0] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+            >
+              Create Initial &lsquo;hero&rsquo; Block
+            </button>
+            <button
+              onClick={handleSeedDefaults}
+              className="bg-[#e6f9ff] border border-[#b0ebff] hover:bg-[#b0ebff]/50 text-[#00698c] px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+            >
+              Populate Default Sections
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
@@ -5066,13 +5279,21 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                     <button
                       type="button"
                       onClick={() => {
-                        if (confirm("Reset to the 3 standard fellowship pathways (Research, Junior, Honorary)?")) {
-                          updatePathwaysMetadata(() => defaultPathwaysIntroMetadata);
+                        const isApply = selectedPage === "apply" || selectedPage === "admissions";
+                        const promptMsg = isApply
+                          ? "Reset to the 4 educational pathways (Diploma, Certificate, Training, Short Courses)?"
+                          : "Reset to the 3 standard fellowship pathways (Research, Junior, Honorary)?";
+                        if (confirm(promptMsg)) {
+                          updatePathwaysMetadata(() =>
+                            isApply ? defaultApplyPathwaysMetadata : defaultPathwaysIntroMetadata
+                          );
                         }
                       }}
                       className="text-xs text-[#0284c7] hover:underline font-semibold cursor-pointer"
                     >
-                      Reset to Default 3 Pathways
+                      {selectedPage === "apply" || selectedPage === "admissions"
+                        ? "Reset to 4 Standard Educational Pathways"
+                        : "Reset to Default 3 Pathways"}
                     </button>
                   </div>
                 </div>

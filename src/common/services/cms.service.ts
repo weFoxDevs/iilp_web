@@ -132,6 +132,15 @@ export async function seedAdminLayoutSections(token: string): Promise<PageSectio
   return res.json();
 }
 
+export async function seedAdminApplySections(token: string): Promise<PageSectionData[]> {
+  const res = await fetch(`${getApiUrl()}/admin/pages/seed-apply`, {
+    method: 'POST',
+    headers: getAuthHeaders(token),
+  });
+  if (!res.ok) throw new Error(`Failed to seed apply sections (${res.status})`);
+  return res.json();
+}
+
 export async function upsertAdminSection(
   token: string,
   pageSlug: string,
