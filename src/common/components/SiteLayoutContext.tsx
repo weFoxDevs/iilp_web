@@ -171,7 +171,7 @@ export const DEFAULT_NAVBAR: NavbarLayoutData = {
   actionButtons: [
     { name: "Donate", href: "/donate", variant: "default" },
     { name: "Contact", href: "/contact", variant: "outline" },
-    { name: "Apply Now", href: "/fellowships#apply", variant: "primary" },
+    { name: "Apply Now", href: "/apply", variant: "primary" },
   ],
 };
 

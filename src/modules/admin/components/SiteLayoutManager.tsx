@@ -339,7 +339,7 @@ export function SiteLayoutManager({ token, onShowToast }: SiteLayoutManagerProps
           title: navbar.logo.alt,
           bgImage: headerLogoUrl,
           actionText: navbar.actionButtons?.[0]?.name || "Apply Now",
-          actionUrl: navbar.actionButtons?.[0]?.href || "/fellowships#apply",
+          actionUrl: navbar.actionButtons?.[0]?.href || "/apply",
           sortOrder: 1,
           metadata: {
             ...navbar,

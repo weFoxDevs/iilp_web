@@ -5,7 +5,7 @@ import { useSiteLayout } from "./SiteLayoutContext";
 
 export default function NavBar() {
   const router = useRouter();
-  const { navbar } = useSiteLayout();
+  const { navbar, isLoading } = useSiteLayout();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -55,6 +55,38 @@ export default function NavBar() {
   const isOthersActive = allOthersItems.some((item) =>
     router.pathname.startsWith(item.href)
   );
+
+  if (isLoading) {
+    return (
+      <div className="w-full bg-white drop-shadow-[0px_37px_40.5px_rgba(0,0,0,0.06)] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-[30px] py-[9px] relative z-40 animate-pulse">
+        <div className="w-full max-w-[1440px] h-[65px] flex items-center justify-between">
+          {/* Logo Skeleton */}
+          <div className="h-11 w-36 sm:w-44 bg-slate-200/90 rounded-lg" />
+
+          {/* Desktop Navigation Links & Action Buttons Skeleton */}
+          <div className="hidden lg:flex items-center gap-[32px] xl:gap-[40px]">
+            <div className="flex items-center gap-[20px]">
+              <div className="h-4 w-20 bg-slate-200/80 rounded" />
+              <div className="h-4 w-24 bg-slate-200/80 rounded" />
+              <div className="h-4 w-20 bg-slate-200/80 rounded" />
+              <div className="h-4 w-24 bg-slate-200/80 rounded" />
+              <div className="h-4 w-16 bg-slate-200/80 rounded" />
+            </div>
+
+            {/* Action Buttons Skeleton */}
+            <div className="flex items-center gap-[8px]">
+              <div className="h-9 w-20 rounded-full bg-slate-100" />
+              <div className="h-9 w-20 rounded-full bg-slate-100" />
+              <div className="h-9 w-24 rounded-full bg-[#00bfff]/30" />
+            </div>
+          </div>
+
+          {/* Mobile Toggle Skeleton */}
+          <div className="lg:hidden w-9 h-9 rounded-lg bg-slate-200/80" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-white drop-shadow-[0px_37px_40.5px_rgba(0,0,0,0.06)] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-[30px] py-[9px] relative z-40">

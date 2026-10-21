@@ -42,7 +42,7 @@ export default function Home() {
             />
             <AcademicPrograms data={getSection("academic_programs")} />
             <Events data={getSection("events")} />
-            <Testimonial />
+            <Testimonial data={getSection("testimonials")} />
             <ImageGallery data={getSection("image_gallery")} />
             <FellowshipNetwork data={getSection("fellowship_network")} />
             <FounderMessage data={getSection("founder_message")} />
