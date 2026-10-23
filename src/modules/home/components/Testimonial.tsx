@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useGetSiteTestimonialsQuery } from '@/store/api/cmsApi';
 import type { PageSectionData } from '@/common/services/cms.service';
 
@@ -106,6 +106,21 @@ export function Testimonial({ data }: TestimonialProps = {}) {
   const [isPaused, setIsPaused] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [avatarError, setAvatarError] = useState<Record<string, boolean>>({});
+  const scholarListRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll the active scholar button into view when slide changes
+  useEffect(() => {
+    const container = scholarListRef.current;
+    if (!container) return;
+    const activeBtn = container.querySelector<HTMLElement>('[data-active="true"]');
+    if (activeBtn) {
+      const containerRect = container.getBoundingClientRect();
+      const btnRect = activeBtn.getBoundingClientRect();
+      const offset =
+        btnRect.left - containerRect.left + container.scrollLeft - containerRect.width / 2 + btnRect.width / 2;
+      container.scrollTo({ left: Math.max(0, offset), behavior: 'smooth' });
+    }
+  }, [activeIndex]);
 
   const title = data?.title || 'Voices of Impact & Scholarship';
   const subtitle =
@@ -275,41 +290,52 @@ export function Testimonial({ data }: TestimonialProps = {}) {
               </div>
 
               {/* Bottom Navigation & Quick-Select Row */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-white/10">
-                {/* Scholar Quick Selector Avatars */}
-                <div className="flex items-center gap-2.5 flex-wrap justify-center sm:justify-start">
-                  <span className="text-xs font-medium text-slate-400 mr-1 hidden md:inline">Scholars:</span>
-                  {items.map((item, idx) => {
-                    const isSelected = idx === activeIndex;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => handleSelect(idx)}
-                        aria-label={`View testimonial by ${item.author}`}
-                        className={`group flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
-                          isSelected
-                            ? 'bg-[#00a3cc] text-white shadow-md shadow-[#00a3cc]/30 scale-105'
-                            : 'bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white'
-                        }`}
-                      >
-                        <span className="w-5 h-5 rounded-full overflow-hidden bg-white/20 shrink-0 relative flex items-center justify-center text-[10px] font-bold">
-                          {item.avatar && !avatarError[item.id] ? (
-                            <Image
-                              src={item.avatar}
-                              alt={item.author}
-                              fill
-                              className="object-cover"
-                              onError={() => setAvatarError((p) => ({ ...p, [item.id]: true }))}
-                            />
-                          ) : (
-                            getInitials(item.author)
-                          )}
-                        </span>
-                        <span className="truncate max-w-[100px] sm:max-w-[120px]">{item.author.split(' ')[0]}</span>
-                      </button>
-                    );
-                  })}
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-white/10 min-w-0">
+                {/* Scholar Quick Selector Avatars (Single Row) */}
+                <div className="flex items-center gap-2.5 min-w-0 flex-1 w-full overflow-hidden">
+                  <span className="text-xs font-semibold text-slate-300 shrink-0">Scholars:</span>
+                  <div
+                    ref={scholarListRef}
+                    onWheel={(e) => {
+                      if (e.deltaY !== 0 && !e.shiftKey) {
+                        e.currentTarget.scrollLeft += e.deltaY;
+                      }
+                    }}
+                    className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1 w-full"
+                  >
+                    {items.map((item, idx) => {
+                      const isSelected = idx === activeIndex;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          data-active={isSelected}
+                          onClick={() => handleSelect(idx)}
+                          aria-label={`View testimonial by ${item.author}`}
+                          className={`shrink-0 group flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#00a3cc] text-white shadow-md shadow-[#00a3cc]/30 scale-105 ring-1 ring-[#7de5ff]/50'
+                              : 'bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white'
+                          }`}
+                        >
+                          <span className="w-5 h-5 rounded-full overflow-hidden bg-white/20 shrink-0 relative flex items-center justify-center text-[10px] font-bold">
+                            {item.avatar && !avatarError[item.id] ? (
+                              <Image
+                                src={item.avatar}
+                                alt={item.author}
+                                fill
+                                className="object-cover"
+                                onError={() => setAvatarError((p) => ({ ...p, [item.id]: true }))}
+                              />
+                            ) : (
+                              getInitials(item.author)
+                            )}
+                          </span>
+                          <span className="whitespace-nowrap">{item.author.split(' ')[0]}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Arrow Controls & Counter */}
