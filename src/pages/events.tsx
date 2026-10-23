@@ -1,27 +1,38 @@
-import React from "react";
-import Head from "next/head";
-import { Header } from "@/common/components/Header";
-import { Footer } from "@/common/components/Footer";
-import { usePageContent } from "@/common/hooks/usePageContent";
-import { EventsHero } from "@/modules/events/components/EventsHero";
-import { EventsCalendar } from "@/modules/events/components/EventsCalendar";
-import { NewsletterArchive } from "@/modules/events/components/NewsletterArchive";
-import { PhotoGallery } from "@/modules/events/components/PhotoGallery";
+import React from 'react';
+import type { GetStaticProps, InferGetStaticPropsType } from 'next';
+import { Header } from '@/common/components/Header';
+import { Footer } from '@/common/components/Footer';
+import { usePageContent } from '@/common/hooks/usePageContent';
+import { EventsHero } from '@/modules/events/components/EventsHero';
+import { EventsCalendar } from '@/modules/events/components/EventsCalendar';
+import { NewsletterArchive } from '@/modules/events/components/NewsletterArchive';
+import { PhotoGallery } from '@/modules/events/components/PhotoGallery';
+import EventsSkeleton from '@/modules/events/components/EventsSkeleton';
+import { SeoHead, breadcrumbJsonLd } from '@/common/components/SeoHead';
+import { fetchPageContent, PageContentResponse } from '@/common/services/cms.service';
 
-import EventsSkeleton from "@/modules/events/components/EventsSkeleton";
+export const getStaticProps = (async () => {
+  const pageContent = await fetchPageContent('events').catch(() => null);
+  return {
+    props: { pageContent },
+    revalidate: 300,
+  };
+}) satisfies GetStaticProps<{ pageContent: PageContentResponse | null }>;
 
-export default function EventsPage() {
-  const { getSection, isLoading } = usePageContent("events");
+export default function EventsPage({ pageContent }: InferGetStaticPropsType<typeof getStaticProps>) {
+  const { getSection, isLoading } = usePageContent('events', pageContent);
 
   return (
     <>
-      <Head>
-        <title>Events &amp; Conferences — Institute for International Law &amp; Policy (IILP)</title>
-        <meta
-          name="description"
-          content="Conferences, seminars, workshops, webinars, and policy dialogues organized by IILP to advance knowledge and build capacity in law, governance, and human rights."
-        />
-      </Head>
+      <SeoHead
+        title="Events & Conferences | International Institute for Law and Politics (IILP)"
+        description="Conferences, seminars, workshops, webinars, and policy dialogues organized by IILP to advance knowledge and build capacity in law, governance, and human rights."
+        canonicalPath="/events"
+        jsonLd={breadcrumbJsonLd([
+          { name: 'Home', url: '/' },
+          { name: 'Events', url: '/events' },
+        ])}
+      />
 
       <div className="flex flex-col min-h-screen bg-white font-sans selection:bg-sky-100 selection:text-sky-900">
         <Header />
@@ -31,22 +42,14 @@ export default function EventsPage() {
             <EventsSkeleton />
           ) : (
             <>
-              {/* Hero Section (Frame 147:65673) */}
-              <EventsHero data={getSection("hero")} />
-
-              {/* Upcoming Events Calendar & Grid (Frame 147:65681) */}
-              <EventsCalendar data={getSection("events_calendar")} />
-
-              {/* Newsletter Archive Banner (Frame 147:65856) */}
-              <NewsletterArchive data={getSection("newsletter_banner")} />
-
-              {/* Photo Gallery / Visual Media Section (Frame 147:65883) */}
-              <PhotoGallery data={getSection("photo_gallery")} />
+              <EventsHero data={getSection('hero')} />
+              <EventsCalendar data={getSection('events_calendar')} />
+              <NewsletterArchive data={getSection('newsletter_banner')} />
+              <PhotoGallery data={getSection('photo_gallery')} />
             </>
           )}
         </main>
 
-        {/* Footer with "Join the IILP Community Today" CTA (Frame 147:65936 & 147:65953) */}
         <Footer withCta={true} />
       </div>
     </>

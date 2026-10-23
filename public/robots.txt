@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and auth routes
+Disallow: /admin/
+Disallow: /login
+Disallow: /forgot-password
+Disallow: /reset-password
+
+# Sitemap
+Sitemap: https://iilp.org/sitemap.xml

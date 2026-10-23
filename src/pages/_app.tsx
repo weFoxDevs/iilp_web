@@ -10,6 +10,8 @@ import { useEffect } from 'react';
 import Lenis from 'lenis';
 import { useRouter } from 'next/router';
 import { RouteProgressBar } from "@/common/components/RouteProgressBar";
+import { Provider } from 'react-redux';
+import { store } from '@/store/store';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -63,7 +65,7 @@ export default function App({ Component, pageProps }: AppProps) {
   }, [router.pathname, router.events]);
 
   return (
-    <>
+    <Provider store={store}>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
@@ -75,6 +77,6 @@ export default function App({ Component, pageProps }: AppProps) {
           </SiteLayoutProvider>
         </AuthProvider>
       </div>
-    </>
+    </Provider>
   );
 }

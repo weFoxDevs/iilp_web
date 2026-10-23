@@ -1,7 +1,14 @@
-import Head from "next/head";
+import type { GetStaticProps, InferGetStaticPropsType } from 'next';
 import { Header } from "@/common/components/Header";
 import { Footer } from "@/common/components/Footer";
 import { usePageContent } from "@/common/hooks/usePageContent";
+import { SeoHead } from '@/common/components/SeoHead';
+import { fetchPageContent, PageContentResponse } from '@/common/services/cms.service';
+
+export const getStaticProps = (async () => {
+  const pageContent = await fetchPageContent('privacy-policy').catch(() => null);
+  return { props: { pageContent }, revalidate: 86400 };
+}) satisfies GetStaticProps<{ pageContent: PageContentResponse | null }>;
 import {
   PrivacyPolicyHero,
   PrivacyPolicyContent,
@@ -9,18 +16,16 @@ import {
 
 import { GenericPageSkeleton } from "@/common/components/PageSkeletons";
 
-export default function PrivacyPolicyPage() {
-  const { getSection, isLoading } = usePageContent("privacy-policy");
+export default function PrivacyPolicyPage({ pageContent }: InferGetStaticPropsType<typeof getStaticProps>) {
+  const { getSection, isLoading } = usePageContent('privacy-policy', pageContent);
 
   return (
     <>
-      <Head>
-        <title>Privacy Policy | IILP - International Institute for Law and Politics</title>
-        <meta
-          name="description"
-          content="Learn how the International Institute for Law and Politics (IILP) collects, uses, and protects your personal information."
-        />
-      </Head>
+      <SeoHead
+        title="Privacy Policy | IILP - International Institute for Law and Politics"
+        description="Learn how the International Institute for Law and Politics (IILP) collects, uses, and protects your personal information."
+        canonicalPath="/privacy-policy"
+      />
 
       <div className="flex flex-col min-h-screen bg-white font-sans selection:bg-[#00bfff]/20 selection:text-[#000080]">
         {/* Navigation Bar */}
