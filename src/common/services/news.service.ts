@@ -15,7 +15,7 @@ export interface NewsArticleItem {
   publishedAt?: string;
   createdAt?: string;
   updatedAt?: string;
-  prev?: { slug: string; title: string } | null;
+  prev?: { id?: string; slug: string; title: string } | null;
 }
 
 export interface HomeNewsResponse {
@@ -76,15 +76,19 @@ export async function fetchNewsArticles(params: {
   }
 }
 
-export async function fetchNewsArticleBySlug(slug: string): Promise<NewsArticleItem | null> {
+export async function fetchNewsArticleBySlug(slugOrId: string): Promise<NewsArticleItem | null> {
   try {
-    const res = await fetch(`${getApiUrl()}/news/${encodeURIComponent(slug)}`);
+    const res = await fetch(`${getApiUrl()}/news/${encodeURIComponent(slugOrId)}`);
     if (!res.ok) return null;
     return await res.json();
   } catch (err) {
-    console.error(`[News] Error fetching article '${slug}':`, err);
+    console.error(`[News] Error fetching article '${slugOrId}':`, err);
     return null;
   }
+}
+
+export async function fetchNewsArticleById(id: string): Promise<NewsArticleItem | null> {
+  return fetchNewsArticleBySlug(id);
 }
 
 // ==================== ADMIN METHODS ====================

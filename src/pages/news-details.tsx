@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { Header } from '@/common/components/Header';
 import { Footer } from '@/common/components/Footer';
@@ -14,56 +15,21 @@ import { SeoHead, articleJsonLd, breadcrumbJsonLd } from '@/common/components/Se
 
 const SITE_ORIGIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://iilp.org';
 
-const fallbackArticlesMap: Record<string, NewsArticleItem> = {
-  'student-clubs-and-organizations': {
-    id: 'news-fallback-1',
-    title: 'Student Clubs and Organizations You Should Join This Semester',
-    slug: 'student-clubs-and-organizations',
-    categoryId: 'programs',
-    categoryName: 'Programs',
-    summary:
-      'College is more than just lectures and exams—it is also about growing personally, building networks, and exploring new interests across campus life.',
-    content:
-      '<p class="lead">College is more than just lectures and exams—it\'s also about growing personally, building networks, &amp; exploring new interests. One of the best ways to do that is by joining student clubs and organizations. Whether you\'re looking to develop leadership skills, dive into a passion, or simply meet new people, there\'s something for everyone.</p><h2>Academic and Professional Clubs</h2><p>These clubs align with your major or career goals—think Business Club, Engineering Society, or Debate Team. They host workshops, networking events, and guest lectures to help you prepare for your future.</p>',
-    featuredImage: '/assets/news-article-student.png',
-    publishedDate: '2025-05-19',
-    readTimeMinutes: 4,
-    status: 'PUBLISHED',
-    isHighlighted: false,
-    sortOrder: 1,
-  },
-  'evolving-landscape-of-international-humanitarian-law': {
-    id: 'news-fallback-2',
-    title: 'The Evolving Landscape of International Humanitarian Law',
-    slug: 'evolving-landscape-of-international-humanitarian-law',
-    categoryId: 'programs',
-    categoryName: 'Programs',
-    summary:
-      'A deep dive into new institutional frameworks protecting civilian populations and critical civil infrastructure in digital conflict zones.',
-    content:
-      '<p>Modern asymmetric conflicts present novel challenges to the Geneva Conventions. This working paper explores emerging legal remedies, automated targeting oversight, and multilateral treaties protecting humanitarian personnel.</p>',
-    featuredImage: '/assets/news-students-talking.png',
-    publishedDate: '2025-05-18',
-    readTimeMinutes: 4,
-    status: 'PUBLISHED',
-    isHighlighted: false,
-    sortOrder: 2,
-  },
-};
-
 export const getServerSideProps = (async (context) => {
-  const slug = (context.params?.slug as string) || 'student-clubs-and-organizations';
+  const idOrSlug =
+    (context.params?.id as string) ||
+    (context.params?.slug as string) ||
+    (context.query?.id as string) ||
+    (context.query?.slug as string) ||
+    '';
 
-  let article: NewsArticleItem | null = null;
-  try {
-    article = await fetchNewsArticleBySlug(slug);
-  } catch { /* fall through to fallback */ }
-
-  if (!article) {
-    article =
-      fallbackArticlesMap[slug] ||
-      Object.values(fallbackArticlesMap).find((a) => a.slug === slug) ||
-      null;
+  let initialArticle: NewsArticleItem | null = null;
+  if (idOrSlug) {
+    try {
+      initialArticle = await fetchNewsArticleBySlug(idOrSlug);
+    } catch {
+      initialArticle = null;
+    }
   }
 
   // Cache at edge for 60 s, stale-while-revalidate 300 s
@@ -72,13 +38,60 @@ export const getServerSideProps = (async (context) => {
     'public, s-maxage=60, stale-while-revalidate=300'
   );
 
-  return { props: { article } };
-}) satisfies GetServerSideProps<{ article: NewsArticleItem | null }>;
+  return { props: { initialArticle, idOrSlug } };
+}) satisfies GetServerSideProps<{ initialArticle: NewsArticleItem | null; idOrSlug: string }>;
 
 export default function NewsDetailsPage({
-  article,
+  initialArticle,
+  idOrSlug: initialKey,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const [isLoading] = React.useState(false);
+  const router = useRouter();
+  const [article, setArticle] = useState<NewsArticleItem | null>(initialArticle);
+  const [isLoading, setIsLoading] = useState<boolean>(!initialArticle);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    const currentKey =
+      (router.query.id as string) ||
+      (router.query.slug as string) ||
+      initialKey;
+
+    if (!currentKey) {
+      setIsLoading(false);
+      return;
+    }
+
+    // If initialArticle matches currentKey by id or slug, reuse it
+    if (
+      initialArticle &&
+      (initialArticle.id === currentKey || initialArticle.slug === currentKey)
+    ) {
+      setArticle(initialArticle);
+      setIsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoading(true);
+
+    fetchNewsArticleBySlug(currentKey)
+      .then((data) => {
+        if (!isMounted) return;
+        setArticle(data);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setArticle(null);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router.isReady, router.query.id, router.query.slug, initialKey, initialArticle]);
 
   const pageTitle = article
     ? `${article.title} | IILP News & Media`
@@ -88,7 +101,7 @@ export default function NewsDetailsPage({
     article?.summary ||
     "Stay updated with IILP's latest news, press releases, articles, and research highlights.";
 
-  const canonicalPath = article ? `/news-media/${article.slug}` : '/news-media';
+  const canonicalPath = article ? `/news-media/${article.id}` : '/news-media';
 
   return (
     <>

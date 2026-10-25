@@ -27,12 +27,26 @@ interface LatestNewsMediaProps {
   data?: Partial<PageSectionData>;
 }
 
+function formatDisplayDate(dateStr?: string): string {
+  if (!dateStr) return "";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
+
 export default function LatestNewsMedia({
   badge: propBadge = "Media Center",
   title: propTitle = "Latest from IILP",
   subtitle: propSubtitle = "Latest developments from IILP and upcoming conferences, seminars, and workshops.",
   tabs = defaultFilterTabs,
-  detailsHref = "/news/student-clubs-and-organizations",
   headerLayout = "center",
   data,
 }: LatestNewsMediaProps) {
@@ -41,26 +55,49 @@ export default function LatestNewsMedia({
   const subtitle = data?.subtitle || propSubtitle;
   const [activeFilter, setActiveFilter] = useState(tabs[0]?.id || "all");
   const [liveArticles, setLiveArticles] = useState<NewsArticleItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [categoryTabs, setCategoryTabs] = useState<FilterTab[]>(tabs);
 
   useEffect(() => {
     let isMounted = true;
+    setIsLoading(true);
+
     fetchNewsArticles({
       category: activeFilter !== "all" ? activeFilter : undefined,
       limit: 20,
-    }).then((res) => {
-      if (isMounted && res?.items) {
-        setLiveArticles(res.items);
-      }
-    });
+    })
+      .then((res) => {
+        if (!isMounted) return;
+        if (res?.items) {
+          setLiveArticles(res.items);
+        } else {
+          setLiveArticles([]);
+        }
+
+        if (res?.tabs && res.tabs.length > 0) {
+          const dynamicTabs: FilterTab[] = res.tabs.map((tabName) => ({
+            id: tabName.toLowerCase().replace(/\s+/g, "-"),
+            name: tabName,
+          }));
+          setCategoryTabs(dynamicTabs);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load news articles from database:", err);
+        if (isMounted) setLiveArticles([]);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
     return () => {
       isMounted = false;
     };
   }, [activeFilter]);
 
-  const hasLiveArticles = liveArticles.length > 0;
-  const mainArticle = hasLiveArticles ? liveArticles[0] : null;
-  const gridArticles = hasLiveArticles ? liveArticles.slice(1, 5) : [];
-  const remainingArticles = hasLiveArticles && liveArticles.length > 5 ? liveArticles.slice(5) : [];
+  const mainArticle = liveArticles.length > 0 ? liveArticles[0] : null;
+  const gridArticles = liveArticles.length > 1 ? liveArticles.slice(1, 5) : [];
+  const remainingArticles = liveArticles.length > 5 ? liveArticles.slice(5) : [];
 
   return (
     <section className="bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
@@ -89,7 +126,7 @@ export default function LatestNewsMedia({
 
             {/* Filter Pills */}
             <div className="bg-[#e6f9ff] border border-[#e6f9ff] rounded-2xl sm:rounded-full p-1.5 flex flex-wrap gap-1.5 items-center shrink-0 w-full sm:w-auto">
-              {tabs.map((tab) => {
+              {categoryTabs.map((tab) => {
                 const isActive = activeFilter === tab.id;
                 return (
                   <button
@@ -131,7 +168,7 @@ export default function LatestNewsMedia({
 
             {/* Filter Pills */}
             <div className="bg-[#e6f9ff] border border-[#e6f9ff] rounded-2xl sm:rounded-full p-1.5 flex flex-wrap gap-1.5 items-center justify-center w-full sm:w-auto">
-              {tabs.map((tab) => {
+              {categoryTabs.map((tab) => {
                 const isActive = activeFilter === tab.id;
                 return (
                   <button
@@ -152,115 +189,126 @@ export default function LatestNewsMedia({
           </>
         )}
 
-        {/* Featured News Grid (Large Left + 2x2 Right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 w-full items-start">
-          {/* Large Left Card */}
-          <Link
-            href={mainArticle ? `/news/${mainArticle.slug}` : detailsHref}
-            className="lg:col-span-6 flex flex-col gap-4 group cursor-pointer"
-          >
-            <div className="relative w-full aspect-[4/4] sm:aspect-[4/3] lg:aspect-[1/1] rounded-2xl overflow-hidden bg-gray-100">
-              <Image
-                src={mainArticle?.featuredImage || "/assets/news-students-talking.png"}
-                alt={mainArticle?.title || "Technological Advancements"}
-                fill
-                unoptimized
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
+        {/* Loading Skeleton */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 w-full items-start">
+            {/* Left Skeleton */}
+            <div className="lg:col-span-6 flex flex-col gap-4 animate-pulse">
+              <div className="w-full aspect-[4/4] sm:aspect-[4/3] lg:aspect-[1/1] rounded-2xl bg-slate-200" />
               <div className="flex items-center gap-3">
-                <span className="bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff] font-semibold text-xs px-2.5 py-1 rounded-full uppercase tracking-wider">
-                  {mainArticle?.categoryName || "News"}
-                </span>
-                <span className="font-sans text-sm text-[#414651]">
-                  {mainArticle?.publishedDate || "May 20, 2025"}
-                </span>
+                <div className="h-6 w-20 rounded-full bg-slate-200" />
+                <div className="h-4 w-28 rounded bg-slate-200" />
               </div>
-              <h3 className="font-serif text-[#000080] text-2xl lg:text-[28px] font-bold leading-tight group-hover:text-primary-500 transition-colors">
-                {mainArticle?.title || "Technological Advancements in International Law"}
-              </h3>
+              <div className="h-8 w-4/5 rounded bg-slate-200" />
+              <div className="h-8 w-3/5 rounded bg-slate-200" />
             </div>
-          </Link>
 
-          {/* Right 2x2 Grid */}
-          <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
-            {(gridArticles.length > 0
-              ? gridArticles
-              : [
-                  {
-                    id: "1",
-                    slug: "student-clubs-and-organizations",
-                    title: "Student Clubs and Organizations You Should Join This Semester",
-                    categoryName: "Programs",
-                    publishedDate: "May 19, 2025",
-                    featuredImage: "/assets/news-article-student.png",
-                  },
-                  {
-                    id: "2",
-                    slug: "evolving-landscape-of-international-humanitarian-law",
-                    title: "The Evolving Landscape of International Humanitarian Law",
-                    categoryName: "Programs",
-                    publishedDate: "May 18, 2025",
-                    featuredImage: "/assets/news-student-books.png",
-                  },
-                  {
-                    id: "3",
-                    slug: "annual-international-jurisprudence-symposium-2025",
-                    title: "Annual International Jurisprudence Symposium 2025 Announced",
-                    categoryName: "Events",
-                    publishedDate: "May 15, 2025",
-                    featuredImage: "/assets/news-students-couple.png",
-                  },
-                  {
-                    id: "4",
-                    slug: "iilp-publishes-landmark-policy-brief-maritime-boundary-treaties",
-                    title: "IILP Publishes Landmark Policy Brief on Maritime Boundary Treaties",
-                    categoryName: "Press Releases",
-                    publishedDate: "May 10, 2025",
-                    featuredImage: "/assets/news-students-city.png",
-                  },
-                ]
-            ).map((item) => (
-              <Link
-                key={item.id}
-                href={`/news/${item.slug}`}
-                className="flex flex-col gap-3 group cursor-pointer"
-              >
-                <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">
-                  <Image
-                    src={item.featuredImage || "/assets/news-small-1.png"}
-                    alt={item.title}
-                    fill
-                    unoptimized
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
+            {/* Right 2x2 Skeleton */}
+            <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex flex-col gap-3 animate-pulse">
+                  <div className="w-full aspect-[4/3] rounded-xl bg-slate-200" />
                   <div className="flex items-center gap-2.5">
-                    <span className="bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff] font-semibold text-xs px-2 py-0.5 rounded-full uppercase">
-                      {item.categoryName}
-                    </span>
-                    <span className="font-sans text-xs text-[#414651]">
-                      {item.publishedDate}
-                    </span>
+                    <div className="h-5 w-16 rounded-full bg-slate-200" />
+                    <div className="h-3 w-20 rounded bg-slate-200" />
                   </div>
-                  <h4 className="font-serif text-[#000080] text-lg font-bold leading-tight group-hover:text-primary-500 transition-colors line-clamp-2">
-                    {item.title}
-                  </h4>
+                  <div className="h-5 w-full rounded bg-slate-200" />
+                  <div className="h-5 w-3/4 rounded bg-slate-200" />
                 </div>
-              </Link>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        ) : !mainArticle ? (
+          /* Empty state - No demo content */
+          <div className="w-full py-16 flex flex-col items-center justify-center text-center gap-3 bg-gray-50/70 rounded-2xl border border-dashed border-gray-200">
+            <div className="w-12 h-12 rounded-full bg-sky-50 text-[#00698c] flex items-center justify-center">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
+                <path d="M18 14h-8" />
+                <path d="M15 18h-5" />
+                <path d="M10 6h8v4h-8V6Z" />
+              </svg>
+            </div>
+            <h3 className="font-serif font-bold text-lg text-gray-800">No News Found</h3>
+            <p className="text-sm text-gray-500 max-w-sm">
+              There are currently no published articles in this category.
+            </p>
+          </div>
+        ) : (
+          /* Real Articles from Database Grid */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 w-full items-start">
+            {/* Large Left Card */}
+            <Link
+              href={`/news-media/${mainArticle.id}`}
+              className="lg:col-span-6 flex flex-col gap-4 group cursor-pointer"
+            >
+              <div className="relative w-full aspect-[4/4] sm:aspect-[4/3] lg:aspect-[1/1] rounded-2xl overflow-hidden bg-gray-100">
+                <Image
+                  src={mainArticle.featuredImage || "/assets/news-students-talking.png"}
+                  alt={mainArticle.title}
+                  fill
+                  unoptimized
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <span className="bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff] font-semibold text-xs px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    {mainArticle.categoryName || "News"}
+                  </span>
+                  <span className="font-sans text-sm text-[#414651]">
+                    {formatDisplayDate(mainArticle.publishedDate || mainArticle.publishedAt)}
+                  </span>
+                </div>
+                <h3 className="font-serif text-[#000080] text-2xl lg:text-[28px] font-bold leading-tight group-hover:text-primary-500 transition-colors">
+                  {mainArticle.title}
+                </h3>
+              </div>
+            </Link>
+
+            {/* Right 2x2 Grid */}
+            <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
+              {gridArticles.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/news-media/${item.id}`}
+                  className="flex flex-col gap-3 group cursor-pointer"
+                >
+                  <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">
+                    <Image
+                      src={item.featuredImage || "/assets/news-small-1.png"}
+                      alt={item.title}
+                      fill
+                      unoptimized
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="bg-[#e6f9ff] text-[#00698c] border border-[#b0ebff] font-semibold text-xs px-2 py-0.5 rounded-full uppercase">
+                        {item.categoryName}
+                      </span>
+                      <span className="font-sans text-xs text-[#414651]">
+                        {formatDisplayDate(item.publishedDate || item.publishedAt)}
+                      </span>
+                    </div>
+                    <h4 className="font-serif text-[#000080] text-lg font-bold leading-tight group-hover:text-primary-500 transition-colors line-clamp-2">
+                      {item.title}
+                    </h4>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Bottom Cards Grid if extra articles exist */}
-        {remainingArticles.length > 0 && (
+        {!isLoading && remainingArticles.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full pt-4">
             {remainingArticles.map((item) => (
               <Link
                 key={item.id}
-                href={`/news/${item.slug}`}
+                href={`/news-media/${item.id}`}
                 className="flex flex-col gap-3 group cursor-pointer"
               >
                 <div className="relative w-full aspect-[1/1] rounded-xl overflow-hidden bg-gray-100">
@@ -274,7 +322,7 @@ export default function LatestNewsMedia({
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center gap-2 font-sans text-xs text-[#414651]">
-                    <span>{item.publishedDate}</span>
+                    <span>{formatDisplayDate(item.publishedDate || item.publishedAt)}</span>
                     <span>•</span>
                     <span>{item.categoryName}</span>
                   </div>
