@@ -75,7 +75,7 @@ export const cmsApi = createApi({
     >({
       query: ({ category, search, page, limit } = {}) => {
         const params = new URLSearchParams();
-        if (category && category !== 'All') params.set('category', category);
+        if (category && category.toLowerCase() !== 'all') params.set('category', category);
         if (search) params.set('search', search);
         if (page) params.set('page', String(page));
         if (limit) params.set('limit', String(limit));

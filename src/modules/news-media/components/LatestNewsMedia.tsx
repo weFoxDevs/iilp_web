@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PageSectionData } from "@/common/services/cms.service";
-import { fetchNewsArticles, NewsArticleItem } from "@/common/services/news.service";
+import { NewsArticleItem } from "@/common/services/news.service";
+import { useGetNewsArticlesQuery } from "@/store/api/cmsApi";
 
 interface FilterTab {
   id: string;
@@ -54,54 +55,29 @@ export default function LatestNewsMedia({
   const title = data?.title || propTitle;
   const subtitle = data?.subtitle || propSubtitle;
   const [activeFilter, setActiveFilter] = useState(tabs[0]?.id || "all");
-  const [liveArticles, setLiveArticles] = useState<NewsArticleItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [categoryTabs, setCategoryTabs] = useState<FilterTab[]>(tabs);
 
-  useEffect(() => {
-    let isMounted = true;
-    setIsLoading(true);
+  const { data: newsData, isLoading } = useGetNewsArticlesQuery({
+    category: activeFilter !== "all" ? activeFilter : undefined,
+    limit: 20,
+  });
 
-    fetchNewsArticles({
-      category: activeFilter !== "all" ? activeFilter : undefined,
-      limit: 20,
-    })
-      .then((res) => {
-        if (!isMounted) return;
-        if (res?.items) {
-          setLiveArticles(res.items);
-        } else {
-          setLiveArticles([]);
-        }
+  const liveArticles: NewsArticleItem[] = newsData?.items || [];
 
-        if (res?.tabs && res.tabs.length > 0) {
-          const dynamicTabs: FilterTab[] = res.tabs.map((tabName) => ({
-            id: tabName.toLowerCase().replace(/\s+/g, "-"),
-            name: tabName,
-          }));
-          setCategoryTabs(dynamicTabs);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load news articles from database:", err);
-        if (isMounted) setLiveArticles([]);
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [activeFilter]);
+  const categoryTabs: FilterTab[] =
+    newsData?.tabs && newsData.tabs.length > 0
+      ? newsData.tabs.map((tabName) => ({
+          id: tabName.toLowerCase().replace(/\s+/g, "-"),
+          name: tabName,
+        }))
+      : tabs;
 
   const mainArticle = liveArticles.length > 0 ? liveArticles[0] : null;
   const gridArticles = liveArticles.length > 1 ? liveArticles.slice(1, 5) : [];
   const remainingArticles = liveArticles.length > 5 ? liveArticles.slice(5) : [];
 
   return (
-    <section className="bg-white py-12 sm:py-20 lg:py-[140px] px-4 sm:px-6 md:px-8 lg:px-12 xl:px-[240px]">
-      <div className="max-w-[1440px] mx-auto flex flex-col gap-10 sm:gap-12 lg:gap-[80px] items-center">
+    <section className="bg-white py-12 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto flex flex-col gap-10 sm:gap-12 lg:gap-16 items-center">
         {/* Header Section */}
         {headerLayout === "split" ? (
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-[80px] items-start lg:items-end justify-between w-full">

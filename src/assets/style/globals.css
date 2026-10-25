@@ -330,3 +330,125 @@ select option {
   animation: modalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* -------------------------------------------------------------
+ * News & Article Rich Typography (Editorial Prose)
+ * ------------------------------------------------------------- */
+.news-article-prose {
+  font-family: var(--font-sans-family);
+  color: #334155;
+  font-size: 1.125rem;
+  line-height: 1.85;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.news-article-prose p {
+  margin-bottom: 1.5rem;
+  line-height: 1.85;
+  color: #334155;
+}
+
+.news-article-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.news-article-prose h1,
+.news-article-prose h2,
+.news-article-prose h3,
+.news-article-prose h4,
+.news-article-prose h5,
+.news-article-prose h6 {
+  font-family: var(--font-serif-family);
+  color: #000080;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  margin-top: 2.25rem;
+  margin-bottom: 0.875rem;
+}
+
+.news-article-prose h1 {
+  font-size: 2rem;
+}
+
+.news-article-prose h2 {
+  font-size: 1.625rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+.news-article-prose h3 {
+  font-size: 1.35rem;
+}
+
+.news-article-prose h4 {
+  font-size: 1.15rem;
+}
+
+.news-article-prose blockquote {
+  border-left: 4px solid #00698c;
+  background: #f8fafc;
+  padding: 1.25rem 1.5rem;
+  border-radius: 0 0.75rem 0.75rem 0;
+  font-style: italic;
+  color: #1e293b;
+  margin: 1.75rem 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.news-article-prose ul {
+  list-style-type: disc;
+  padding-left: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.news-article-prose ol {
+  list-style-type: decimal;
+  padding-left: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.news-article-prose li {
+  margin-bottom: 0.625rem;
+  line-height: 1.8;
+}
+
+.news-article-prose strong,
+.news-article-prose b {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.news-article-prose em,
+.news-article-prose i {
+  font-style: italic;
+}
+
+.news-article-prose a {
+  color: #00698c;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.news-article-prose a:hover {
+  color: #000080;
+}
+
+.news-article-prose img {
+  border-radius: 1rem;
+  margin: 2rem auto;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.news-article-prose hr {
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  margin: 2.5rem 0;
+}
+
+
