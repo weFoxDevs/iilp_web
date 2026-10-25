@@ -7,27 +7,44 @@ import { HeroSkeleton, CardGridSkeleton, SectionSkeleton } from './Skeleton';
 export function NewsDetailsSkeleton() {
   return (
     <div className="w-full bg-white animate-pulse">
-      {/* Hero Skeleton */}
-      <section className="relative w-full min-h-[420px] sm:min-h-[500px] flex flex-col justify-end pb-12 sm:pb-16 px-4 sm:px-6 md:px-8 bg-gradient-to-b from-[#0a1128] via-[#101f42] to-[#1a2d5a]">
-        <div className="max-w-[900px] mx-auto w-full space-y-4">
-          <div className="h-6 w-32 rounded-full bg-white/20" />
-          <div className="h-10 sm:h-12 w-full max-w-2xl rounded-xl bg-white/25" />
-          <div className="flex gap-4 pt-2">
-            <div className="h-4 w-28 rounded bg-white/15" />
-            <div className="h-4 w-24 rounded bg-white/15" />
+      {/* Breadcrumb Skeleton */}
+      <div className="bg-slate-50 border-b border-slate-200 py-3.5 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center gap-2">
+          <div className="h-4 w-12 rounded bg-slate-200" />
+          <span className="text-slate-300">/</span>
+          <div className="h-4 w-24 rounded bg-slate-200" />
+          <span className="text-slate-300">/</span>
+          <div className="h-4 w-32 rounded bg-slate-200" />
+        </div>
+      </div>
+
+      {/* Main Layout Skeleton */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+        {/* Left Column (8 cols) */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="h-6 w-24 rounded-full bg-sky-100" />
+            <div className="h-4 w-24 rounded bg-slate-200" />
+            <div className="h-4 w-16 rounded bg-slate-200" />
+          </div>
+          <div className="h-10 sm:h-12 w-4/5 rounded-xl bg-slate-200" />
+          <div className="h-20 w-full rounded-2xl bg-slate-100 border-l-4 border-slate-300" />
+          <div className="h-14 w-full rounded-2xl bg-slate-100" />
+          <div className="w-full aspect-[16/9] rounded-2xl bg-slate-200" />
+          <div className="space-y-4 pt-4">
+            <div className="h-5 w-full rounded bg-slate-100" />
+            <div className="h-5 w-11/12 rounded bg-slate-100" />
+            <div className="h-5 w-full rounded bg-slate-100" />
+            <div className="h-5 w-4/5 rounded bg-slate-100" />
+            <div className="h-5 w-full rounded bg-slate-100" />
           </div>
         </div>
-      </section>
 
-      {/* Article Content Skeleton */}
-      <div className="max-w-[850px] mx-auto px-4 sm:px-6 py-12 sm:py-16 space-y-5">
-        <div className="h-5 w-full rounded bg-slate-200" />
-        <div className="h-5 w-11/12 rounded bg-slate-200" />
-        <div className="h-5 w-4/5 rounded bg-slate-200" />
-        <div className="h-64 sm:h-80 w-full rounded-2xl bg-slate-200 my-8" />
-        <div className="h-5 w-full rounded bg-slate-200" />
-        <div className="h-5 w-full rounded bg-slate-200" />
-        <div className="h-5 w-3/4 rounded bg-slate-200" />
+        {/* Right Sidebar Skeleton (4 cols) */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="h-64 rounded-2xl bg-slate-100" />
+          <div className="h-48 rounded-2xl bg-slate-100" />
+        </div>
       </div>
     </div>
   );

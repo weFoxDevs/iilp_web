@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import type { GetServerSideProps, InferGetServerSidePropsType } from 'next';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { Header } from '@/common/components/Header';
 import { Footer } from '@/common/components/Footer';
-import NewsMediaHero from '@/modules/news-media/components/NewsMediaHero';
 import NewsArticleDetail from '@/modules/news-media/components/NewsArticleDetail';
 import NewsletterArchiveBanner from '@/modules/news-media/components/NewsletterArchiveBanner';
 import PhotoGallerySection from '@/modules/news-media/components/PhotoGallerySection';
 import LatestNewsMedia from '@/modules/news-media/components/LatestNewsMedia';
 import { fetchNewsArticleBySlug, NewsArticleItem } from '@/common/services/news.service';
+import { useGetNewsArticleBySlugQuery } from '@/store/api/cmsApi';
 import { NewsDetailsSkeleton } from '@/common/components/PageSkeletons';
 import { SeoHead, articleJsonLd, breadcrumbJsonLd } from '@/common/components/SeoHead';
 
@@ -46,52 +46,27 @@ export default function NewsDetailsPage({
   idOrSlug: initialKey,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter();
-  const [article, setArticle] = useState<NewsArticleItem | null>(initialArticle);
-  const [isLoading, setIsLoading] = useState<boolean>(!initialArticle);
 
-  useEffect(() => {
-    if (!router.isReady) return;
+  const currentKey =
+    (router.query.id as string) ||
+    (router.query.slug as string) ||
+    initialKey ||
+    '';
 
-    const currentKey =
-      (router.query.id as string) ||
-      (router.query.slug as string) ||
-      initialKey;
+  // RTK Query: fetch and cache article details by slug or ID
+  const { data: queriedArticle, isLoading: isQueryLoading } =
+    useGetNewsArticleBySlugQuery(currentKey, {
+      skip: !currentKey,
+    });
 
-    if (!currentKey) {
-      setIsLoading(false);
-      return;
-    }
-
-    // If initialArticle matches currentKey by id or slug, reuse it
-    if (
-      initialArticle &&
-      (initialArticle.id === currentKey || initialArticle.slug === currentKey)
-    ) {
-      setArticle(initialArticle);
-      setIsLoading(false);
-      return;
-    }
-
-    let isMounted = true;
-    setIsLoading(true);
-
-    fetchNewsArticleBySlug(currentKey)
-      .then((data) => {
-        if (!isMounted) return;
-        setArticle(data);
-      })
-      .catch(() => {
-        if (!isMounted) return;
-        setArticle(null);
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [router.isReady, router.query.id, router.query.slug, initialKey, initialArticle]);
+  // Use queriedArticle when loaded from RTK Query cache/network, otherwise use initialArticle
+  const article =
+    queriedArticle ??
+    (initialArticle &&
+    (initialArticle.id === currentKey || initialArticle.slug === currentKey)
+      ? initialArticle
+      : null);
+  const isLoading = !article && isQueryLoading;
 
   const pageTitle = article
     ? `${article.title} | IILP News & Media`
@@ -163,12 +138,6 @@ export default function NewsDetailsPage({
             </div>
           ) : (
             <>
-              <NewsMediaHero
-                badge={article.categoryName || 'News'}
-                title={article.title}
-                subtitle={article.summary}
-                bgImage="/assets/news-details-hero-bg.png"
-              />
               <NewsArticleDetail article={article} />
               <NewsletterArchiveBanner />
               <PhotoGallerySection />

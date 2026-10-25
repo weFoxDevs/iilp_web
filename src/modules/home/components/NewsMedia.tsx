@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PageSectionData } from '@/common/services/cms.service';
-import { fetchHomeNews, HomeNewsResponse } from '@/common/services/news.service';
+import { useGetHomeNewsQuery } from '@/store/api/cmsApi';
 
 interface NewsItem {
   id: number | string;
@@ -39,8 +39,8 @@ function formatDisplayDate(dateStr: string): string {
 }
 
 export function NewsMedia({ data }: NewsMediaProps) {
-  const [activeTab, setActiveTab] = useState('Programs');
-  const [apiNews, setApiNews] = useState<HomeNewsResponse | null>(null);
+  const [selectedTab, setSelectedTab] = useState<string | null>(null);
+  const { data: apiNews } = useGetHomeNewsQuery();
 
   const defaultNewsData = {
     badge: 'Stay Updated',
@@ -96,22 +96,6 @@ export function NewsMedia({ data }: NewsMediaProps) {
     } as NewsMetadata,
   };
 
-  // Fetch live articles from public News API on mount
-  useEffect(() => {
-    let isMounted = true;
-    fetchHomeNews().then((res) => {
-      if (isMounted && res && (res.featured || res.articles?.length > 0)) {
-        setApiNews(res);
-        if (res.tabs && res.tabs.length > 0) {
-          setActiveTab(res.tabs[0]);
-        }
-      }
-    });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
   const section = {
     badge: data?.badge ?? defaultNewsData.badge,
     title: data?.title ?? defaultNewsData.title,
@@ -129,6 +113,9 @@ export function NewsMedia({ data }: NewsMediaProps) {
     : metadata.tabs && metadata.tabs.length > 0
     ? metadata.tabs
     : defaultNewsData.metadata.tabs;
+
+  const activeTab = selectedTab && tabs?.includes(selectedTab) ? selectedTab : (tabs?.[0] || 'Programs');
+  const setActiveTab = setSelectedTab;
 
   const featured: NewsItem | undefined = apiNews?.featured
     ? {
