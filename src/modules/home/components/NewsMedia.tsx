@@ -137,7 +137,7 @@ export function NewsMedia({ data }: NewsMediaProps) {
         date: formatDisplayDate(apiNews.featured.publishedDate),
         title: apiNews.featured.title,
         image: apiNews.featured.featuredImage || '/assets/news-main.png',
-        link: `/news/${apiNews.featured.slug}`,
+        link: `/news-media/${apiNews.featured.id}`,
       }
     : metadata.featured || defaultNewsData.metadata.featured;
 
@@ -148,7 +148,7 @@ export function NewsMedia({ data }: NewsMediaProps) {
         date: formatDisplayDate(a.publishedDate),
         title: a.title,
         image: a.featuredImage || '/assets/news-small-1.png',
-        link: `/news/${a.slug}`,
+        link: `/news-media/${a.id}`,
       }))
     : metadata.articles && metadata.articles.length > 0
     ? metadata.articles

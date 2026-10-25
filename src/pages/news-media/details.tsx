@@ -1,1 +1,1 @@
-export { default } from "../news-details";
+export { default, getServerSideProps } from "../news-details";

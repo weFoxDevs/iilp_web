@@ -100,14 +100,14 @@ export default function NewsArticleDetail({ article }: NewsArticleDetailProps) {
           {/* Navigation Links */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-100">
             <Link
-              href="/news"
+              href="/news-media"
               className="inline-flex items-center gap-2 text-sm font-semibold text-[#000080] hover:text-[#00698c] transition-colors"
             >
               ← Back to News &amp; Media
             </Link>
             {article.prev && (
               <Link
-                href={`/news/${encodeURIComponent(article.prev.slug)}`}
+                href={`/news-media/${article.prev.id || article.prev.slug}`}
                 className="inline-flex items-center gap-2 text-sm font-semibold text-[#00698c] hover:underline transition-colors"
               >
                 Next Article: {article.prev.title} →
