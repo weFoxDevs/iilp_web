@@ -190,7 +190,7 @@ export default function NavBar() {
 
               {/* Dropdown 2-Column Menu */}
               {dropdownOpen && (
-                <div className="absolute right-0 lg:left-0 lg:right-auto top-full mt-2 w-[620px] bg-white rounded-2xl shadow-[0px_20px_45px_rgba(0,0,0,0.14)] border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute right-0 top-full mt-2 w-[600px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-[0px_20px_45px_rgba(0,0,0,0.14)] border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                   <div className="grid grid-cols-2 gap-4 p-5">
                     {othersGroups.map((group) => (
                       <div key={group.category} className="flex flex-col gap-2">

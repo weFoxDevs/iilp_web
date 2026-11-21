@@ -145,6 +145,11 @@ export const DEFAULT_NAVBAR: NavbarLayoutData = {
           href: "/leadership-directory",
           description: "Executive leadership & distinguished faculty profiles",
         },
+        {
+          name: "Certificate Verification",
+          href: "/verify",
+          description: "Verify official diplomas and fellowships by Regd No.",
+        },
       ],
     },
     {
@@ -235,6 +240,7 @@ export const DEFAULT_FOOTER: FooterLayoutData = {
     {
       title: "Support & Connect",
       links: [
+        { label: "Verify Certificate", href: "/verify" },
         { label: "Contact Us", href: "/contact" },
         { label: "Donate / Support IILP", href: "/donate" },
         { label: "Careers / Work With Us", href: "/careers" },

@@ -17,6 +17,7 @@ import { LeadershipManager } from "@/modules/admin/components/LeadershipManager"
 import { PublicationsManager } from "@/modules/admin/components/PublicationsManager";
 import { ContactInquiriesManager } from "@/modules/admin/components/ContactInquiriesManager";
 import { AdmissionsManager } from "@/modules/admin/components/AdmissionsManager";
+import CertificatesManager from "@/modules/admin/components/CertificatesManager";
 import { ProfileSettings } from "@/modules/admin/components/ProfileSettings";
 
 interface DashboardMetrics {
@@ -126,6 +127,7 @@ const VALID_TABS = [
   "events",
   "admission-applications",
   "fellowship-applications",
+  "certificates",
   "contact-inquiries",
   "leadership",
   "news",
@@ -151,6 +153,7 @@ export const TAB_PERMISSION_MAP: Record<TabType, string[]> = {
   events: ["event:view"],
   "admission-applications": ["admission:view", "fellowship:view"],
   "fellowship-applications": ["fellowship:view"],
+  certificates: ["certificate:view", "certificate:create"],
   "contact-inquiries": ["contact:view"],
   "site-layout": ["site_layout:view"],
   "page-content": ["page_content:view"],
@@ -171,6 +174,7 @@ export const PERMISSION_CATEGORY_MAP: Record<string, { label: string; icon: stri
   department: { label: "Academic Departments", icon: "🏛️" },
   event: { label: "Events & Symposia", icon: "📅" },
   fellowship: { label: "Fellowship Applications", icon: "🎓" },
+  certificate: { label: "Certificates & Verification", icon: "📜" },
   contact: { label: "Contact Inquiries", icon: "✉️" },
   page_content: { label: "Page Content (CMS)", icon: "📄" },
   site_layout: { label: "Site Layout & Branding", icon: "🎨" },
@@ -1378,6 +1382,37 @@ export default function AdminDashboard() {
                         : summary.metrics.totalFellowships}
                     </span>
                   )}
+                </button>
+              )}
+
+              {canAccessTab("certificates") && (
+                <button
+                  onClick={() => handleTabChange("certificates")}
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "certificates"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                      activeTab === "certificates"
+                        ? "bg-[#00bfff] text-white"
+                        : "bg-[#f0f4f8] text-[#4a5565]"
+                    }`}>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    </div>
+                    <span className="font-bold truncate whitespace-nowrap">Certificates</span>
+                  </div>
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                    activeTab === "certificates"
+                      ? "bg-white/20 text-white"
+                      : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  }`}>
+                    Verify
+                  </span>
                 </button>
               )}
 
@@ -2774,6 +2809,14 @@ export default function AdminDashboard() {
           {/* TAB: FELLOWSHIP APPLICATIONS */}
           {activeTab === "fellowship-applications" && token && (
             <FellowshipApplicationsManager
+              token={token}
+              onShowToast={handleShowToast}
+            />
+          )}
+
+          {/* TAB: CERTIFICATES & VERIFICATION */}
+          {activeTab === "certificates" && token && (
+            <CertificatesManager
               token={token}
               onShowToast={handleShowToast}
             />
