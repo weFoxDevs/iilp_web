@@ -268,18 +268,63 @@ export default function NavBar() {
           </nav>
 
           {/* Action Buttons */}
-          {/* Action Buttons */}
           <div className="flex items-center gap-[8px] font-sans">
             {navbar.actionButtons.map((btn) => {
               if (btn.variant === "primary") {
+                const isApplyBtn = btn.name.toLowerCase().includes("apply");
                 return (
-                  <Link
-                    key={btn.name + btn.href}
-                    href={btn.href}
-                    className="bg-[#00bfff] hover:bg-sky-400 rounded-full px-[16px] py-[10px] text-[14px] font-semibold text-white transition-colors drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)]"
-                  >
-                    {btn.name}
-                  </Link>
+                  <div key={btn.name + btn.href} className="relative group">
+                    <Link
+                      href={btn.href}
+                      className="inline-flex items-center gap-1.5 bg-[#00bfff] hover:bg-sky-400 rounded-full px-[16px] py-[10px] text-[14px] font-semibold text-white transition-colors drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)]"
+                    >
+                      <span>{btn.name}</span>
+                      {isApplyBtn && (
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          className="transition-transform group-hover:rotate-180"
+                        >
+                          <path
+                            d="M6 9l6 6 6-6"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </Link>
+
+                    {isApplyBtn && (
+                      <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-[0px_16px_36px_rgba(0,0,0,0.12)] border border-gray-100 p-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-150 z-50">
+                        <Link
+                          href="/fellowships"
+                          className="flex flex-col px-3 py-2.5 rounded-xl hover:bg-[#e6f9ff] text-left transition-colors group/item"
+                        >
+                          <span className="text-sm font-semibold text-[#00698c] group-hover/item:text-[#000080]">
+                            Apply for Fellowship
+                          </span>
+                          <span className="text-[11px] text-gray-500">
+                            Research, Junior &amp; Honorary Fellowships
+                          </span>
+                        </Link>
+                        <Link
+                          href="/apply"
+                          className="flex flex-col px-3 py-2.5 rounded-xl hover:bg-[#e6f9ff] text-left transition-colors group/item"
+                        >
+                          <span className="text-sm font-semibold text-[#00698c] group-hover/item:text-[#000080]">
+                            Apply for Admission
+                          </span>
+                          <span className="text-[11px] text-gray-500">
+                            Diplomas, Certificates &amp; Academic Programs
+                          </span>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 );
               }
               if (btn.variant === "outline") {
@@ -437,22 +482,48 @@ export default function NavBar() {
 
           {/* Mobile Buttons */}
           <div className="flex flex-col gap-2 pt-3 border-t border-gray-100">
-            {navbar.actionButtons.map((btn) => (
-              <Link
-                key={"mob-" + btn.name + btn.href}
-                href={btn.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`text-center py-3 px-4 text-sm font-semibold rounded-full min-h-[44px] flex items-center justify-center transition-colors ${
-                  btn.variant === "primary"
-                    ? "text-white bg-[#00bfff] hover:bg-sky-400 shadow-xs"
-                    : btn.variant === "outline"
-                    ? "text-gray-700 bg-gray-50 hover:bg-white border border-gray-200"
-                    : "text-gray-900 border border-gray-200 hover:bg-gray-50"
-                }`}
-              >
-                {btn.name}
-              </Link>
-            ))}
+            {navbar.actionButtons.map((btn) => {
+              const isApplyBtn = btn.name.toLowerCase().includes("apply");
+              if (isApplyBtn) {
+                return (
+                  <div key={"mob-" + btn.name} className="flex flex-col gap-2 pt-1">
+                    <span className="text-center font-sans text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      Application Options
+                    </span>
+                    <Link
+                      href="/fellowships"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-center py-2.5 px-4 text-sm font-semibold rounded-full min-h-[44px] flex items-center justify-center text-white bg-[#00bfff] hover:bg-sky-400 shadow-xs"
+                    >
+                      Apply for Fellowship
+                    </Link>
+                    <Link
+                      href="/apply"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-center py-2.5 px-4 text-sm font-semibold rounded-full min-h-[44px] flex items-center justify-center text-white bg-[#000080] hover:bg-[#000066] shadow-xs"
+                    >
+                      Apply for Admission
+                    </Link>
+                  </div>
+                );
+              }
+              return (
+                <Link
+                  key={"mob-" + btn.name + btn.href}
+                  href={btn.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`text-center py-3 px-4 text-sm font-semibold rounded-full min-h-[44px] flex items-center justify-center transition-colors ${
+                    btn.variant === "primary"
+                      ? "text-white bg-[#00bfff] hover:bg-sky-400 shadow-xs"
+                      : btn.variant === "outline"
+                      ? "text-gray-700 bg-gray-50 hover:bg-white border border-gray-200"
+                      : "text-gray-900 border border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  {btn.name}
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}

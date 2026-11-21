@@ -7,6 +7,8 @@ interface HeroProps {
 }
 
 export function Hero({ data }: HeroProps) {
+  const metadata = (data?.metadata || {}) as Record<string, any>;
+
   const hero = {
     badge: data?.badge ?? 'Knowledge, Justice, and Leadership for Global Change.',
     title: data?.title ?? 'International Institute for Law and Politics (IILP)',
@@ -14,8 +16,12 @@ export function Hero({ data }: HeroProps) {
       data?.subtitle ??
       'The International Institute for Law and Politics (IILP) is an independent, non-profit academic, research, policy, and leadership institute committed to strengthening the discourse, learning, and practice of international law, governance, politics, human rights, and humanitarian affairs.',
     bgImage: data?.bgImage || '/assets/home-hero-v2.png',
-    actionText: data?.actionText || 'Apply for Fellowship',
-    actionUrl: data?.actionUrl || '/fellowships',
+    fellowshipActionText: metadata.fellowshipActionText || data?.actionText || 'Apply for Fellowship',
+    fellowshipActionUrl: metadata.fellowshipActionUrl || data?.actionUrl || '/fellowships',
+    admissionActionText: metadata.admissionActionText || 'Apply for Admission',
+    admissionActionUrl: metadata.admissionActionUrl || '/apply',
+    learnMoreText: metadata.learnMoreText || 'Learn About IILP',
+    learnMoreUrl: metadata.learnMoreUrl || '/about',
   };
 
   return (
@@ -59,19 +65,30 @@ export function Hero({ data }: HeroProps) {
           </p>
         )}
         
-        {/* Actions / Buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-[12px] font-source w-full sm:w-auto">
+        {/* Actions / Buttons: Two distinct application options + Learn more */}
+        <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 sm:gap-[12px] font-source w-full sm:w-auto">
+          {/* Option 1: Apply for Fellowship */}
           <Link 
-            href={hero.actionUrl || '/fellowships'} 
+            href={hero.fellowshipActionUrl} 
             className="inline-flex items-center justify-center bg-[#00bfff] hover:bg-[#00a6e0] text-white text-sm sm:text-[16px] font-semibold leading-[24px] px-6 py-3 sm:px-[24px] sm:py-[14px] rounded-full drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto min-h-[44px]"
           >
-            {hero.actionText || 'Apply for Fellowship'}
+            {hero.fellowshipActionText}
           </Link>
+
+          {/* Option 2: Apply for Admission */}
           <Link 
-            href="/about" 
+            href={hero.admissionActionUrl} 
+            className="inline-flex items-center justify-center bg-[#000080] hover:bg-[#000066] text-white text-sm sm:text-[16px] font-semibold leading-[24px] px-6 py-3 sm:px-[24px] sm:py-[14px] rounded-full drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto min-h-[44px]"
+          >
+            {hero.admissionActionText}
+          </Link>
+
+          {/* Secondary Action: Learn About IILP */}
+          <Link 
+            href={hero.learnMoreUrl} 
             className="inline-flex items-center justify-center bg-[#f9fafb] hover:bg-white text-[#4a5565] border border-[#e5e7eb] text-sm sm:text-[16px] font-semibold leading-[24px] px-6 py-3 sm:px-[24px] sm:py-[14px] rounded-full drop-shadow-[0px_1px_0.25px_rgba(29,41,61,0.02)] transition-all hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto min-h-[44px]"
           >
-            Learn About IILP
+            {hero.learnMoreText}
           </Link>
         </div>
       </div>
