@@ -684,7 +684,23 @@ export const defaultWaysToGiveMetadata: WaysToGiveMetadata = {
 
 export const PAGE_SECTIONS_REGISTRY: Record<string, SectionDefinition[]> = {
   home: [
-    { key: "hero", label: "Hero Banner", defaultTitle: "International Institute for Law and Politics (IILP)", defaultBadge: "Global Academic Network", defaultBgImage: "/assets/home-hero-v2.png" },
+    { 
+      key: "hero", 
+      label: "Hero Banner", 
+      defaultTitle: "International Institute for Law and Politics (IILP)", 
+      defaultBadge: "Knowledge, Justice, and Leadership for Global Change.", 
+      defaultBgImage: "/assets/home-hero-v2.png",
+      defaultActionText: "Apply for Fellowship",
+      defaultActionUrl: "/fellowships",
+      defaultMetadata: {
+        fellowshipActionText: "Apply for Fellowship",
+        fellowshipActionUrl: "/fellowships",
+        admissionActionText: "Apply for Admission",
+        admissionActionUrl: "/apply",
+        learnMoreText: "Learn About IILP",
+        learnMoreUrl: "/about",
+      },
+    },
     {
       key: "our_mission",
       label: "Our Mission",
@@ -3184,6 +3200,125 @@ export function PageContentManager({ token, onShowToast }: PageContentManagerPro
                   className="w-full bg-[#f9fafb] border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
                 />
               </div>
+
+              {/* Home Hero Dual Application Options Helper */}
+              {selectedPage === "home" && editingKey === "hero" && (
+                <div className="bg-[#f0f9ff] border border-[#b9e6fe] rounded-2xl p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#00bfff]"></span>
+                    <h4 className="text-xs font-bold text-[#00698c] uppercase tracking-wider">
+                      Home Hero Dual Application CTAs (Fellowship &amp; Admission)
+                    </h4>
+                  </div>
+                  <p className="text-[11px] text-gray-600">
+                    Configure the two separate application pathways and the learn more button displayed on the homepage hero banner.
+                  </p>
+                  
+                  {/* Option 2: Apply for Admission */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                        Admission CTA Button Text
+                      </label>
+                      <input
+                        type="text"
+                        value={(() => {
+                          try {
+                            return JSON.parse(metadataJson || "{}").admissionActionText ?? "Apply for Admission";
+                          } catch {
+                            return "Apply for Admission";
+                          }
+                        })()}
+                        onChange={(e) => {
+                          try {
+                            const cur = JSON.parse(metadataJson || "{}");
+                            cur.admissionActionText = e.target.value;
+                            setMetadataJson(JSON.stringify(cur, null, 2));
+                          } catch {}
+                        }}
+                        placeholder="e.g. Apply for Admission"
+                        className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                        Admission CTA Destination URL
+                      </label>
+                      <input
+                        type="text"
+                        value={(() => {
+                          try {
+                            return JSON.parse(metadataJson || "{}").admissionActionUrl ?? "/apply";
+                          } catch {
+                            return "/apply";
+                          }
+                        })()}
+                        onChange={(e) => {
+                          try {
+                            const cur = JSON.parse(metadataJson || "{}");
+                            cur.admissionActionUrl = e.target.value;
+                            setMetadataJson(JSON.stringify(cur, null, 2));
+                          } catch {}
+                        }}
+                        placeholder="e.g. /apply"
+                        className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Secondary Action: Learn About IILP */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                        Secondary Button Text (Learn More)
+                      </label>
+                      <input
+                        type="text"
+                        value={(() => {
+                          try {
+                            return JSON.parse(metadataJson || "{}").learnMoreText ?? "Learn About IILP";
+                          } catch {
+                            return "Learn About IILP";
+                          }
+                        })()}
+                        onChange={(e) => {
+                          try {
+                            const cur = JSON.parse(metadataJson || "{}");
+                            cur.learnMoreText = e.target.value;
+                            setMetadataJson(JSON.stringify(cur, null, 2));
+                          } catch {}
+                        }}
+                        placeholder="e.g. Learn About IILP"
+                        className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#344054] mb-1">
+                        Secondary Button URL
+                      </label>
+                      <input
+                        type="text"
+                        value={(() => {
+                          try {
+                            return JSON.parse(metadataJson || "{}").learnMoreUrl ?? "/about";
+                          } catch {
+                            return "/about";
+                          }
+                        })()}
+                        onChange={(e) => {
+                          try {
+                            const cur = JSON.parse(metadataJson || "{}");
+                            cur.learnMoreUrl = e.target.value;
+                            setMetadataJson(JSON.stringify(cur, null, 2));
+                          } catch {}
+                        }}
+                        placeholder="e.g. /about"
+                        className="w-full bg-white border border-[#d0d5dd] rounded-xl px-3 py-2 text-xs text-[#101828] focus:outline-hidden focus:border-[#00bfff]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Vision Specific Helper for our_vision */}
               {editingKey === "our_vision" && (

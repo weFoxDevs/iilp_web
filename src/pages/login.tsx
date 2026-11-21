@@ -165,7 +165,7 @@ export default function LoginPage() {
                     ? "border-red-500 focus:ring-2 focus:ring-red-200"
                     : "border-[#d5d5ed] focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
                 }`}
-                placeholder="admin@iilp.org"
+                placeholder="name@example.com"
               />
               {emailError && <p className="text-xs text-red-600 font-sans mt-1">{emailError}</p>}
             </div>
@@ -216,13 +216,6 @@ export default function LoginPage() {
               </button>
             </div>
           </form>
-
-          {/* Quick Demo Credentials Info */}
-          <div className="mt-6 pt-5 border-t border-[#e5e7eb] text-center">
-            <div className="bg-[#f4faff] border border-[#b0ebff] rounded-xl p-3.5 text-xs text-[#4a5565] font-sans">
-              Default Credentials: <code className="font-mono text-[#000080] font-semibold">admin@iilp.org</code> / <code className="font-mono text-[#000080] font-semibold">adminpassword</code>
-            </div>
-          </div>
 
           {/* Back to Portal */}
           <div className="mt-6 border-t border-[#e5e7eb] pt-4 text-center">
