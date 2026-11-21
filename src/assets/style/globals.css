@@ -451,4 +451,44 @@ select option {
   margin: 2.5rem 0;
 }
 
+/* -------------------------------------------------------------
+ * Print Styles for Official Donation Receipts
+ * ------------------------------------------------------------- */
+@media print {
+  /* Hide the rest of the web application */
+  header,
+  footer,
+  nav,
+  main,
+  #__next,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0a0d12 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* When printing iframe */
+  #iilp-receipt-iframe {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    position: static !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  @page {
+    size: auto;
+    margin: 15mm;
+  }
+}
+
+
 

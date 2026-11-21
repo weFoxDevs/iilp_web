@@ -18,6 +18,7 @@ import { PublicationsManager } from "@/modules/admin/components/PublicationsMana
 import { ContactInquiriesManager } from "@/modules/admin/components/ContactInquiriesManager";
 import { AdmissionsManager } from "@/modules/admin/components/AdmissionsManager";
 import CertificatesManager from "@/modules/admin/components/CertificatesManager";
+import DonationsManager from "@/modules/admin/components/DonationsManager";
 import { ProfileSettings } from "@/modules/admin/components/ProfileSettings";
 
 interface DashboardMetrics {
@@ -128,6 +129,7 @@ const VALID_TABS = [
   "admission-applications",
   "fellowship-applications",
   "certificates",
+  "donations",
   "contact-inquiries",
   "leadership",
   "news",
@@ -154,6 +156,7 @@ export const TAB_PERMISSION_MAP: Record<TabType, string[]> = {
   "admission-applications": ["admission:view", "fellowship:view"],
   "fellowship-applications": ["fellowship:view"],
   certificates: ["certificate:view", "certificate:create"],
+  donations: ["donation:view"],
   "contact-inquiries": ["contact:view"],
   "site-layout": ["site_layout:view"],
   "page-content": ["page_content:view"],
@@ -175,6 +178,7 @@ export const PERMISSION_CATEGORY_MAP: Record<string, { label: string; icon: stri
   event: { label: "Events & Symposia", icon: "📅" },
   fellowship: { label: "Fellowship Applications", icon: "🎓" },
   certificate: { label: "Certificates & Verification", icon: "📜" },
+  donation: { label: "Donations & Philanthropy", icon: "💝" },
   contact: { label: "Contact Inquiries", icon: "✉️" },
   page_content: { label: "Page Content (CMS)", icon: "📄" },
   site_layout: { label: "Site Layout & Branding", icon: "🎨" },
@@ -215,7 +219,7 @@ function PermissionMatrixSelector({
   const domainTabs = React.useMemo(() => [
     { id: "all", label: "All Modules", icon: "🌐", cats: [] },
     { id: "admin", label: "Admin & Security", icon: "🛡️", cats: ["dashboard", "user", "role", "permission"] },
-    { id: "academic", label: "Academics & Events", icon: "🎓", cats: ["department", "event", "fellowship"] },
+    { id: "academic", label: "Academics & Events", icon: "🎓", cats: ["department", "event", "fellowship", "donation"] },
     { id: "content", label: "CMS & Publications", icon: "📰", cats: ["page_content", "site_layout", "leadership", "news", "publication", "testimonial", "site_metrics"] },
     { id: "system", label: "Inquiries & Storage", icon: "📁", cats: ["contact", "upload"] },
   ], []);
@@ -1412,6 +1416,35 @@ export default function AdminDashboard() {
                       : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                   }`}>
                     Verify
+                  </span>
+                </button>
+              )}
+
+              {canAccessTab("donations") && (
+                <button
+                  onClick={() => handleTabChange("donations")}
+                  className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "donations"
+                      ? "bg-[#000080] text-white shadow-xs font-bold"
+                      : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                      activeTab === "donations"
+                        ? "bg-[#00bfff] text-white"
+                        : "bg-[#f0f4f8] text-[#4a5565]"
+                    }`}>
+                      <span className="text-xs">💝</span>
+                    </div>
+                    <span className="font-bold truncate whitespace-nowrap">Donations</span>
+                  </div>
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ml-1.5 leading-none ${
+                    activeTab === "donations"
+                      ? "bg-white/20 text-white"
+                      : "bg-blue-50 text-[#00698c] border border-blue-200"
+                  }`}>
+                    Gifts
                   </span>
                 </button>
               )}
@@ -2817,6 +2850,14 @@ export default function AdminDashboard() {
           {/* TAB: CERTIFICATES & VERIFICATION */}
           {activeTab === "certificates" && token && (
             <CertificatesManager
+              token={token}
+              onShowToast={handleShowToast}
+            />
+          )}
+
+          {/* TAB: DONATIONS & PHILANTHROPY */}
+          {activeTab === "donations" && token && (
+            <DonationsManager
               token={token}
               onShowToast={handleShowToast}
             />
