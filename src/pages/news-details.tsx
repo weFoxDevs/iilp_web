@@ -150,7 +150,10 @@ export default function NewsDetailsPage({
                   { id: 'programs', name: 'Programs' },
                   { id: 'news', name: 'News' },
                   { id: 'events', name: 'Events' },
+                  { id: 'press-releases', name: 'Press Releases' },
+                  { id: 'opinion', name: 'Opinion' },
                 ]}
+                excludeId={article.id}
                 headerLayout="split"
               />
             </>

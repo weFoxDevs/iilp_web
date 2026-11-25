@@ -38,9 +38,10 @@ const getApiUrl = () =>
 
 // ==================== PUBLIC METHODS ====================
 
-export async function fetchHomeNews(): Promise<HomeNewsResponse | null> {
+export async function fetchHomeNews(exclude?: string): Promise<HomeNewsResponse | null> {
   try {
-    const res = await fetch(`${getApiUrl()}/news/featured-home`, {
+    const qs = exclude ? `?exclude=${encodeURIComponent(exclude)}` : '';
+    const res = await fetch(`${getApiUrl()}/news/featured-home${qs}`, {
       next: { revalidate: 60 },
     });
     if (!res.ok) {
@@ -56,6 +57,7 @@ export async function fetchHomeNews(): Promise<HomeNewsResponse | null> {
 
 export async function fetchNewsArticles(params: {
   category?: string;
+  exclude?: string;
   search?: string;
   page?: number;
   limit?: number;
@@ -63,6 +65,7 @@ export async function fetchNewsArticles(params: {
   try {
     const query = new URLSearchParams();
     if (params.category && params.category !== 'All') query.set('category', params.category);
+    if (params.exclude) query.set('exclude', params.exclude);
     if (params.search) query.set('search', params.search);
     if (params.page) query.set('page', String(params.page));
     if (params.limit) query.set('limit', String(params.limit));

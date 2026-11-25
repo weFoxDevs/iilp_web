@@ -23,6 +23,7 @@ const CATEGORY_OPTIONS = [
   { id: "programs", label: "Programs" },
   { id: "events", label: "Events" },
   { id: "press-releases", label: "Press Releases" },
+  { id: "opinion", label: "Opinion" },
 ];
 
 export function NewsManager({ token, onShowToast }: NewsManagerProps) {

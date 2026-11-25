@@ -50,7 +50,7 @@ export function NewsMedia({ data }: NewsMediaProps) {
     actionText: 'View All News',
     actionUrl: '/news',
     metadata: {
-      tabs: ['Programs', 'News', 'Events'],
+      tabs: ['Programs', 'News', 'Events', 'Press Releases', 'Opinion'],
       featured: {
         id: 'featured',
         category: 'News',
