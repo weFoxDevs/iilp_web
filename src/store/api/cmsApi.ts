@@ -7,6 +7,7 @@ import type {
 import type { DepartmentItem } from '@/common/services/departments.service';
 import type { LeadershipMemberItem } from '@/common/services/leadership.service';
 import type { HomeNewsResponse, PaginatedNewsResponse, NewsArticleItem } from '@/common/services/news.service';
+import type { PaginatedBlogsResponse, FeaturedBlogResponse, BlogPostItem } from '@/common/services/blogs.service';
 
 const getApiUrl = () =>
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
@@ -15,7 +16,7 @@ export const cmsApi = createApi({
   reducerPath: 'cmsApi',
   baseQuery: fetchBaseQuery({ baseUrl: getApiUrl() }),
   keepUnusedDataFor: 300, // cache 5 minutes
-  tagTypes: ['PageContent', 'SiteMetrics', 'Testimonials', 'Departments', 'Leadership', 'News'],
+  tagTypes: ['PageContent', 'SiteMetrics', 'Testimonials', 'Departments', 'Leadership', 'News', 'Blogs'],
   endpoints: (builder) => ({
     // ── Pages / CMS ──────────────────────────────────────────────────
     getPageContent: builder.query<PageContentResponse, string>({
@@ -90,6 +91,35 @@ export const cmsApi = createApi({
       query: (slug) => `/news/${encodeURIComponent(slug)}`,
       providesTags: (_result, _err, slug) => [{ type: 'News', id: slug }],
     }),
+
+    // ── Blogs ─────────────────────────────────────────────────────────
+    getFeaturedBlog: builder.query<FeaturedBlogResponse, string | void>({
+      query: (exclude) =>
+        exclude ? `/blogs/featured?exclude=${encodeURIComponent(exclude)}` : '/blogs/featured',
+      providesTags: ['Blogs'],
+    }),
+
+    getBlogs: builder.query<
+      PaginatedBlogsResponse,
+      { category?: string; tag?: string; exclude?: string; search?: string; page?: number; limit?: number }
+    >({
+      query: ({ category, tag, exclude, search, page, limit } = {}) => {
+        const params = new URLSearchParams();
+        if (category && category.toLowerCase() !== 'all') params.set('category', category);
+        if (tag) params.set('tag', tag);
+        if (exclude) params.set('exclude', exclude);
+        if (search) params.set('search', search);
+        if (page) params.set('page', String(page));
+        if (limit) params.set('limit', String(limit));
+        return `/blogs?${params.toString()}`;
+      },
+      providesTags: ['Blogs'],
+    }),
+
+    getBlogBySlug: builder.query<BlogPostItem, string>({
+      query: (slug) => `/blogs/${encodeURIComponent(slug)}`,
+      providesTags: (_result, _err, slug) => [{ type: 'Blogs', id: slug }],
+    }),
   }),
 });
 
@@ -103,4 +133,7 @@ export const {
   useGetHomeNewsQuery,
   useGetNewsArticlesQuery,
   useGetNewsArticleBySlugQuery,
+  useGetFeaturedBlogQuery,
+  useGetBlogsQuery,
+  useGetBlogBySlugQuery,
 } = cmsApi;

@@ -12,6 +12,7 @@ import { DepartmentsManager } from "@/modules/admin/components/DepartmentsManage
 import { EventsManager } from "@/modules/admin/components/EventsManager";
 import { SiteLayoutManager } from "@/modules/admin/components/SiteLayoutManager";
 import { NewsManager } from "@/modules/admin/components/NewsManager";
+import { BlogsManager } from "@/modules/admin/components/BlogsManager";
 import { FellowshipApplicationsManager } from "@/modules/admin/components/FellowshipApplicationsManager";
 import { LeadershipManager } from "@/modules/admin/components/LeadershipManager";
 import { PublicationsManager } from "@/modules/admin/components/PublicationsManager";
@@ -133,6 +134,7 @@ const VALID_TABS = [
   "contact-inquiries",
   "leadership",
   "news",
+  "blogs",
   "site-layout",
   "page-content",
   "departments",
@@ -162,6 +164,7 @@ export const TAB_PERMISSION_MAP: Record<TabType, string[]> = {
   "page-content": ["page_content:view"],
   leadership: ["leadership:view"],
   news: ["news:view"],
+  blogs: ["blogs:view"],
   publications: ["publication:view"],
   "site-metrics": ["site_metrics:view"],
   testimonials: ["testimonial:view"],
@@ -184,6 +187,7 @@ export const PERMISSION_CATEGORY_MAP: Record<string, { label: string; icon: stri
   site_layout: { label: "Site Layout & Branding", icon: "🎨" },
   leadership: { label: "Leadership Directory", icon: "👥" },
   news: { label: "News & Media Articles", icon: "📰" },
+  blogs: { label: "Blog Posts", icon: "✍️" },
   publication: { label: "Research Publications", icon: "📚" },
   site_metrics: { label: "Site Impact Metrics", icon: "📈" },
   testimonial: { label: "Testimonials", icon: "💬" },
@@ -220,7 +224,7 @@ function PermissionMatrixSelector({
     { id: "all", label: "All Modules", icon: "🌐", cats: [] },
     { id: "admin", label: "Admin & Security", icon: "🛡️", cats: ["dashboard", "user", "role", "permission"] },
     { id: "academic", label: "Academics & Events", icon: "🎓", cats: ["department", "event", "fellowship", "donation"] },
-    { id: "content", label: "CMS & Publications", icon: "📰", cats: ["page_content", "site_layout", "leadership", "news", "publication", "testimonial", "site_metrics"] },
+    { id: "content", label: "CMS & Publications", icon: "📰", cats: ["page_content", "site_layout", "leadership", "news", "blogs", "publication", "testimonial", "site_metrics"] },
     { id: "system", label: "Inquiries & Storage", icon: "📁", cats: ["contact", "upload"] },
   ], []);
 
@@ -656,6 +660,7 @@ export default function AdminDashboard() {
         newTab === "page-content" ||
         newTab === "leadership" ||
         newTab === "news" ||
+        newTab === "blogs" ||
         newTab === "departments" ||
         newTab === "site-metrics" ||
         newTab === "testimonials"
@@ -694,6 +699,7 @@ export default function AdminDashboard() {
             queryTab === "page-content" ||
             queryTab === "leadership" ||
             queryTab === "news" ||
+            queryTab === "blogs" ||
             queryTab === "departments" ||
             queryTab === "site-metrics" ||
             queryTab === "testimonials"
@@ -1493,6 +1499,7 @@ export default function AdminDashboard() {
             canAccessTab("page-content") ||
             canAccessTab("leadership") ||
             canAccessTab("news") ||
+            canAccessTab("blogs") ||
             canAccessTab("publications") ||
             canAccessTab("site-metrics") ||
             canAccessTab("testimonials") ||
@@ -1509,6 +1516,7 @@ export default function AdminDashboard() {
                   activeTab === "page-content" ||
                   activeTab === "leadership" ||
                   activeTab === "news" ||
+                  activeTab === "blogs" ||
                   activeTab === "departments" ||
                   activeTab === "site-metrics" ||
                   activeTab === "testimonials" ||
@@ -1519,7 +1527,7 @@ export default function AdminDashboard() {
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                    activeTab === "site-layout" || activeTab === "page-content" || activeTab === "leadership" || activeTab === "news" || activeTab === "departments" || activeTab === "site-metrics" || activeTab === "testimonials" || activeTab === "publications"
+                    activeTab === "site-layout" || activeTab === "page-content" || activeTab === "leadership" || activeTab === "news" || activeTab === "blogs" || activeTab === "departments" || activeTab === "site-metrics" || activeTab === "testimonials" || activeTab === "publications"
                       ? "bg-[#00bfff] text-white"
                       : "bg-[#f0f4f8] text-[#4a5565]"
                   }`}>
@@ -1537,6 +1545,7 @@ export default function AdminDashboard() {
                     activeTab === "page-content" ||
                     activeTab === "leadership" ||
                     activeTab === "news" ||
+                    activeTab === "blogs" ||
                     activeTab === "departments" ||
                     activeTab === "site-metrics" ||
                     activeTab === "testimonials" ||
@@ -1614,6 +1623,22 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-2 min-w-0">
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "news" ? "bg-[#00bfff]" : "bg-amber-500"}`}></span>
                         <span className="truncate whitespace-nowrap">News &amp; Media Articles</span>
+                      </div>
+                    </button>
+                  )}
+
+                  {canAccessTab("blogs") && (
+                    <button
+                      onClick={() => handleTabChange("blogs")}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        activeTab === "blogs"
+                          ? "bg-[#000080] text-white shadow-xs font-bold"
+                          : "text-[#4a5565] hover:bg-[#f4faff] hover:text-[#000080]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeTab === "blogs" ? "bg-[#00bfff]" : "bg-emerald-500"}`}></span>
+                        <span className="truncate whitespace-nowrap">Blog Posts</span>
                       </div>
                     </button>
                   )}
@@ -1754,6 +1779,7 @@ export default function AdminDashboard() {
               {activeTab === "site-layout" && "Global Layout & Branding"}
               {activeTab === "page-content" && "Page Content (CMS)"}
               {activeTab === "news" && "News & Media"}
+              {activeTab === "blogs" && "Blog Posts"}
               {activeTab === "publications" && "Research Publications"}
               {activeTab === "site-metrics" && "Site Impact Metrics"}
               {activeTab === "testimonials" && "Student Testimonials"}
@@ -2890,6 +2916,14 @@ export default function AdminDashboard() {
           {/* TAB: NEWS & ARTICLES */}
           {activeTab === "news" && token && (
             <NewsManager
+              token={token}
+              onShowToast={handleShowToast}
+            />
+          )}
+
+          {/* TAB: BLOG POSTS */}
+          {activeTab === "blogs" && token && (
+            <BlogsManager
               token={token}
               onShowToast={handleShowToast}
             />

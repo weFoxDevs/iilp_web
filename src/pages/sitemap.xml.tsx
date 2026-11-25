@@ -11,6 +11,7 @@ const staticRoutes = [
   { url: '/governance', changeFreq: 'monthly', priority: '0.7' },
   { url: '/leadership-directory', changeFreq: 'monthly', priority: '0.7' },
   { url: '/news-media', changeFreq: 'daily', priority: '0.8' },
+  { url: '/blogs', changeFreq: 'daily', priority: '0.8' },
   { url: '/apply', changeFreq: 'weekly', priority: '0.7' },
   { url: '/contact', changeFreq: 'monthly', priority: '0.6' },
   { url: '/privacy-policy', changeFreq: 'yearly', priority: '0.3' },
