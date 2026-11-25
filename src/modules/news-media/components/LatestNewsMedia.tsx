@@ -16,6 +16,7 @@ const defaultFilterTabs: FilterTab[] = [
   { id: "programs", name: "Programs" },
   { id: "events", name: "Events" },
   { id: "press-releases", name: "Press Releases" },
+  { id: "opinion", name: "Opinion" },
 ];
 
 interface LatestNewsMediaProps {
@@ -25,6 +26,7 @@ interface LatestNewsMediaProps {
   tabs?: FilterTab[];
   detailsHref?: string;
   headerLayout?: "center" | "split";
+  excludeId?: string;
   data?: Partial<PageSectionData>;
 }
 
@@ -49,6 +51,7 @@ export default function LatestNewsMedia({
   subtitle: propSubtitle = "Latest developments from IILP and upcoming conferences, seminars, and workshops.",
   tabs = defaultFilterTabs,
   headerLayout = "center",
+  excludeId,
   data,
 }: LatestNewsMediaProps) {
   const badge = data?.badge || propBadge;
@@ -58,6 +61,7 @@ export default function LatestNewsMedia({
 
   const { data: newsData, isLoading } = useGetNewsArticlesQuery({
     category: activeFilter !== "all" ? activeFilter : undefined,
+    exclude: excludeId,
     limit: 20,
   });
 

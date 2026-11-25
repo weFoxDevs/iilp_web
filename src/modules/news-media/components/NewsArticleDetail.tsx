@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { NewsArticleItem } from "@/common/services/news.service";
@@ -60,6 +60,11 @@ function cleanArticleContent(
 
 export default function NewsArticleDetail({ article }: NewsArticleDetailProps) {
   const [copied, setCopied] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState("");
+
+  useEffect(() => {
+    setCurrentUrl(encodeURIComponent(window.location.href));
+  }, [article?.id]);
 
   if (!article) return null;
 
@@ -81,10 +86,6 @@ export default function NewsArticleDetail({ article }: NewsArticleDetailProps) {
     }
   };
 
-  const currentUrl =
-    typeof window !== "undefined"
-      ? encodeURIComponent(window.location.href)
-      : "";
   const shareTitle = encodeURIComponent(article.title);
 
   return (

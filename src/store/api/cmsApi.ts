@@ -64,18 +64,20 @@ export const cmsApi = createApi({
     }),
 
     // ── News ──────────────────────────────────────────────────────────
-    getHomeNews: builder.query<HomeNewsResponse, void>({
-      query: () => '/news/featured-home',
+    getHomeNews: builder.query<HomeNewsResponse, string | void>({
+      query: (exclude) =>
+        exclude ? `/news/featured-home?exclude=${encodeURIComponent(exclude)}` : '/news/featured-home',
       providesTags: ['News'],
     }),
 
     getNewsArticles: builder.query<
       PaginatedNewsResponse,
-      { category?: string; search?: string; page?: number; limit?: number }
+      { category?: string; exclude?: string; search?: string; page?: number; limit?: number }
     >({
-      query: ({ category, search, page, limit } = {}) => {
+      query: ({ category, exclude, search, page, limit } = {}) => {
         const params = new URLSearchParams();
         if (category && category.toLowerCase() !== 'all') params.set('category', category);
+        if (exclude) params.set('exclude', exclude);
         if (search) params.set('search', search);
         if (page) params.set('page', String(page));
         if (limit) params.set('limit', String(limit));
